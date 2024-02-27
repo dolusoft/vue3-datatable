@@ -68,6 +68,11 @@
         </div>
     </div>
 </template>
+<script lang="ts">
+export default {
+    name: 'columnFilter',
+};
+</script>
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue';
 

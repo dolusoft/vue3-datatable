@@ -169,7 +169,11 @@
         </div>
     </div>
 </template>
-
+<script lang="ts">
+export default {
+    name: 'Vue3Datatable',
+};
+</script>
 <script setup lang="ts">
 import { computed, onMounted, Ref, ref, useSlots, watch } from 'vue';
 import columnHeader from './column-header.vue';

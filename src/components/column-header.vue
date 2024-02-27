@@ -83,6 +83,11 @@
         </template>
     </tr>
 </template>
+<script lang="ts">
+export default {
+    name: 'columnHeader',
+};
+</script>
 <script setup lang="ts">
 import { watch, ref } from 'vue';
 import columnFilter from './column-filter.vue';
