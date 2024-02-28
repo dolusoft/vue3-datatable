@@ -6,17 +6,18 @@ import NotFound from './NotFound.vue';
 
 const routes = {
     '/': Default,
+    '/Default': Default,
     '/Expandrow': Expandrow,
 };
 
-const currentPath = ref(window.location.hash);
+const currentPath = ref(window.location.pathname);
 
 window.addEventListener('hashchange', () => {
-    currentPath.value = window.location.hash;
+    currentPath.value = window.location.pathname;
 });
 
 const currentView = computed(() => {
-    return routes[currentPath.value.slice(1) || '/'] || NotFound;
+    return routes[currentPath.value] || NotFound;
 });
 </script>
 

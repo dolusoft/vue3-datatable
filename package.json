@@ -1,6 +1,6 @@
 {
     "name": "@dolusoft/vue3-datatable",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "description": "Vue3 Datatable - fully customizable & easy to use datatable library",
     "private": false,
     "type": "module",
@@ -64,9 +64,12 @@
         "tailwind:build": "npx tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --minify"
     },
     "dependencies": {
-        "vue": "^3.4.20"
+        "@fortawesome/vue-fontawesome": "^3.0.6",
+        "vue": "^3.4.20",
+        "vue-data-ui": "^2.0.0"
     },
     "devDependencies": {
+        "@iconify/vue": "^4.1.1",
         "@types/node": "^20.11.20",
         "@vitejs/plugin-vue": "^5.0.4",
         "autoprefixer": "^10.4.17",

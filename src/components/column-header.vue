@@ -18,6 +18,7 @@
                 </div>
             </div>
         </th>
+        <th v-if="props.all.hasSubtable"></th>
         <template v-for="(col, j) in props.all.columns">
             <th
                 v-if="!col.hide"
