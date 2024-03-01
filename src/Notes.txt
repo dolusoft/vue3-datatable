@@ -1,0 +1,22 @@
+Vue Table
+
+1. vue-easytable => https://happy-coding-clans.github.io/vue-easytable/#/en/doc/table/footer-summary
+2. vue-good-table => https://xaksis.github.io/vue-good-table/
+3. vue3-datatable => https://vue3-datatable-document.vercel.app/static-mode
+4. vue3-easy-data-table => https://hc200ok.github.io/vue3-easy-data-table-doc/features/expand-slot.html
+
+
+
+Vue3 Datatable Geliştirme işlemleri
+
+0. Ana proje forklanacak. [ok]
+1. Subtable özelliği getirilecek [ok]
+2. Footer row özelliği getirilecek
+3. Yeni event'lar eklenecek
+4. Github'a public proje olarak atılacak. [ok]
+5. NPM'e paket olarak yüklenecek [ok]
+
+********
+1. Subtable'lar dışarıdan açılıp kapatılabilecek. [ok]
+
+

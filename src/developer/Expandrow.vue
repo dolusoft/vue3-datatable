@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue';
 import '../../dist/style.css';
 import Vue3Datatable from '../components/custom-table.vue';
+import DevSubTableExample from './devcomponent/dev-sub-table-example.vue';
 
 onMounted(() => {
     getUsers();
@@ -11,6 +12,7 @@ const datatable: any = ref(null);
 const loading: any = ref(true);
 const total_rows = ref(0);
 const rows: any = ref(null);
+const footer_rows = ref<any>(null);
 const cols =
     ref([
         { field: 'id', title: 'ID', isUnique: true, filter: false },
@@ -49,7 +51,7 @@ const filterUsers = () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
         getUsers();
-    }, 1);
+    }, 150);
 };
 const getUsers = async () => {
     // cancel request if previous request still pending before next request fire
@@ -62,8 +64,9 @@ const getUsers = async () => {
     try {
         loading.value = true;
 
-        const response = await fetch('https://vue3-datatable-document.vercel.app/api/user', {
+        const response = await fetch('http://localhost:5202/datatable/api/user', {
             method: 'POST',
+            headers: new Headers({ 'content-type': 'application/json' }),
             body: JSON.stringify(params),
             signal: signal, // Assign the signal to the fetch request
         });
@@ -77,107 +80,32 @@ const getUsers = async () => {
     loading.value = false;
 };
 
-import { VueUiWaffle } from 'vue-data-ui';
-import 'vue-data-ui/style.css';
-
-const config = ref({
-    useBlurOnHover: true,
-    style: {
-        fontFamily: 'inherit',
-        chart: {
-            backgroundColor: '#FFFFFF',
-            color: '#1A1A1A',
-            layout: {
-                labels: {
-                    dataLabels: {
-                        prefix: '',
-                        suffix: '',
-                    },
-                },
-                grid: {
-                    size: 10,
-                    spaceBetween: 0,
-                    vertical: false,
-                },
-                rect: {
-                    rounding: 2,
-                    stroke: '#1A1A1A',
-                    strokeWidth: 1,
-                    useGradient: true,
-                    gradientIntensity: 40,
-                },
-            },
-            title: {
-                text: 'Title',
-                color: '#1A1A1A',
-                fontSize: 20,
-                bold: true,
-                subtitle: {
-                    text: '',
-                    color: '#A1A1A1',
-                    fontSize: 16,
-                    bold: false,
-                },
-            },
-            tooltip: {
-                show: true,
-                backgroundColor: '#FFFFFF',
-                color: '#1A1A1A',
-                fontSize: 14,
-                showValue: true,
-                roundingValue: 0,
-                showPercentage: true,
-                roundingPercentage: 0,
-            },
-            legend: {
-                show: true,
-                backgroundColor: '#FFFFFF',
-                color: '#1A1A1A',
-                fontSize: 14,
-                bold: false,
-                roundingValue: 0,
-                roundingPercentage: 0,
-            },
-        },
-    },
-    userOptions: {
-        show: true,
-    },
-    table: {
-        show: false,
-        responsiveBreakpoint: 400,
-        columnNames: {
-            series: 'Series',
-            value: 'Value',
-            percentage: 'Percentage',
-        },
-        th: {
-            backgroundColor: '#FFFFFF',
-            color: '#1A1A1A',
-            outline: 'none',
-        },
-        td: {
-            backgroundColor: '#FFFFFF',
-            color: '#1A1A1A',
-            outline: 'none',
-            roundingValue: 0,
-            roundingPercentage: 0,
-        },
-    },
-});
-
-const dataset = ref([
+footer_rows.value = [
     {
-        name: 'series 1',
-        values: [60],
-        color: '#42d392',
+        id: 1244,
+        cells: [
+            { field: 'id', text: '1.232 Adet' },
+            { field: 'age', text: '1.232 Adet' },
+            { field: 'address.city', text: '1.232 Adet' },
+        ],
     },
     {
-        name: 'series 2',
-        values: [40],
-        color: '#6376DD',
+        id: 1244,
+        cells: [
+            { field: 'id', text: '1.232 Adet' },
+            { field: 'age', text: '1.232 Adet' },
+            { field: 'address.city', text: '1.232 Adet' },
+        ],
     },
-]);
+    {
+        id: 1244,
+        cells: [
+            { field: 'id', text: '1.232 Adet' },
+            { field: 'age', text: '1.232 Adet' },
+            { field: 'address.city', text: '1.232 Adet' },
+        ],
+    },
+];
 </script>
 <template>
     <div class="bh-p-10">
@@ -190,34 +118,33 @@ const dataset = ref([
             />
             <button type="button" class="btn mb-4 bh-p-2" @click="datatable.reset()">Reset</button> <br />
         </div>
-
         <vue3-datatable
             ref="datatable"
             :loading="loading"
             :rows="rows"
+            :footerRows="footer_rows"
             :columns="cols"
             :totalRows="total_rows"
             :isServerMode="true"
             :page="params.current_page"
             :pageSize="params.pagesize"
-            :pageSizeOptions="[3, 5, 10]"
+            :pageSizeOptions="[1, 3, 5, 10]"
             :sortable="true"
             :sortColumn="params.sort_column"
             :sortDirection="params.sort_direction"
             :search="params.search"
             :hasCheckbox="true"
             :hasSubtable="true"
+            :expandall="true"
             :columnFilter="true"
-            skin="bh-table-striped"
+            skin="bh-table-striped bh-table-hover bh-table-bordered bh-table-compact"
             @change="changeServer"
         >
             <template #email="data">
                 <a :href="`mailto:${data.value.email}`" class="text-primary hover:underline">{{ data.value.email }}</a>
             </template>
-            <template #tsub="row">
-                <div style="width: 200px">
-                    <VueUiWaffle :config="config" :dataset="dataset" />
-                </div>
+            <template #tsub="rowdata">
+                <DevSubTableExample :rowdata="rowdata"></DevSubTableExample>
             </template>
         </vue3-datatable>
     </div>

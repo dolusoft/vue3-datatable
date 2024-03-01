@@ -25,3 +25,16 @@ const currentView = computed(() => {
     <a href="/Default">Default</a> | <a href="/Expandrow">Expandrow</a>
     <component :is="currentView" />
 </template>
+
+<style>
+body {
+    -webkit-text-size-adjust: 100%;
+    font-feature-settings: normal;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+        Segoe UI Symbol, Noto Color Emoji;
+    line-height: 1.5;
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+}
+</style>

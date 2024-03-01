@@ -1,3 +1,30 @@
+<script lang="ts">
+export default {
+    name: 'columnHeader',
+};
+</script>
+<script setup lang="ts">
+import { watch, ref } from 'vue';
+import columnFilter from './column-filter.vue';
+import iconCheck from './icon-check.vue';
+import iconDash from './icon-dash.vue';
+import iconFilter from './icon-filter.vue';
+import ButtonExpand from './button-expand.vue';
+
+const selectedAll: any = ref(null);
+
+const props = defineProps(['all', 'expandedrows', 'currentSortColumn', 'currentSortDirection', 'isOpenFilter', 'isFooter', 'checkAll', 'columnFilterLang']);
+
+
+const emit = defineEmits(['selectAll', 'sortChange', 'filterChange', 'toggleFilterMenu']);
+const checkboxChange = () => {
+    if (selectedAll.value) {
+        selectedAll.value.indeterminate = props.checkAll !== 0 ? !props.checkAll : false;
+        selectedAll.value.checked = props.checkAll;
+    }
+};
+watch(() => props.checkAll, checkboxChange);
+</script>
 <template>
     <tr key="hdrrow">
         <th
@@ -18,7 +45,13 @@
                 </div>
             </div>
         </th>
-        <th v-if="props.all.hasSubtable"></th>
+        <template v-if="props.all.hasSubtable">
+            <th>
+                <template v-if="props.all.expandall">
+                    <button-expand :expandedrows="props.expandedrows" :expandall="props.all.expandall"> </button-expand>
+                </template>
+            </th>
+        </template>
         <template v-for="(col, j) in props.all.columns">
             <th
                 v-if="!col.hide"
@@ -60,7 +93,7 @@
                         <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="bh-form-control" @keyup="emit('filterChange')" />
                         <input v-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="bh-form-control" @keyup="emit('filterChange')" />
                         <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="bh-form-control" @change="emit('filterChange')" />
-                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="bh-form-control" @change="emit('filterChange')" @click="props.isOpenFilter = null">
+                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="bh-form-control" @change="emit('filterChange')" @click="props.isOpenFilter">
                             <option :value="undefined">All</option>
                             <option :value="true">True</option>
                             <option :value="false">False</option>
@@ -84,28 +117,3 @@
         </template>
     </tr>
 </template>
-<script lang="ts">
-export default {
-    name: 'columnHeader',
-};
-</script>
-<script setup lang="ts">
-import { watch, ref } from 'vue';
-import columnFilter from './column-filter.vue';
-import iconCheck from './icon-check.vue';
-import iconDash from './icon-dash.vue';
-import iconFilter from './icon-filter.vue';
-
-const selectedAll: any = ref(null);
-
-const props = defineProps(['all', 'currentSortColumn', 'currentSortDirection', 'isOpenFilter', 'isFooter', 'checkAll', 'columnFilterLang']);
-
-const emit = defineEmits(['selectAll', 'sortChange', 'filterChange', 'toggleFilterMenu']);
-const checkboxChange = () => {
-    if (selectedAll.value) {
-        selectedAll.value.indeterminate = props.checkAll !== 0 ? !props.checkAll : false;
-        selectedAll.value.checked = props.checkAll;
-    }
-};
-watch(() => props.checkAll, checkboxChange);
-</script>

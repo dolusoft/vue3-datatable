@@ -8,7 +8,8 @@ import { computed, onMounted, Ref, ref, useSlots, watch } from 'vue';
 import columnHeader from './column-header.vue';
 import iconCheck from './icon-check.vue';
 import iconLoader from './icon-loader.vue';
-import { Icon } from '@iconify/vue';
+import ButtonExpand from './button-expand.vue';
+import { ExpandedRow } from '../model/helper';
 
 const slots = useSlots();
 
@@ -38,9 +39,11 @@ interface Props {
     skin?: string;
     totalRows?: number;
     rows?: Array<any>;
+    footerRows?: Array<any>;
     columns?: Array<colDef>;
     hasCheckbox?: boolean;
     hasSubtable?: boolean;
+    expandall?: boolean;
     search?: string;
     columnChooser?: boolean;
     page?: number; // default: 1
@@ -78,9 +81,11 @@ const props = withDefaults(defineProps<Props>(), {
     skin: 'bh-table-striped bh-table-hover',
     totalRows: 0,
     rows: () => [],
+    footerRows: () => [],
     columns: () => [],
     hasCheckbox: false,
     hasSubtable: false,
+    expandall: false,
     search: '',
     columnChooser: false,
     page: 1,
@@ -392,6 +397,8 @@ const filteredRows = () => {
     return rows;
 };
 
+const expandedrows = ref<ExpandedRow[]>([]);
+
 const filterRows = () => {
     let result = [];
     let rows = filteredRows();
@@ -402,6 +409,17 @@ const filterRows = () => {
     } else {
         filterRowCount.value = rows?.length || 0;
         result = rows.slice(offset.value - 1, <number>limit.value);
+    }
+
+    if (props.hasSubtable) {
+        result.forEach(function (value) {
+            if (value.isExpanded != undefined) {
+                const found = expandedrows.value.find((x) => x.id == value.id);
+                if (!found) {
+                    expandedrows.value.push({ id: value.id, isExpanded: value.isExpanded });
+                }
+            }
+        });
     }
 
     filterItems.value = result || [];
@@ -708,19 +726,25 @@ const isRowSelected = (index: number) => {
     }
     return false;
 };
-const expandrows: { [id: number]: boolean } = ref({});
-function expandrow(id: number) {
-    expandrows.value[id] = !expandrows.value[id];
-    console.log(expandrows.value[id]);
+
+let extracolumnlength = 0;
+if (props.hasCheckbox) {
+    extracolumnlength++;
 }
+if (props.hasSubtable) {
+    extracolumnlength++;
+}
+
+console.log(props.footerRows);
 </script>
 <template>
     <div class="bh-datatable bh-antialiased bh-relative bh-text-black bh-text-sm bh-font-normal">
-        <div class="bh-table-responsive" :class="{ 'bh-min-h-[300px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
+        <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
             <table :class="[props.skin]">
                 <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
                     <column-header
                         :all="props"
+                        :expandedrows="expandedrows"
                         :currentSortColumn="currentSortColumn"
                         :currentSortDirection="currentSortDirection"
                         :isOpenFilter="isOpenFilter"
@@ -758,10 +782,7 @@ function expandrow(id: number) {
                                     'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn,
                                 }"
                             >
-                                <button style="cursor: pointer" @click="expandrow(item.id)">
-                                    <Icon icon="mdi:chevron-right" />
-                                    {{ expandrows[item.id] }}
-                                </button>
+                                <button-expand :item="item" :expandedrows="expandedrows"> </button-expand>
                             </td>
                             <template v-for="(col, j) in props.columns">
                                 <td
@@ -784,29 +805,70 @@ function expandrow(id: number) {
                                 </td>
                             </template>
                         </tr>
-                        <tr
-                            v-if="expandrows[item.id]"
-                            :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
-                            @click.prevent="rowClick(item, i)"
-                        >
-                            <td :colspan="hasCheckbox ? props.columns.length + 2 : props.columns.length">
-                                <slot name="tsub" :value="filterItems"> </slot>
-                            </td>
-                        </tr>
-                        <tr v-if="props.hasSubtable"></tr>
+                        <template v-if="expandedrows.find((x) => x.id == item.id)?.isExpanded && props.hasSubtable">
+                            <tr
+                                :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
+                                @click.prevent="rowClick(item, i)"
+                            >
+                                <td :colspan="props.columns.length + extracolumnlength">
+                                    <slot name="tsub" :value="filterItems"></slot>
+                                </td>
+                            </tr>
+                        </template>
                     </template>
 
                     <tr v-if="!filterRowCount && !currentLoader">
-                        <td :colspan="props.columns.length + 1">
+                        <td :colspan="props.columns.length + extracolumnlength">
                             {{ props.noDataContent }}
                         </td>
                     </tr>
 
                     <template v-if="!filterRowCount && currentLoader">
                         <tr v-for="i in props.pageSize" :key="i" class="!bh-bg-white bh-h-11 !bh-border-transparent">
-                            <td :colspan="props.columns.length + 1" class="!bh-p-0 !bh-border-transparent">
+                            <td :colspan="props.columns.length + extracolumnlength" class="!bh-p-0 !bh-border-transparent">
                                 <div class="bh-skeleton-box bh-h-8"></div>
                             </td>
+                        </tr>
+                    </template>
+
+                    <template v-if="filterRowCount">
+                        <tr v-for="(item, i) in props.footerRows" :key="item[uniqueKey] ? item[uniqueKey] : i">
+                            <td :colspan="extracolumnlength"></td>
+                            <template v-for="(col, j) in props.columns">
+                                <td
+                                    v-if="!col.hide"
+                                    :key="col.field"
+                                    :class="[
+                                        typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
+                                        j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                        props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                        col.cellClass ? col.cellClass : '',
+                                    ]"
+                                >
+                                    <template v-if="item.cells.find((x) => x.field == col.field)">
+                                        {{ item.cells.find((x) => x.field == col.field).text }}
+                                    </template>
+                                </td>
+
+                                <!-- <td
+                                    v-if="!col.hide"
+                                    :key="col.field"
+                                    :class="[
+                                        typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
+                                        j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                        props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                        col.cellClass ? col.cellClass : '',
+                                    ]"
+                                >
+                                    <template v-if="slots[col.field]">
+                                        <slot :name="col.field" :value="item"></slot>
+                                    </template>
+                                    <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
+                                    <template v-else>
+                                        {{ cellValue(item, col.field) }}
+                                    </template>
+                                </td> -->
+                            </template>
                         </tr>
                     </template>
                 </tbody>

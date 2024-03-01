@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
-import Vue3Datatable from '../components/custom-table.vue';
-import '../../dist/style.css';
+import '../../../dist/style.css';
+import Vue3Datatable from '../../components/custom-table.vue';
 
 onMounted(() => {
     getUsers();
 });
+
+const props = defineProps<{
+    rowdata?: any;
+}>();
+
+console.log(props.rowdata);
 
 const datatable: any = ref(null);
 const loading: any = ref(true);
@@ -64,7 +70,7 @@ const getUsers = async () => {
 
         const response = await fetch('http://localhost:5202/datatable/api/user', {
             method: 'POST',
-            headers: new Headers({'content-type': 'application/json'}),
+            headers: new Headers({ 'content-type': 'application/json' }),
             body: JSON.stringify(params),
             signal: signal, // Assign the signal to the fetch request
         });
@@ -79,35 +85,25 @@ const getUsers = async () => {
 };
 </script>
 <template>
-    <div class="bh-p-10">
-        <div class="bh-mb-2">
-            <input
-                type="text"
-                v-model="params.search"
-                placeholder="Search..."
-                class="bh-border bh-border-solid bh-bg-white bh-p-2 bh-outline-0 bh-border-gray-200 focus:bh-border-gray-200 bh-rounded"
-            />
-            <button type="button" class="btn mb-4 bh-p-2" @click="datatable.reset()">Reset</button> <br />
-        </div>
-
-        <vue3-datatable
-            ref="datatable"
-            :loading="loading"
-            :rows="rows"
-            :columns="cols"
-            :totalRows="total_rows"
-            :isServerMode="true"
-            :page="params.current_page"
-            :pageSize="params.pagesize"
-            :pageSizeOptions="[3, 5, 10]"
-            :sortable="true"
-            :sortColumn="params.sort_column"
-            :sortDirection="params.sort_direction"
-            :search="params.search"
-            :hasCheckbox="true"
-            :columnFilter="false"
-            @change="changeServer"
-        >
-        </vue3-datatable>
-    </div>
+    <vue3-datatable
+        ref="datatable"
+        :loading="loading"
+        :rows="rows"
+        :columns="cols"
+        :totalRows="total_rows"
+        :isServerMode="true"
+        :page="params.current_page"
+        :pageSize="params.pagesize"
+        :pageSizeOptions="[1, 3, 5, 10]"
+        :sortable="false"
+        :sortColumn="params.sort_column"
+        :sortDirection="params.sort_direction"
+        :search="params.search"
+        :hasCheckbox="false"
+        :hasSubtable="false"
+        :expandall="false"
+        :columnFilter="false"
+        @change="changeServer"
+    >
+    </vue3-datatable>
 </template>
