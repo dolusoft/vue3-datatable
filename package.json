@@ -1,6 +1,6 @@
 {
     "name": "@dolusoft/vue3-datatable",
-    "version": "1.1.8",
+    "version": "1.2.1",
     "description": "Vue3 Datatable - fully customizable & easy to use datatable library",
     "private": false,
     "type": "module",
@@ -17,19 +17,14 @@
         },
         "./dist/style.css": "./dist/style.css"
     },
-    "author": {
-        "name": "Bhavesh Patel",
-        "email": "bhavesh.patel200@gmail.com"
-    },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/bhaveshpatel200/vue3-datatable.git"
+        "url": "git+https://github.com/dolusoft/vue3-datatable.git"
     },
     "bugs": {
-        "url": "https://github.com/bhaveshpatel200/vue3-datatable/issues"
+        "url": "https://github.com/dolusoft/vue3-datatable/issues"
     },
-    "homepage": "https://github.com/bhaveshpatel200/vue3-datatable#readme",
-    "funding": "https://github.com/sponsors/bhaveshpatel200",
+    "homepage": "https://github.com/dolusoft/vue3-datatable#readme",
     "keywords": [
         "vue3",
         "vue",
@@ -64,11 +59,10 @@
         "tailwind:build": "npx tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --minify"
     },
     "dependencies": {
-        "@fortawesome/vue-fontawesome": "^3.0.6",
+        "@iconify/vue": "^4.1.1",
         "vue": "^3.4.20"
     },
     "devDependencies": {
-        "@iconify/vue": "^4.1.1",
         "@types/node": "^20.11.20",
         "@vitejs/plugin-vue": "^5.0.4",
         "autoprefixer": "^10.4.17",

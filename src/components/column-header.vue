@@ -46,7 +46,7 @@ watch(() => props.checkAll, checkboxChange);
             </div>
         </th>
         <template v-if="props.all.hasSubtable">
-            <th>
+            <th class="bh-w-px">
                 <template v-if="props.all.expandall">
                     <button-expand :expandedrows="props.expandedrows" :expandall="props.all.expandall"> </button-expand>
                 </template>

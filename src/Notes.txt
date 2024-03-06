@@ -11,7 +11,7 @@ Vue3 Datatable Geliştirme işlemleri
 
 0. Ana proje forklanacak. [ok]
 1. Subtable özelliği getirilecek [ok]
-2. Footer row özelliği getirilecek
+2. Footer row özelliği getirilecek [ok]
 3. Yeni event'lar eklenecek
 4. Github'a public proje olarak atılacak. [ok]
 5. NPM'e paket olarak yüklenecek [ok]
