@@ -89,22 +89,6 @@ footer_rows.value = [
             { field: 'address.city', text: '1.232 Adet' },
         ],
     },
-    {
-        id: 1244,
-        cells: [
-            { field: 'id', text: '1.232 Adet' },
-            { field: 'age', text: '1.232 Adet' },
-            { field: 'address.city', text: '1.232 Adet' },
-        ],
-    },
-    {
-        id: 1244,
-        cells: [
-            { field: 'id', text: '1.232 Adet' },
-            { field: 'age', text: '1.232 Adet' },
-            { field: 'address.city', text: '1.232 Adet' },
-        ],
-    },
 ];
 </script>
 <template>
@@ -145,6 +129,72 @@ footer_rows.value = [
             </template>
             <template #tsub="rowdata">
                 <DevSubTableExample :rowdata="rowdata"></DevSubTableExample>
+            </template>
+            <template #footerpageinfo="{ paginationInfo, filterRowCount, offset, limit, showPageSize, pageSizeOptions, currentPageSize, stringFormat, setPageSize }">
+                <div class="bh-pagination-info bh-flex bh-items-center">
+                    <span class="bh-mr-2">
+                        {{ stringFormat(paginationInfo, filterRowCount ? offset : 0, limit, filterRowCount) }}
+                    </span>
+                    <select v-if="showPageSize" @change="setPageSize($event.target.value)" class="bh-pagesize">
+                        <option v-for="option in pageSizeOptions" :value="option" :selected="currentPageSize == option ? true : false" :key="option">
+                            {{ option }}
+                        </option>
+                    </select>
+                </div>
+            </template>
+            <template #footerpagination="{ currentPage, maxPage, paging, movePage, nextPage, previousPage }">
+                <div class="bh-pagination-number sm:bh-ml-auto bh-inline-flex bh-items-center bh-space-x-1">
+                    <button type="button" class="bh-page-item first-page" :class="{ disabled: currentPage <= 1 }" @click="movePage(1)">
+                        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                            <g fill="currentColor" fill-rule="evenodd">
+                                <path d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                                <path d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                            </g>
+                        </svg>
+                    </button>
+                    <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }" @click="previousPage">
+                        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                            <path
+                                fill="currentColor"
+                                fill-rule="evenodd"
+                                d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"
+                            />
+                        </svg>
+                    </button>
+
+                    <button
+                        v-for="page in paging"
+                        :key="page"
+                        type="button"
+                        class="bh-page-item"
+                        :class="{
+                            disabled: currentPage === page,
+                            'bh-active': page === currentPage,
+                        }"
+                        @click="movePage(page)"
+                    >
+                        {{ page }}
+                    </button>
+
+                    <button type="button" class="bh-page-item next-page" :class="{ disabled: currentPage >= maxPage }" @click="nextPage">
+                        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                            <path
+                                fill="currentColor"
+                                fill-rule="evenodd"
+                                d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8L4.646 2.354a.5.5 0 0 1 0-.708z"
+                            />
+                        </svg>
+                    </button>
+
+                    <button type="button" class="bh-page-item last-page" :class="{ disabled: currentPage >= maxPage }" @click="movePage(maxPage)">
+                        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                            <g fill="currentColor" fill-rule="evenodd">
+                                <path d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8L3.646 2.354a.5.5 0 0 1 0-.708z" />
+                                <path d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8L7.646 2.354a.5.5 0 0 1 0-.708z" />
+                            </g>
+                        </svg>
+                    </button>
+                </div>
             </template>
         </vue3-datatable>
     </div>
