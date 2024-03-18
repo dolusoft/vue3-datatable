@@ -38,7 +38,7 @@ const changeServer = (data: any) => {
 
 const params = reactive({
     current_page: 1,
-    pagesize: 5,
+    pagesize: 10,
     sort_column: 'id',
     sort_direction: 'desc',
     column_filters: [],
@@ -121,7 +121,10 @@ footer_rows.value = [
             :hasSubtable="true"
             :expandall="true"
             :columnFilter="true"
-            skin="bh-table-striped bh-table-hover bh-table-bordered bh-table-compact"
+            :stickyHeader="true"
+            :stickyFooter="true"
+            :height="'600px'"
+            skin="bh-table-striped bh-table-hover bh-table-bordered"
             @change="changeServer"
         >
             <template #email="data">
