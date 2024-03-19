@@ -9,6 +9,8 @@ import columnHeader from './column-header.vue';
 import iconCheck from './icon-check.vue';
 import ButtonExpand from './button-expand.vue';
 import { ExpandedRow } from '../model/helper';
+import CustomScrollbar from 'custom-vue-scrollbar';
+import 'custom-vue-scrollbar/dist/style.css';
 
 const slots = useSlots();
 
@@ -73,6 +75,11 @@ interface Props {
     stickyFirstColumn?: boolean;
     cloneHeaderInFooter?: boolean;
     selectRowOnClick?: boolean;
+    scrollbarstyle?: any;
+    scrollbarautohide?: boolean;
+    scrollbarfixedthumb?: boolean;
+    scrollbarautoexpand?: boolean;
+    scrollbardirection?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -117,6 +124,10 @@ const props = withDefaults(defineProps<Props>(), {
     stickyFirstColumn: false,
     cloneHeaderInFooter: false,
     selectRowOnClick: false,
+    scrollbarautohide: true,
+    scrollbarfixedthumb: false,
+    scrollbarautoexpand: false,
+    scrollbardirection: 'vertical',
 });
 
 // set default columns values
@@ -746,118 +757,127 @@ setInterval(function () {
 </script>
 <template>
     <div class="bh-datatable bh-antialiased bh-relative bh-text-black bh-text-sm bh-font-normal">
-        <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
-            <table :class="[props.skin]">
-                <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
-                    <column-header
-                        :all="props"
-                        :expandedrows="expandedrows"
-                        :currentSortColumn="currentSortColumn"
-                        :currentSortDirection="currentSortDirection"
-                        :isOpenFilter="isOpenFilter"
-                        :checkAll="selectedAll"
-                        :columnFilterLang="props.columnFilterLang"
-                        @selectAll="selectAll"
-                        @sortChange="sortChange"
-                        @filterChange="filterChange"
-                        @toggleFilterMenu="toggleFilterMenu"
-                    />
-                </thead>
-                <tbody>
-                    <template v-for="(item, i) in filterItems" :key="item[uniqueKey] ? item[uniqueKey] : i">
-                        <tr
-                            v-if="filterRowCount"
-                            :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
-                            @click.prevent="rowClick(item, i)"
-                        >
-                            <td
-                                v-if="props.hasCheckbox"
-                                :class="{
-                                    'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn,
-                                }"
-                            >
-                                <div class="bh-checkbox">
-                                    <input v-model="selected" type="checkbox" :value="item[uniqueKey] ? item[uniqueKey] : i" @click.stop />
-                                    <div>
-                                        <icon-check class="check" />
-                                    </div>
-                                </div>
-                            </td>
-                            <td
-                                v-if="props.hasSubtable"
-                                :class="{
-                                    'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn,
-                                }"
-                            >
-                                <button-expand :item="item" :expandedrows="expandedrows"> </button-expand>
-                            </td>
-                            <template v-for="(col, j) in props.columns">
-                                <td
-                                    v-if="!col.hide"
-                                    :key="col.field"
-                                    :class="[
-                                        typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
-                                        j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
-                                        props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
-                                        col.cellClass ? col.cellClass : '',
-                                    ]"
+        <div :class="props.scrollbarstyle">
+            <custom-scrollbar
+                :style="{ height: props.stickyHeader && props.height }"
+                :autoHide="props.scrollbarautohide"
+                :fixedThumb="props.scrollbarfixedthumb"
+                :autoExpand="props.scrollbarautoexpand"
+                :direction="props.scrollbardirection"
+                throttleType="none"
+            >
+                <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }" :style="{ overflow: props.stickyHeader && 'inherit' }">
+                    <table :class="[props.skin]">
+                        <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
+                            <column-header
+                                :all="props"
+                                :expandedrows="expandedrows"
+                                :currentSortColumn="currentSortColumn"
+                                :currentSortDirection="currentSortDirection"
+                                :isOpenFilter="isOpenFilter"
+                                :checkAll="selectedAll"
+                                :columnFilterLang="props.columnFilterLang"
+                                @selectAll="selectAll"
+                                @sortChange="sortChange"
+                                @filterChange="filterChange"
+                                @toggleFilterMenu="toggleFilterMenu"
+                            />
+                        </thead>
+                        <tbody>
+                            <template v-for="(item, i) in filterItems" :key="item[uniqueKey] ? item[uniqueKey] : i">
+                                <tr
+                                    v-if="filterRowCount"
+                                    :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
+                                    @click.prevent="rowClick(item, i)"
                                 >
-                                    <template v-if="slots[col.field]">
-                                        <slot :name="col.field" :value="item"></slot>
+                                    <td
+                                        v-if="props.hasCheckbox"
+                                        :class="{
+                                            'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn,
+                                        }"
+                                    >
+                                        <div class="bh-checkbox">
+                                            <input v-model="selected" type="checkbox" :value="item[uniqueKey] ? item[uniqueKey] : i" @click.stop />
+                                            <div>
+                                                <icon-check class="check" />
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td
+                                        v-if="props.hasSubtable"
+                                        :class="{
+                                            'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn,
+                                        }"
+                                    >
+                                        <button-expand :item="item" :expandedrows="expandedrows"> </button-expand>
+                                    </td>
+                                    <template v-for="(col, j) in props.columns">
+                                        <td
+                                            v-if="!col.hide"
+                                            :key="col.field"
+                                            :class="[
+                                                typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
+                                                j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                                props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                                col.cellClass ? col.cellClass : '',
+                                            ]"
+                                        >
+                                            <template v-if="slots[col.field]">
+                                                <slot :name="col.field" :value="item"></slot>
+                                            </template>
+                                            <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
+                                            <template v-else>
+                                                {{ cellValue(item, col.field) }}
+                                            </template>
+                                        </td>
                                     </template>
-                                    <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
-                                    <template v-else>
-                                        {{ cellValue(item, col.field) }}
-                                    </template>
-                                </td>
+                                </tr>
+                                <template v-if="expandedrows.find((x) => x.id == item.id)?.isExpanded && props.hasSubtable">
+                                    <tr
+                                        :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
+                                        @click.prevent="rowClick(item, i)"
+                                    >
+                                        <td :colspan="props.columns.length + extracolumnlength">
+                                            <slot name="tsub" :value="filterItems"></slot>
+                                        </td>
+                                    </tr>
+                                </template>
                             </template>
-                        </tr>
-                        <template v-if="expandedrows.find((x) => x.id == item.id)?.isExpanded && props.hasSubtable">
-                            <tr
-                                :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
-                                @click.prevent="rowClick(item, i)"
-                            >
+
+                            <tr v-if="!filterRowCount && !currentLoader">
                                 <td :colspan="props.columns.length + extracolumnlength">
-                                    <slot name="tsub" :value="filterItems"></slot>
+                                    {{ props.noDataContent }}
                                 </td>
                             </tr>
-                        </template>
-                    </template>
 
-                    <tr v-if="!filterRowCount && !currentLoader">
-                        <td :colspan="props.columns.length + extracolumnlength">
-                            {{ props.noDataContent }}
-                        </td>
-                    </tr>
+                            <template v-if="!filterRowCount && currentLoader">
+                                <tr v-for="i in props.pageSize" :key="i" class="!bh-bg-white bh-h-11 !bh-border-transparent">
+                                    <td :colspan="props.columns.length + extracolumnlength" class="!bh-p-0 !bh-border-transparent">
+                                        <div class="bh-skeleton-box bh-h-8"></div>
+                                    </td>
+                                </tr>
+                            </template>
 
-                    <template v-if="!filterRowCount && currentLoader">
-                        <tr v-for="i in props.pageSize" :key="i" class="!bh-bg-white bh-h-11 !bh-border-transparent">
-                            <td :colspan="props.columns.length + extracolumnlength" class="!bh-p-0 !bh-border-transparent">
-                                <div class="bh-skeleton-box bh-h-8"></div>
-                            </td>
-                        </tr>
-                    </template>
+                            <template v-if="filterRowCount">
+                                <tr v-for="(item, i) in props.footerRows" :key="item[uniqueKey] ? item[uniqueKey] : i">
+                                    <td :colspan="extracolumnlength"></td>
+                                    <template v-for="(col, j) in props.columns">
+                                        <td
+                                            v-if="!col.hide"
+                                            :key="col.field"
+                                            :class="[
+                                                typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
+                                                j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                                props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                                col.cellClass ? col.cellClass : '',
+                                            ]"
+                                        >
+                                            <template v-if="item.cells.find((x) => x.field == col.field)">
+                                                {{ item.cells.find((x) => x.field == col.field).text }}
+                                            </template>
+                                        </td>
 
-                    <template v-if="filterRowCount">
-                        <tr v-for="(item, i) in props.footerRows" :key="item[uniqueKey] ? item[uniqueKey] : i">
-                            <td :colspan="extracolumnlength"></td>
-                            <template v-for="(col, j) in props.columns">
-                                <td
-                                    v-if="!col.hide"
-                                    :key="col.field"
-                                    :class="[
-                                        typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
-                                        j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
-                                        props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
-                                        col.cellClass ? col.cellClass : '',
-                                    ]"
-                                >
-                                    <template v-if="item.cells.find((x) => x.field == col.field)">
-                                        {{ item.cells.find((x) => x.field == col.field).text }}
-                                    </template>
-                                </td>
-
-                                <!-- <td
+                                        <!-- <td
                                     v-if="!col.hide"
                                     :key="col.field"
                                     :class="[
@@ -875,154 +895,138 @@ setInterval(function () {
                                         {{ cellValue(item, col.field) }}
                                     </template>
                                 </td> -->
+                                    </template>
+                                </tr>
                             </template>
-                        </tr>
-                    </template>
-                </tbody>
+                        </tbody>
 
-                <tfoot v-if="props.cloneHeaderInFooter" :class="{ 'bh-sticky bh-bottom-0': props.stickyHeader }">
-                    <column-header
-                        :all="props"
-                        :currentSortColumn="currentSortColumn"
-                        :currentSortDirection="currentSortDirection"
-                        :isOpenFilter="isOpenFilter"
-                        :isFooter="true"
-                        :checkAll="selectedAll"
-                        @selectAll="selectAll"
-                        @sortChange="sortChange"
-                        @filterChange="filterChange"
-                        @toggleFilterMenu="toggleFilterMenu"
-                    />
-                </tfoot>
-            </table>
-
-            <div v-if="filterRowCount && currentLoader" class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading">
-                <svg :key="dtableloadingkey" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                        <path stroke-dasharray="62" stroke-dashoffset="62" d="M22 4V3C22 2.45 21.55 2 21 2H7C6.45 2 6 2.45 6 3V17C6 17.55 6.45 18 7 18H21C21.55 18 22 17.55 22 17z">
-                            <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="62;124" />
-                        </path>
-                        <g stroke-dasharray="10" stroke-dashoffset="10">
-                            <path d="M10 6h8"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.7s" dur="0.2s" values="10;0" /></path>
-                            <path d="M10 10h8"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.9s" dur="0.2s" values="10;0" /></path>
-                        </g>
-                        <path stroke-dasharray="7" stroke-dashoffset="7" d="M10 14h5">
-                            <animate fill="freeze" attributeName="stroke-dashoffset" begin="1.1s" dur="0.2s" values="7;0" />
-                        </path>
-                        <path stroke-dasharray="34" stroke-dashoffset="34" d="M2 6V21C2 21.55 2.45 22 3 22H18">
-                            <animate fill="freeze" attributeName="stroke-dashoffset" begin="1.4s" dur="0.4s" values="34;68" />
-                        </path>
-                    </g>
-                </svg>
-            </div>
-            <div v-if="props.pagination && filterRowCount" class="bh-pagination bh-py-5" :class="{ 'bh-pointer-events-none': currentLoader, 'sticky-footer': props.stickyFooter }">
-                <div class="bh-flex bh-items-center bh-flex-wrap bh-flex-col sm:bh-flex-row bh-gap-4">
-                    <slot
-                        name="footerpageinfo"
-                        :paginationInfo="paginationInfo"
-                        :filterRowCount="filterRowCount"
-                        :offset="offset"
-                        :limit="limit"
-                        :showPageSize="showPageSize"
-                        :pageSizeOptions="pageSizeOptions"
-                        :currentPageSize="currentPageSize"
-                        :stringFormat="stringFormat"
-                        :setPageSize="setPageSize"
-                    >
-                        <div class="bh-pagination-info bh-flex bh-items-center">
-                            <span class="bh-mr-2">
-                                {{ stringFormat(props.paginationInfo, filterRowCount ? offset : 0, limit, filterRowCount) }}
-                            </span>
-                            <select v-if="props.showPageSize" v-model="currentPageSize" class="bh-pagesize">
-                                <option v-for="option in props.pageSizeOptions" :value="option" :key="option">
-                                    {{ option }}
-                                </option>
-                            </select>
-                        </div>
-                    </slot>
-                    <slot
-                        name="footerpagination"
-                        :currentPage="currentPage"
-                        :maxPage="maxPage"
-                        :paging="paging"
-                        :movePage="movePage"
-                        :nextPage="nextPage"
-                        :previousPage="previousPage"
-                    >
-                        <div class="bh-pagination-number sm:bh-ml-auto bh-inline-flex bh-items-center bh-space-x-1">
-                            <button v-if="props.showFirstPage" type="button" class="bh-page-item first-page" :class="{ disabled: currentPage <= 1 }" @click="currentPage = 1">
-                                <span v-if="props.firstArrow" v-html="props.firstArrow"> </span>
-                                <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                                    <g fill="currentColor" fill-rule="evenodd">
-                                        <path d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-                                        <path d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-                                    </g>
-                                </svg>
-                            </button>
-                            <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }" @click="previousPage">
-                                <span v-if="props.previousArrow" v-html="props.previousArrow"> </span>
-                                <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                                    <path
-                                        fill="currentColor"
-                                        fill-rule="evenodd"
-                                        d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"
-                                    />
-                                </svg>
-                            </button>
-
-                            <template v-if="props.showNumbers">
-                                <button
-                                    v-for="page in paging"
-                                    :key="page"
-                                    type="button"
-                                    class="bh-page-item"
-                                    :class="{
-                                        disabled: currentPage === page,
-                                        'bh-active': page === currentPage,
-                                    }"
-                                    @click="movePage(page)"
+                        <tfoot v-if="props.cloneHeaderInFooter" :class="{ 'bh-sticky bh-bottom-0': props.stickyHeader }">
+                            <column-header
+                                :all="props"
+                                :currentSortColumn="currentSortColumn"
+                                :currentSortDirection="currentSortDirection"
+                                :isOpenFilter="isOpenFilter"
+                                :isFooter="true"
+                                :checkAll="selectedAll"
+                                @selectAll="selectAll"
+                                @sortChange="sortChange"
+                                @filterChange="filterChange"
+                                @toggleFilterMenu="toggleFilterMenu"
+                            />
+                        </tfoot>
+                    </table>
+                    <div v-if="filterRowCount && currentLoader" class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading">
+                        <svg :key="dtableloadingkey" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                                <path
+                                    stroke-dasharray="62"
+                                    stroke-dashoffset="62"
+                                    d="M22 4V3C22 2.45 21.55 2 21 2H7C6.45 2 6 2.45 6 3V17C6 17.55 6.45 18 7 18H21C21.55 18 22 17.55 22 17z"
                                 >
-                                    {{ page }}
-                                </button>
-                            </template>
-
-                            <button type="button" class="bh-page-item next-page" :class="{ disabled: currentPage >= maxPage }" @click="nextPage">
-                                <span v-if="props.nextArrow" v-html="props.nextArrow"> </span>
-                                <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                                    <path
-                                        fill="currentColor"
-                                        fill-rule="evenodd"
-                                        d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8L4.646 2.354a.5.5 0 0 1 0-.708z"
-                                    />
-                                </svg>
-                            </button>
-
-                            <button
-                                v-if="props.showLastPage"
-                                type="button"
-                                class="bh-page-item last-page"
-                                :class="{ disabled: currentPage >= maxPage }"
-                                @click="currentPage = maxPage"
-                            >
-                                <span v-if="props.lastArrow" v-html="props.lastArrow"> </span>
-                                <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                                    <g fill="currentColor" fill-rule="evenodd">
-                                        <path d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8L3.646 2.354a.5.5 0 0 1 0-.708z" />
-                                        <path d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8L7.646 2.354a.5.5 0 0 1 0-.708z" />
-                                    </g>
-                                </svg>
-                            </button>
-                        </div>
-                    </slot>
+                                    <animate fill="freeze" attributeName="stroke-dashoffset" dur="0.6s" values="62;124" />
+                                </path>
+                                <g stroke-dasharray="10" stroke-dashoffset="10">
+                                    <path d="M10 6h8"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.7s" dur="0.2s" values="10;0" /></path>
+                                    <path d="M10 10h8"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.9s" dur="0.2s" values="10;0" /></path>
+                                </g>
+                                <path stroke-dasharray="7" stroke-dashoffset="7" d="M10 14h5">
+                                    <animate fill="freeze" attributeName="stroke-dashoffset" begin="1.1s" dur="0.2s" values="7;0" />
+                                </path>
+                                <path stroke-dasharray="34" stroke-dashoffset="34" d="M2 6V21C2 21.55 2.45 22 3 22H18">
+                                    <animate fill="freeze" attributeName="stroke-dashoffset" begin="1.4s" dur="0.4s" values="34;68" />
+                                </path>
+                            </g>
+                        </svg>
+                    </div>
                 </div>
+            </custom-scrollbar>
+        </div>
+        <div v-if="props.pagination && filterRowCount" class="bh-pagination" :class="{ 'bh-pointer-events-none': currentLoader, 'sticky-footer': props.stickyFooter }">
+            <div class="bh-flex bh-items-center bh-flex-wrap bh-flex-col sm:bh-flex-row bh-gap-4">
+                <slot
+                    name="footerpageinfo"
+                    :paginationInfo="paginationInfo"
+                    :filterRowCount="filterRowCount"
+                    :offset="offset"
+                    :limit="limit"
+                    :showPageSize="showPageSize"
+                    :pageSizeOptions="pageSizeOptions"
+                    :currentPageSize="currentPageSize"
+                    :stringFormat="stringFormat"
+                    :setPageSize="setPageSize"
+                >
+                    <div class="bh-pagination-info bh-flex bh-items-center">
+                        <span class="bh-mr-2">
+                            {{ stringFormat(props.paginationInfo, filterRowCount ? offset : 0, limit, filterRowCount) }}
+                        </span>
+                        <select v-if="props.showPageSize" v-model="currentPageSize" class="bh-pagesize">
+                            <option v-for="option in props.pageSizeOptions" :value="option" :key="option">
+                                {{ option }}
+                            </option>
+                        </select>
+                    </div>
+                </slot>
+                <slot name="footerpagination" :currentPage="currentPage" :maxPage="maxPage" :paging="paging" :movePage="movePage" :nextPage="nextPage" :previousPage="previousPage">
+                    <div class="bh-pagination-number sm:bh-ml-auto bh-inline-flex bh-items-center bh-space-x-1">
+                        <button v-if="props.showFirstPage" type="button" class="bh-page-item first-page" :class="{ disabled: currentPage <= 1 }" @click="currentPage = 1">
+                            <span v-if="props.firstArrow" v-html="props.firstArrow"> </span>
+                            <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <g fill="currentColor" fill-rule="evenodd">
+                                    <path d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                                    <path d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                                </g>
+                            </svg>
+                        </button>
+                        <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }" @click="previousPage">
+                            <span v-if="props.previousArrow" v-html="props.previousArrow"> </span>
+                            <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <path
+                                    fill="currentColor"
+                                    fill-rule="evenodd"
+                                    d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"
+                                />
+                            </svg>
+                        </button>
+
+                        <template v-if="props.showNumbers">
+                            <button
+                                v-for="page in paging"
+                                :key="page"
+                                type="button"
+                                class="bh-page-item"
+                                :class="{
+                                    disabled: currentPage === page,
+                                    'bh-active': page === currentPage,
+                                }"
+                                @click="movePage(page)"
+                            >
+                                {{ page }}
+                            </button>
+                        </template>
+
+                        <button type="button" class="bh-page-item next-page" :class="{ disabled: currentPage >= maxPage }" @click="nextPage">
+                            <span v-if="props.nextArrow" v-html="props.nextArrow"> </span>
+                            <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <path
+                                    fill="currentColor"
+                                    fill-rule="evenodd"
+                                    d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8L4.646 2.354a.5.5 0 0 1 0-.708z"
+                                />
+                            </svg>
+                        </button>
+
+                        <button v-if="props.showLastPage" type="button" class="bh-page-item last-page" :class="{ disabled: currentPage >= maxPage }" @click="currentPage = maxPage">
+                            <span v-if="props.lastArrow" v-html="props.lastArrow"> </span>
+                            <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <g fill="currentColor" fill-rule="evenodd">
+                                    <path d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8L3.646 2.354a.5.5 0 0 1 0-.708z" />
+                                    <path d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8L7.646 2.354a.5.5 0 0 1 0-.708z" />
+                                </g>
+                            </svg>
+                        </button>
+                    </div>
+                </slot>
             </div>
         </div>
     </div>
 </template>
-<style>
-.sticky-footer {
-    position: sticky;
-    z-index: 10;
-    bottom: 0;
-}
-</style>

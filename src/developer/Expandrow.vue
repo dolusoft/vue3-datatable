@@ -112,7 +112,7 @@ footer_rows.value = [
             :isServerMode="true"
             :page="params.current_page"
             :pageSize="params.pagesize"
-            :pageSizeOptions="[1, 3, 5, 10]"
+            :pageSizeOptions="[1, 3, 5, 10,100]"
             :sortable="true"
             :sortColumn="params.sort_column"
             :sortDirection="params.sort_direction"
@@ -123,7 +123,8 @@ footer_rows.value = [
             :columnFilter="true"
             :stickyHeader="true"
             :stickyFooter="true"
-            :height="'600px'"
+            :height="'300px'"
+            :scrollbarstyle="$style.customCls"
             skin="bh-table-striped bh-table-hover bh-table-bordered"
             @change="changeServer"
         >
@@ -202,3 +203,32 @@ footer_rows.value = [
         </vue3-datatable>
     </div>
 </template>
+<style lang="scss" module>
+.customCls {
+    :global {
+        .scrollbar__thumbPlaceholder--horizontal {
+            height: 13px;
+        }
+        .scrollbar__thumbPlaceholder--autoExpand:hover > .scrollbar__thumb {
+            border-radius: var(--radius);
+        }
+        .scrollbar__thumbPlaceholder--vertical {
+            margin-right: -11px;
+            margin-top: -3px;
+            width: 13px;
+        }
+        .scrollbar__thumbPlaceholder--horizontal {
+            margin-bottom: -13px;
+            margin-left: -3px;
+            width: 13px;
+        }
+        .scrollbar__thumb.scrollbar__thumb--vertical {
+            border-radius: var(--radius);
+        }
+        .scrollbar__thumb.scrollbar__thumb--horizontal {
+            border-radius: var(--radius);
+            margin-bottom: 4px;
+        }
+    }
+}
+</style>

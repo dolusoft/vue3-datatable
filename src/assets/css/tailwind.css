@@ -16,6 +16,9 @@
     .bh-table-responsive table {
         @apply bh-w-full bh-max-w-full !bh-border-collapse;
     }
+    .bh-table-responsive table thead{
+        white-space: nowrap;
+    }
     .bh-table-responsive table thead tr,
     .bh-table-responsive table tfoot tr {
         @apply bh-bg-blue-light;
@@ -122,4 +125,11 @@
     100% {
         transform: translateX(100%);
     }
+}
+.sticky-footer {
+    position: absolute;
+    z-index: 10;
+    bottom: 0;
+    width: 100%;
+    margin-bottom:-50px;
 }

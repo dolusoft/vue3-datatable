@@ -18,5 +18,5 @@ Vue3 Datatable Geliştirme işlemleri
 
 ********
 1. Subtable'lar dışarıdan açılıp kapatılabilecek. [ok]
-
+2. Tablo header'ları white space olacak.
 
