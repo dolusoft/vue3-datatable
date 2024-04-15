@@ -112,7 +112,7 @@ footer_rows.value = [
             :isServerMode="true"
             :page="params.current_page"
             :pageSize="params.pagesize"
-            :pageSizeOptions="[1, 3, 5, 10,100]"
+            :pageSizeOptions="[1, 3, 5, 10, 100]"
             :sortable="true"
             :sortColumn="params.sort_column"
             :sortDirection="params.sort_direction"
@@ -123,6 +123,10 @@ footer_rows.value = [
             :columnFilter="true"
             :stickyHeader="true"
             :stickyFooter="true"
+            :enablerightmenu="true"
+            :rightmenusize="20"
+            :rightmenumax="30"
+            :rightmenumin="5"
             :height="'300px'"
             :scrollbarstyle="$style.customCls"
             skin="bh-table-striped bh-table-hover bh-table-bordered"
@@ -213,7 +217,8 @@ footer_rows.value = [
             border-radius: var(--radius);
         }
         .scrollbar__thumbPlaceholder--vertical {
-            margin-right: -11px;
+            margin-right: 0px;
+            z-index: 10;
             margin-top: -3px;
             width: 13px;
         }
