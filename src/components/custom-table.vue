@@ -762,6 +762,13 @@ setInterval(function () {
 }, 2200);
 
 const leftmenusize = ref(100 - Number(props.rightmenusize));
+
+watch(
+    () => props.rightmenusize,
+    (newsize) => {
+        leftmenusize.value = 100 - Number(newsize);
+    }
+);
 </script>
 <template>
     <div class="bh-datatable bh-antialiased bh-relative bh-text-black bh-text-sm bh-font-normal">
@@ -951,7 +958,7 @@ const leftmenusize = ref(100 - Number(props.rightmenusize));
                         </div>
                     </custom-scrollbar></div
             ></pane>
-            <pane v-if="enablerightmenu" :size="100 - leftmenusize" :min-size="rightmenumin" :max-size="rightmenumax">
+            <pane v-if="enablerightmenu" :size="100 - leftmenusize" :max-size="rightmenumax" :style="{ 'min-width': rightmenumin + 'px' }">
                 <slot name="tablerightmenu"> <span>##Right Menu Slot##</span> </slot>
             </pane>
         </splitpanes>
