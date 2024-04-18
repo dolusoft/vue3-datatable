@@ -22,8 +22,6 @@ Vue3 Datatable Geliştirme işlemleri
 
 
 
-** eslint update yapınca çalışmıyor bakılacak
-** chart ekleme işlemleri için, datatable plugin'ine yeni bir üst pane yapılacak. küçülebilir olacak. küçüldüğünde, https://vue-data-ui.graphieros.com/versions bu adresteki ısı 
-haritası görünecek. büyüğüdünde ise, apex chart çalışacak.
+
 
 
