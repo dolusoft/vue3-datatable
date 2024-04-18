@@ -20,3 +20,10 @@ Vue3 Datatable Geliştirme işlemleri
 1. Subtable'lar dışarıdan açılıp kapatılabilecek. [ok]
 2. Tablo header'ları white space olacak.
 
+
+
+** eslint update yapınca çalışmıyor bakılacak
+** chart ekleme işlemleri için, datatable plugin'ine yeni bir üst pane yapılacak. küçülebilir olacak. küçüldüğünde, https://vue-data-ui.graphieros.com/versions bu adresteki ısı 
+haritası görünecek. büyüğüdünde ise, apex chart çalışacak.
+
+
