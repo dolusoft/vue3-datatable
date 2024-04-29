@@ -91,6 +91,7 @@ interface Props {
     topmenusize?: number;
     topmenumax?: number;
     topmenumin?: number;
+    skeletonloader?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -128,7 +129,7 @@ const props = withDefaults(defineProps<Props>(), {
     nextArrow: '',
     previousArrow: '',
     paginationInfo: 'Showing {0} to {1} of {2} entries',
-    noDataContent: 'No data available',
+    noDataContent: 'There is no data that match your query.',
     stickyHeader: false,
     stickyFooter: false,
     height: '500px',
@@ -890,13 +891,7 @@ const topmenuheight = useElementSize(topmenuel).height;
                                                         </template>
                                                     </template>
 
-                                                    <tr v-if="!filterRowCount && !currentLoader">
-                                                        <td :colspan="props.columns.length + extracolumnlength">
-                                                            {{ props.noDataContent }}
-                                                        </td>
-                                                    </tr>
-
-                                                    <template v-if="!filterRowCount && currentLoader">
+                                                    <template v-if="!filterRowCount && currentLoader && skeletonloader">
                                                         <tr v-for="i in props.pageSize" :key="i" class="!bh-bg-white bh-h-11 !bh-border-transparent">
                                                             <td :colspan="props.columns.length + extracolumnlength" class="!bh-p-0 !bh-border-transparent">
                                                                 <div class="bh-skeleton-box bh-h-8"></div>
@@ -991,6 +986,15 @@ const topmenuheight = useElementSize(topmenuel).height;
                                                     </g>
                                                 </svg>
                                             </div>
+                                        </div>
+                                        <div
+                                            v-if="!filterRowCount && !currentLoader"
+                                            class="nodatacontent"
+                                            :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }"
+                                        >
+                                            <slot name="nodatacontent">
+                                                <span>{{ props.noDataContent }}</span>
+                                            </slot>
                                         </div>
                                     </custom-scrollbar>
                                 </div>
