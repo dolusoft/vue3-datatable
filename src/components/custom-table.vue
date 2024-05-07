@@ -92,6 +92,7 @@ interface Props {
     topmenumax?: number;
     topmenumin?: number;
     skeletonloader?: boolean;
+    enableloadinganimation?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -901,7 +902,7 @@ const topmenuheight = useElementSize(topmenuel).height;
 
                                                     <template v-if="filterRowCount">
                                                         <tr v-for="(item, i) in props.footerRows" :key="item[uniqueKey] ? item[uniqueKey] : i">
-                                                            <td :colspan="extracolumnlength"></td>
+                                                            <td v-if="extracolumnlength > 0" :colspan="extracolumnlength"></td>
                                                             <template v-for="(col, j) in props.columns">
                                                                 <td
                                                                     v-if="!col.hide"
@@ -957,7 +958,7 @@ const topmenuheight = useElementSize(topmenuel).height;
                                                 </tfoot>
                                             </table>
                                             <div
-                                                v-if="filterRowCount && currentLoader"
+                                                v-if="filterRowCount && currentLoader && enableloadinganimation"
                                                 class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
                                             >
                                                 <svg :key="dtableloadingkey" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
