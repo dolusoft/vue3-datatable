@@ -57,7 +57,7 @@ watch(() => props.checkAll, checkboxChange)
         <input
           ref="selectedAll"
           type="checkbox"
-          @click.stop="emit('selectAll', $event.target.checked)"
+          @click.stop="emit('selectAll', $event?.target?.checked)"
         />
         <div>
           <icon-check class="check" />
