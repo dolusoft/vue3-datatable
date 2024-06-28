@@ -17,6 +17,6 @@
         "declaration": true,
         "emitDeclarationOnly": true
     },
-    "include": ["lib/**/*.ts", "lib/**/*.d.ts", "lib/*.d.ts", "lib/**/*.tsx", "lib/**/*.vue"],
+    "include": ["src/**/*", "types/**/*", "typings.d.ts", "global.d.ts"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

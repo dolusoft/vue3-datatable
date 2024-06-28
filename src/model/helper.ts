@@ -1,4 +1,1 @@
-export type ExpandedRow = {
-    id: number;
-    isExpanded: boolean;
-};
+export type ExpandedRow = { id: number; isExpanded: boolean }
