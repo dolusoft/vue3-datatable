@@ -12,199 +12,199 @@
         @click="select('')"
       >
         {{
-          (props.columnFilterLang && props.columnFilterLang['no_filter']) ??
+          (props.columnFilterLang && props.columnFilterLang['NoFilter']) ??
           'No filter'
         }}
       </button>
       <template v-if="props.column.type === 'string'">
         <button
           type="button"
-          :class="{ active: props.column.condition === 'contain' }"
-          @click="select('contain')"
+          :class="{ active: props.column.condition === 'Contains' }"
+          @click="select('Contains')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['contain']) ??
-            'Contain'
+            (props.columnFilterLang && props.columnFilterLang['Contains']) ??
+            'Contains'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'not_contain' }"
-          @click="select('not_contain')"
+          :class="{ active: props.column.condition === 'NotContains' }"
+          @click="select('NotContains')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['not_contain']) ??
-            'Not contain'
+            (props.columnFilterLang && props.columnFilterLang['NotContains']) ??
+            'NotContains'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'equal' }"
-          @click="select('equal')"
+          :class="{ active: props.column.condition === 'Equal' }"
+          @click="select('Equal')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['equal']) ??
+            (props.columnFilterLang && props.columnFilterLang['Equal']) ??
             'Equal'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'not_equal' }"
-          @click="select('not_equal')"
+          :class="{ active: props.column.condition === 'NotEqual' }"
+          @click="select('NotEqual')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['not_equal']) ??
-            'Not equal'
+            (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
+            'NotEqual'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'start_with' }"
-          @click="select('start_with')"
+          :class="{ active: props.column.condition === 'StartsWith' }"
+          @click="select('StartsWith')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['start_with']) ??
-            'Starts with'
+            (props.columnFilterLang && props.columnFilterLang['StartsWith']) ??
+            'StartsWith'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'end_with' }"
-          @click="select('end_with')"
+          :class="{ active: props.column.condition === 'EndsWith' }"
+          @click="select('EndsWith')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['end_with']) ??
-            'Ends with'
+            (props.columnFilterLang && props.columnFilterLang['EndsWith']) ??
+            'EndsWith'
           }}
         </button>
       </template>
       <template v-else-if="props.column.type === 'number'">
         <button
           type="button"
-          :class="{ active: props.column.condition === 'equal' }"
-          @click="select('equal')"
+          :class="{ active: props.column.condition === 'Equal' }"
+          @click="select('Equal')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['equal']) ??
+            (props.columnFilterLang && props.columnFilterLang['Equal']) ??
             'Equal'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'not_equal' }"
-          @click="select('not_equal')"
+          :class="{ active: props.column.condition === 'NotEqual' }"
+          @click="select('NotEqual')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['not_equal']) ??
-            'Not equal'
+            (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
+            'NotEqual'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'greater_than' }"
-          @click="select('greater_than')"
+          :class="{ active: props.column.condition === 'GreaterThan' }"
+          @click="select('GreaterThan')"
         >
           {{
             (props.columnFilterLang &&
-              props.columnFilterLang['greater_than']) ??
-            'Greater than'
+              props.columnFilterLang['GreaterThan']) ??
+            'GreaterThan'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'greater_than_equal' }"
-          @click="select('greater_than_equal')"
+          :class="{ active: props.column.condition === 'GreaterThanOrEqual' }"
+          @click="select('GreaterThanOrEqual')"
         >
           {{
             (props.columnFilterLang &&
-              props.columnFilterLang['greater_than_equal']) ??
-            'Greater than or equal'
+              props.columnFilterLang['GreaterThanOrEqual']) ??
+            'GreaterThanOrEqual'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'less_than' }"
-          @click="select('less_than')"
+          :class="{ active: props.column.condition === 'LessThan' }"
+          @click="select('LessThan')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['less_than']) ??
-            'Less than'
+            (props.columnFilterLang && props.columnFilterLang['LessThan']) ??
+            'LessThan'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'less_than_equal' }"
-          @click="select('less_than_equal')"
+          :class="{ active: props.column.condition === 'LessThanOrEqual' }"
+          @click="select('LessThanOrEqual')"
         >
           {{
             (props.columnFilterLang &&
-              props.columnFilterLang['less_than_equal']) ??
-            'Less than or equal'
+              props.columnFilterLang['LessThanOrEqual']) ??
+            'LessThanOrEqual'
           }}
         </button>
       </template>
       <template v-else-if="props.column.type === 'date'">
         <button
           type="button"
-          :class="{ active: props.column.condition === 'equal' }"
-          @click="select('equal')"
+          :class="{ active: props.column.condition === 'Equal' }"
+          @click="select('Equal')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['equal']) ??
+            (props.columnFilterLang && props.columnFilterLang['Equal']) ??
             'Equal'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'not_equal' }"
-          @click="select('not_equal')"
+          :class="{ active: props.column.condition === 'NotEqual' }"
+          @click="select('NotEqual')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['not_equal']) ??
+            (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
             'Not equal'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'greater_than' }"
-          @click="select('greater_than')"
+          :class="{ active: props.column.condition === 'GreaterThan' }"
+          @click="select('GreaterThan')"
         >
           {{
             (props.columnFilterLang &&
-              props.columnFilterLang['greater_than']) ??
-            'Greater than'
+              props.columnFilterLang['GreaterThan']) ??
+            'GreaterThan'
           }}
         </button>
         <button
           type="button"
-          :class="{ active: props.column.condition === 'less_than' }"
-          @click="select('less_than')"
+          :class="{ active: props.column.condition === 'LessThan' }"
+          @click="select('LessThan')"
         >
           {{
-            (props.columnFilterLang && props.columnFilterLang['less_than']) ??
-            'Less than'
+            (props.columnFilterLang && props.columnFilterLang['LessThan']) ??
+            'LessThan'
           }}
         </button>
       </template>
 
       <button
         type="button"
-        :class="{ active: props.column.condition === 'is_null' }"
-        @click="select('is_null')"
+        :class="{ active: props.column.condition === 'IsNull' }"
+        @click="select('IsNull')"
       >
         {{
-          (props.columnFilterLang && props.columnFilterLang['is_null']) ??
-          'Is null'
+          (props.columnFilterLang && props.columnFilterLang['IsNull']) ??
+          'IsNull'
         }}
       </button>
       <button
         type="button"
-        :class="{ active: props.column.condition === 'is_not_null' }"
-        @click="select('is_not_null')"
+        :class="{ active: props.column.condition === 'IsNotNull' }"
+        @click="select('IsNotNull')"
       >
         {{
-          (props.columnFilterLang && props.columnFilterLang['is_not_null']) ??
-          'Not null'
+          (props.columnFilterLang && props.columnFilterLang['IsNotNull']) ??
+          'IsNotNull'
         }}
       </button>
     </div>

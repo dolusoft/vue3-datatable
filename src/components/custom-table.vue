@@ -75,6 +75,7 @@ interface Props {
   topmenumin?: number
   skeletonloader?: boolean
   enableloadinganimation?: boolean
+  enablefooterpagination?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -135,7 +136,7 @@ for (const item of props.columns || []) {
   item.search = item.search !== undefined ? item.search : true
   item.sort = item.sort !== undefined ? item.sort : true
   item.html = item.html !== undefined ? item.html : false
-  item.condition = !type || type === 'string' ? 'contain' : 'equal'
+  item.condition = !type || type === 'string' ? 'Contains' : 'Equal'
 }
 
 const filterItems: Ref<Array<any>> = ref([])
@@ -275,44 +276,44 @@ const filteredRows = () => {
       if (
         d.filter &&
         ((d.value !== undefined && d.value !== null && d.value !== '') ||
-          d.condition === 'is_null' ||
-          d.condition == 'is_not_null')
+          d.condition === 'IsNull' ||
+          d.condition == 'IsNotNull')
       ) {
         // string filters
         if (d.type === 'string') {
           if (d.value && !d.condition) {
-            d.condition = 'contain'
+            d.condition = 'Contains'
           }
 
-          if (d.condition === 'contain') {
+          if (d.condition === 'Contains') {
             rows = rows.filter(item => {
               return cellValue(item, d.field)
                 ?.toString()
                 .toLowerCase()
                 .includes(d.value.toLowerCase())
             })
-          } else if (d.condition === 'not_contain') {
+          } else if (d.condition === 'NotContains') {
             rows = rows.filter(item => {
               return !cellValue(item, d.field)
                 ?.toString()
                 .toLowerCase()
                 .includes(d.value.toLowerCase())
             })
-          } else if (d.condition === 'equal') {
+          } else if (d.condition === 'Equal') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field)?.toString().toLowerCase() ===
                 d.value.toLowerCase()
               )
             })
-          } else if (d.condition === 'not_equal') {
+          } else if (d.condition === 'NotEqual') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field)?.toString().toLowerCase() !==
                 d.value.toLowerCase()
               )
             })
-          } else if (d.condition == 'start_with') {
+          } else if (d.condition == 'StartsWith') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field)
@@ -321,7 +322,7 @@ const filteredRows = () => {
                   .indexOf(d.value.toLowerCase()) === 0
               )
             })
-          } else if (d.condition == 'end_with') {
+          } else if (d.condition == 'EndsWith') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field)
@@ -335,45 +336,45 @@ const filteredRows = () => {
         // number filters
         else if (d.type === 'number') {
           if (d.value && !d.condition) {
-            d.condition = 'equal'
+            d.condition = 'Equal'
           }
 
-          if (d.condition === 'equal') {
+          if (d.condition === 'Equal') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 parseFloat(cellValue(item, d.field)) === parseFloat(d.value)
               )
             })
-          } else if (d.condition === 'not_equal') {
+          } else if (d.condition === 'NotEqual') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 parseFloat(cellValue(item, d.field)) !== parseFloat(d.value)
               )
             })
-          } else if (d.condition === 'greater_than') {
+          } else if (d.condition === 'GreaterThan') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 parseFloat(cellValue(item, d.field)) > parseFloat(d.value)
               )
             })
-          } else if (d.condition === 'greater_than_equal') {
+          } else if (d.condition === 'GreaterThanOrEqual') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 parseFloat(cellValue(item, d.field)) >= parseFloat(d.value)
               )
             })
-          } else if (d.condition === 'less_than') {
+          } else if (d.condition === 'LessThan') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 parseFloat(cellValue(item, d.field)) < parseFloat(d.value)
               )
             })
-          } else if (d.condition === 'less_than_equal') {
+          } else if (d.condition === 'LessThanOrEqual') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
@@ -385,31 +386,31 @@ const filteredRows = () => {
         // date filters
         else if (d.type === 'date') {
           if (d.value && !d.condition) {
-            d.condition = 'equal'
+            d.condition = 'Equal'
           }
 
-          if (d.condition === 'equal') {
+          if (d.condition === 'Equal') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 dateFormat(cellValue(item, d.field)) === d.value
               )
             })
-          } else if (d.condition === 'not_equal') {
+          } else if (d.condition === 'NotEqual') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 dateFormat(cellValue(item, d.field)) !== d.value
               )
             })
-          } else if (d.condition === 'greater_than') {
+          } else if (d.condition === 'GreaterThan') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
                 dateFormat(cellValue(item, d.field)) > d.value
               )
             })
-          } else if (d.condition === 'less_than') {
+          } else if (d.condition === 'LessThan') {
             rows = rows.filter(item => {
               return (
                 cellValue(item, d.field) &&
@@ -425,14 +426,14 @@ const filteredRows = () => {
           })
         }
 
-        if (d.condition === 'is_null') {
+        if (d.condition === 'IsNull') {
           rows = rows.filter(item => {
             return (
               cellValue(item, d.field) == null || cellValue(item, d.field) == ''
             )
           })
           d.value = ''
-        } else if (d.condition === 'is_not_null') {
+        } else if (d.condition === 'IsNotNull') {
           d.value = ''
           rows = rows.filter(item => {
             return cellValue(item, d.field)
@@ -776,17 +777,17 @@ const setDefaultCondition = () => {
     if (
       d.filter &&
       ((d.value !== undefined && d.value !== null && d.value !== '') ||
-        d.condition === 'is_null' ||
-        d.condition === 'is_not_null')
+        d.condition === 'IsNull' ||
+        d.condition === 'IsNotNull')
     ) {
       if (d.type === 'string' && d.value && !d.condition) {
-        d.condition = 'contain'
+        d.condition = 'Contains'
       }
       if (d.type === 'number' && d.value && !d.condition) {
-        d.condition = 'equal'
+        d.condition = 'Equal'
       }
       if (d.type === 'date' && d.value && !d.condition) {
-        d.condition = 'equal'
+        d.condition = 'Equal'
       }
     }
   }
@@ -911,6 +912,9 @@ const topmenuheight = useElementSize(topmenuel).height
                 </slot>
               </pane>
               <pane :size="topmenusize">
+                <slot name="tableactionheader">
+                  <span>##Table Action Header Slot##</span>
+                </slot>
                 <div :class="props.scrollbarstyle">
                   <custom-scrollbar
                     :style="{
@@ -1297,6 +1301,7 @@ const topmenuheight = useElementSize(topmenuel).height
       >
         <slot
           name="footerpageinfo"
+          v-if="enablefooterpagination"
           :paginationInfo="paginationInfo"
           :filterRowCount="filterRowCount"
           :offset="offset"
@@ -1335,6 +1340,7 @@ const topmenuheight = useElementSize(topmenuel).height
         </slot>
         <slot
           name="footerpagination"
+          v-if="enablefooterpagination"
           :currentPage="currentPage"
           :maxPage="maxPage"
           :paging="paging"
