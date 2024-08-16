@@ -5,9 +5,11 @@ export default {
 </script>
 <script setup lang="ts">
 import { useElementSize } from '@vueuse/core'
+import VueTypewriterEffect from "vue-typewriter-effect";
 import CustomScrollbar from 'custom-vue-scrollbar'
 import { Splitpanes, Pane } from 'splitpanes'
-import { computed, onMounted, type Ref, ref, useSlots, watch } from 'vue'
+import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch } from 'vue'
+
 
 import ButtonExpand from './button-expand.vue'
 import columnHeader from './column-header.vue'
@@ -65,17 +67,20 @@ interface Props {
   scrollbarfixedthumb?: boolean
   scrollbarautoexpand?: boolean
   scrollbardirection?: string
-  enablerightmenu?: boolean
+  enableleftmenu?: boolean
   enabletopmenu?: boolean
-  rightmenusize?: number
-  rightmenumax?: number
-  rightmenumin?: number
+  leftmenusize?: number
+  leftmenumax?: number
+  leftmenumin?: number
+  leftmenumaxpx?:number
   topmenusize?: number
   topmenumax?: number
   topmenumin?: number
   skeletonloader?: boolean
   enableloadinganimation?: boolean
   enablefooterpagination?: boolean
+  footerOffset?: number,
+  tableRightOffset?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -123,7 +128,13 @@ const props = withDefaults(defineProps<Props>(), {
   scrollbarautohide: true,
   scrollbarfixedthumb: false,
   scrollbarautoexpand: false,
-  scrollbardirection: 'vertical'
+  scrollbardirection: 'vertical',
+  footerOffset: 0,
+  tableRightOffset: 0,
+  leftmenumax: 50,
+  leftmenumin: 1,
+  leftmenumaxpx: 0
+
 })
 
 // set default columns values
@@ -166,6 +177,9 @@ const delay: Ref<number> = ref(230)
 onMounted(() => {
   filterRows()
 })
+
+
+
 const emit = defineEmits([
   'change',
   'sortChange',
@@ -175,7 +189,9 @@ const emit = defineEmits([
   'rowSelect',
   'filterChange',
   'rowClick',
-  'rowDBClick'
+  'rowDBClick',
+  'currentTopMenuSize',
+  'currentLeftMenuSize'
 ])
 defineExpose({
   reset() {
@@ -575,6 +591,9 @@ const changePage = () => {
 }
 watch(() => currentPage.value, changePage)
 
+
+
+
 // row update
 const changeRows = () => {
   if (!props.isServerMode) {
@@ -863,29 +882,38 @@ if (props.hasSubtable) {
   extracolumnlength++
 }
 const dtableloadingkey = ref(0)
-setInterval(function () {
+const dtableloadingkeyInterval = setInterval(function () {
   dtableloadingkey.value++
 }, 2200)
 
-const leftmenusize = ref(100 - Number(props.rightmenusize))
 
-watch(
-  () => props.rightmenusize,
-  newsize => {
-    leftmenusize.value = 100 - Number(newsize)
-  }
-)
 
-const topmenusize = ref(100 - Number(props.topmenusize))
-
-watch(
-  () => props.topmenusize,
-  newsize => {
-    topmenusize.value = 100 - Number(newsize)
-  }
-)
+const topmenusize = ref(props.topmenusize)
 const topmenuel = ref(null)
 const topmenuheight = useElementSize(topmenuel).height
+
+
+const leftmenusize = ref(Number(props.leftmenusize))
+const leftmenumax = ref(props.leftmenumax)
+const leftmenuel = ref(null)
+const leftmenuwidth = useElementSize(leftmenuel).width
+
+watch(leftmenusize, (newLeftMenuSize) => {
+   leftmenuwidth.value == props.leftmenumaxpx ? leftmenumax.value = newLeftMenuSize : leftmenumax.value = props.leftmenumax
+   emit('currentLeftMenuSize', newLeftMenuSize)
+}, { immediate: true })
+
+
+// top menü size changed
+watch(() => topmenusize.value, (newsize) => {
+  emit('currentTopMenuSize', newsize)
+})
+
+
+onUnmounted(() => {
+ clearInterval(dtableloadingkeyInterval)
+})
+
 </script>
 <template>
   <div
@@ -898,12 +926,22 @@ const topmenuheight = useElementSize(topmenuel).height
           class="default-theme"
           @resize="leftmenusize = $event[0].size"
         >
-          <pane :size="leftmenusize">
-            <splitpanes class="default-theme" horizontal="horizontal">
+          <pane 
+            ref="leftmenuel"
+             v-if="enableleftmenu"
+            :size="leftmenusize"
+            :max-size="leftmenumax"
+            :style="{ 'min-width': leftmenumin + 'px', 'max-width': leftmenumaxpx  + 'px' }" >
+            <slot name="tableleftmenu">
+              <span>##Left Menu Slot##</span>
+            </slot>
+          </pane>
+          <pane>
+            <splitpanes class="default-theme" horizontal="horizontal" @resize="topmenusize = $event[0].size">
               <pane
                 ref="topmenuel"
                 v-if="enabletopmenu"
-                :size="100 - topmenusize"
+                :size="topmenusize"
                 :max-size="topmenumax"
                 :style="{ 'min-height': topmenumin + 'px' }"
               >
@@ -911,7 +949,7 @@ const topmenuheight = useElementSize(topmenuel).height
                   <span>##Top Menu Slot##</span>
                 </slot>
               </pane>
-              <pane :size="topmenusize">
+              <pane :style="{ 'padding-right': tableRightOffset + 'px' }">
                 <slot name="tableactionheader">
                   <span>##Table Action Header Slot##</span>
                 </slot>
@@ -921,7 +959,7 @@ const topmenuheight = useElementSize(topmenuel).height
                       height:
                         props.stickyHeader &&
                         Number(props.height.replace('px', '')) -
-                          topmenuheight +
+                          (footerOffset + topmenuheight) +
                           'px'
                     }"
                     :autoHide="props.scrollbarautohide"
@@ -1173,88 +1211,20 @@ const topmenuheight = useElementSize(topmenuel).height
                           />
                         </tfoot>
                       </table>
-                      <div
+                     
+                     <div
                         v-if="
-                          filterRowCount &&
                           currentLoader &&
                           enableloadinganimation
                         "
                         class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
+                        :style="{
+                              height: Number(props.height.replace('px', '')) - 175 + 'px'
+                              }"
                       >
-                        <svg
-                          :key="dtableloadingkey"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                        >
-                          <g
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                          >
-                            <path
-                              stroke-dasharray="62"
-                              stroke-dashoffset="62"
-                              d="M22 4V3C22 2.45 21.55 2 21 2H7C6.45 2 6 2.45 6 3V17C6 17.55 6.45 18 7 18H21C21.55 18 22 17.55 22 17z"
-                            >
-                              <animate
-                                fill="freeze"
-                                attributeName="stroke-dashoffset"
-                                dur="0.6s"
-                                values="62;124"
-                              />
-                            </path>
-                            <g stroke-dasharray="10" stroke-dashoffset="10">
-                              <path d="M10 6h8">
-                                <animate
-                                  fill="freeze"
-                                  attributeName="stroke-dashoffset"
-                                  begin="0.7s"
-                                  dur="0.2s"
-                                  values="10;0"
-                                />
-                              </path>
-                              <path d="M10 10h8">
-                                <animate
-                                  fill="freeze"
-                                  attributeName="stroke-dashoffset"
-                                  begin="0.9s"
-                                  dur="0.2s"
-                                  values="10;0"
-                                />
-                              </path>
-                            </g>
-                            <path
-                              stroke-dasharray="7"
-                              stroke-dashoffset="7"
-                              d="M10 14h5"
-                            >
-                              <animate
-                                fill="freeze"
-                                attributeName="stroke-dashoffset"
-                                begin="1.1s"
-                                dur="0.2s"
-                                values="7;0"
-                              />
-                            </path>
-                            <path
-                              stroke-dasharray="34"
-                              stroke-dashoffset="34"
-                              d="M2 6V21C2 21.55 2.45 22 3 22H18"
-                            >
-                              <animate
-                                fill="freeze"
-                                attributeName="stroke-dashoffset"
-                                begin="1.4s"
-                                dur="0.4s"
-                                values="34;68"
-                              />
-                            </path>
-                          </g>
-                        </svg>
+                      <slot name="loadercontent">
+
+                      </slot>
                       </div>
                     </div>
                     <div
@@ -1273,16 +1243,6 @@ const topmenuheight = useElementSize(topmenuel).height
                 </div>
               </pane>
             </splitpanes>
-          </pane>
-          <pane
-            v-if="enablerightmenu"
-            :size="100 - leftmenusize"
-            :max-size="rightmenumax"
-            :style="{ 'min-width': rightmenumin + 'px' }"
-          >
-            <slot name="tablerightmenu">
-              <span>##Right Menu Slot##</span>
-            </slot>
           </pane>
         </splitpanes>
       </pane>

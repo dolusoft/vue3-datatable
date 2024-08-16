@@ -67,7 +67,7 @@ const getUsers = async () => {
     loading.value = true
 
     const response = await fetch(
-      'http://172.16.40.25:5202/datatable/api/user',
+      'https://172.16.40.25:5001/datatable/api/user',
       {
         method: 'POST',
         headers: new Headers({ 'content-type': 'application/json' }),
@@ -112,7 +112,7 @@ footer_rows.value = [
     </div>
     <vue3-datatable
       ref="datatable"
-      :loading="loading"
+      :loading="false"
       :rows="rows"
       :footerRows="footer_rows"
       :columns="cols"
@@ -131,10 +131,11 @@ footer_rows.value = [
       :columnFilter="true"
       :stickyHeader="true"
       :stickyFooter="true"
-      :enablerightmenu="true"
-      :rightmenusize="20"
-      :rightmenumax="30"
-      :rightmenumin="100"
+      :enableleftmenu="true"
+      :leftmenusize="100"
+      :leftmenumax="50"
+      :leftmenumaxpx="250"
+      :leftmenumin="100"
       :enabletopmenu="true"
       :topmenusize="1"
       :topmenumax="30"
@@ -142,6 +143,10 @@ footer_rows.value = [
       :skeletonloader="false"
       :height="'800px'"
       :scrollbarstyle="$style.customCls"
+      :enablefooterpagination="true"
+      :footerOffset="0"
+      :tableRightOffset="0"
+      :enableloadinganimation="false"
       skin="bh-table-striped bh-table-hover bh-table-bordered"
       @change="changeServer"
     >

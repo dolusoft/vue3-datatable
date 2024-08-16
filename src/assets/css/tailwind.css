@@ -27,6 +27,7 @@
     .bh-table-responsive table tfoot tr th,
     .bh-table-responsive table tbody tr td {
         @apply bh-text-left bh-py-3 bh-px-4;
+        white-space: nowrap;
     }
     .bh-table-responsive table thead tr th,
     .bh-table-responsive table tfoot tr th {
