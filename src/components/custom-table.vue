@@ -1132,6 +1132,7 @@ onUnmounted(() => {
                             <tr
                               v-for="(item, i) in props.footerRows"
                               :key="item[uniqueKey] ? item[uniqueKey] : i"
+                              class="sticky-table-footer"
                             >
                               <td
                                 v-if="extracolumnlength > 0"
@@ -1428,3 +1429,4 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
