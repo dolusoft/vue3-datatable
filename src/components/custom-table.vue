@@ -5,7 +5,6 @@ export default {
 </script>
 <script setup lang="ts">
 import { useElementSize } from '@vueuse/core'
-import VueTypewriterEffect from "vue-typewriter-effect";
 import CustomScrollbar from 'custom-vue-scrollbar'
 import { Splitpanes, Pane } from 'splitpanes'
 import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch } from 'vue'
@@ -816,7 +815,7 @@ const setDefaultCondition = () => {
 const reset = () => {
   selectAll(false)
   for (let i = 0; i < props.columns.length; i++) {
-    props.columns[i] = oldColumns[i]
+    props.columns[i].value = ''
   }
   currentSearch.value = ''
   currentPageSize.value = oldPageSize

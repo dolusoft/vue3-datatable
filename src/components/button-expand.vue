@@ -26,7 +26,6 @@ const expandedrows = toRef(props, 'expandedrows')
 const _expandallStatus = ref<boolean>(false)
 
 function expandRow(id: number) {
-  console.log(expandedrows.value)
   if (props.expandall) {
     _expandallStatus.value = !_expandallStatus.value
     expandedrows.value.forEach(element => {

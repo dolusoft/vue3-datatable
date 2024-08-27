@@ -13,7 +13,6 @@ const props = defineProps<{
   rowdata?: any
 }>()
 
-console.log(props.rowdata)
 
 const datatable: any = ref(null)
 const loading: any = ref(true)

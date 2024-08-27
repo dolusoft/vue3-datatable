@@ -95,6 +95,12 @@ footer_rows.value = [
     ]
   }
 ]
+
+function resetFunc()
+{
+  datatable.value.reset()
+}
+
 </script>
 <template>
   <div class="bh-p-10">
@@ -105,7 +111,7 @@ footer_rows.value = [
         placeholder="Search..."
         class="bh-border bh-border-solid bh-bg-white bh-p-2 bh-outline-0 bh-border-gray-200 focus:bh-border-gray-200 bh-rounded"
       />
-      <button type="button" class="btn mb-4 bh-p-2" @click="datatable.reset()">
+      <button type="button" class="btn mb-4 bh-p-2" @click="resetFunc()">
         Reset
       </button>
       <br />
