@@ -65,6 +65,18 @@ watch(() => props.checkAll, checkboxChange)
         </div>
       </div>
     </th>
+    <th 
+      v-if="props.all.hasRightPanel"
+      class="bh-w-px"
+      :class="{
+        'bh-sticky bh-bg-blue-light bh-z-[1]':
+          props.all.stickyHeader || props.all.stickyFirstColumn,
+        'bh-top-0': props.all.stickyHeader,
+        'bh-left-0': props.all.stickyFirstColumn
+      }"
+    >
+      <!-- Right Panel Button Column -->
+    </th>
     <template v-if="props.all.hasSubtable">
       <th class="bh-w-px">
         <template v-if="props.all.expandall">

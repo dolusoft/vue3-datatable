@@ -3,12 +3,14 @@ import { ref, computed } from 'vue'
 
 import Default from './developer/Default.vue'
 import Expandrow from './developer/Expandrow.vue'
+import OpenRightPanel from './developer/OpenRightPanel.vue'
 import NotFound from './NotFound.vue'
 
 const routes = {
   '/': Default,
   '/Default': Default,
-  '/Expandrow': Expandrow
+  '/Expandrow': Expandrow,
+  '/OpenRightPanel': OpenRightPanel
 }
 
 const currentPath = ref(window.location.pathname)
@@ -23,7 +25,7 @@ const currentView = computed(() => {
 </script>
 
 <template>
-  <a href="/Default">Default</a> | <a href="/Expandrow">Expandrow</a>
+  <a href="/Default">Default</a> | <a href="/Expandrow">Expandrow</a> | <a href="/OpenRightPanel">Right Panel Test</a>
   <component :is="currentView" />
 </template>
 

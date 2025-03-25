@@ -11,6 +11,7 @@ import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch } from
 
 
 import ButtonExpand from './button-expand.vue'
+import ButtonRightPanel from './button-rightpanel.vue'
 import columnHeader from './column-header.vue'
 import iconCheck from './icon-check.vue'
 import type { ColumnDefinition } from '../model/column-model'
@@ -30,6 +31,7 @@ interface Props {
   columns?: Array<ColumnDefinition>
   hasCheckbox?: boolean
   hasSubtable?: boolean
+  hasRightPanel?: boolean
   expandall?: boolean
   search?: string
   columnChooser?: boolean
@@ -92,6 +94,7 @@ const props = withDefaults(defineProps<Props>(), {
   columns: () => [],
   hasCheckbox: false,
   hasSubtable: false,
+  hasRightPanel: false,
   expandall: false,
   search: '',
   columnChooser: false,
@@ -190,7 +193,8 @@ const emit = defineEmits([
   'rowClick',
   'rowDBClick',
   'currentTopMenuSize',
-  'currentLeftMenuSize'
+  'currentLeftMenuSize',
+  'rowRightPanelClick'
 ])
 defineExpose({
   reset() {
@@ -880,6 +884,9 @@ if (props.hasCheckbox) {
 if (props.hasSubtable) {
   extracolumnlength++
 }
+if (props.hasRightPanel) {
+  extracolumnlength++
+}
 const dtableloadingkey = ref(0)
 const dtableloadingkeyInterval = setInterval(function () {
   dtableloadingkey.value++
@@ -1029,6 +1036,19 @@ onUnmounted(() => {
                                     <icon-check class="check" />
                                   </div>
                                 </div>
+                              </td>
+                              <td
+                                v-if="props.hasRightPanel"
+                                :class="{
+                                  'bh-sticky bh-left-0 bh-bg-blue-light':
+                                    props.stickyFirstColumn
+                                }"
+                              >
+                                <ButtonRightPanel
+                                  :item="item"
+                                  @rightPanelClick="(rowData) => emit('rowRightPanelClick', rowData)"
+                                >
+                                </ButtonRightPanel>
                               </td>
                               <td
                                 v-if="props.hasSubtable"
