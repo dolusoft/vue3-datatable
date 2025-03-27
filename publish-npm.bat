@@ -2,17 +2,17 @@
 setlocal EnableDelayedExpansion
 
 :: =================================================================
-:: Vue3-Datatable Automatic Publisher - Fixed Version
+:: Vue3-Datatable Automatic Publisher (NPM version)
 :: This script will:
 ::  1. Update the version number (patch)
 ::  2. Build the project
 ::  3. Commit changes to git with version number
 ::  4. Push to remote repository
-::  5. Publish to NPM
+::  5. Publish to NPM using direct npm command
 :: =================================================================
 
 echo -------------------------------------------
-echo Publishing New Version to NPM
+echo Publishing New Version to NPM (Direct NPM)
 echo -------------------------------------------
 
 :: Check if git is installed
@@ -100,17 +100,15 @@ if %ERRORLEVEL% NEQ 0 (
     goto :error
 )
 
-:: Step 6: Publish to NPM
-echo Publishing to NPM...
-
-echo Running NPM publish command...
-pnpm publish --access public --no-git-checks
+:: Step 6: Publish to NPM using direct npm command
+echo Publishing to NPM with direct npm command...
+npm publish --access public
 if %ERRORLEVEL% NEQ 0 (
-    echo NPM publish failed. Trying with login prompt first...
-    pnpm login
-    pnpm publish --access public --no-git-checks
+    echo Failed to publish to NPM. Trying with login first...
+    npm login
+    npm publish --access public
     if %ERRORLEVEL% NEQ 0 (
-        echo Failed to publish to NPM.
+        echo Failed to publish to NPM after login.
         goto :error
     )
 )
