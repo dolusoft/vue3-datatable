@@ -109,11 +109,27 @@ git tag v!newVersion!
 echo.
 call :colorEcho %YELLOW% "Building project..."
 echo.
-call pnpm run build
 
+:: Run build steps individually
+call pnpm exec vite build
 if %errorlevel% neq 0 (
-    call :colorEcho %RED% "Build failed!"
-    exit /b 1
+    call :colorEcho %RED% "Vite build failed!"
+    goto :error_cleanup
+)
+
+call pnpm exec vue-tsc --emitDeclarationOnly
+if %errorlevel% neq 0 (
+    call :colorEcho %RED% "TypeScript declaration generation failed!"
+    goto :error_cleanup
+)
+
+:: Run tailwind build directly with pnpm
+call :colorEcho %YELLOW% "Building Tailwind CSS..."
+echo.
+call pnpm exec tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --minify
+if %errorlevel% neq 0 (
+    call :colorEcho %RED% "Tailwind CSS build failed!"
+    goto :error_cleanup
 )
 
 call :colorEcho %GREEN% "Build successful!"
@@ -135,7 +151,7 @@ call pnpm pack --pack-destination ./temp-pack
 
 if %errorlevel% neq 0 (
     call :colorEcho %RED% "Package preview creation failed!"
-    exit /b 1
+    goto :error_cleanup
 )
 
 echo.
@@ -152,7 +168,7 @@ if /i "%confirmPublish%"=="" (
 
 if /i not "%confirmPublish%"=="y" (
     call :colorEcho %RED% "Publishing canceled!"
-    exit /b 1
+    goto :error_cleanup
 )
 
 echo.
@@ -162,7 +178,7 @@ call pnpm login
 
 if %errorlevel% neq 0 (
     call :colorEcho %RED% "NPM login failed!"
-    exit /b 1
+    goto :error_cleanup
 )
 
 echo.
@@ -172,7 +188,7 @@ call pnpm publish
 
 if %errorlevel% neq 0 (
     call :colorEcho %RED% "Publishing failed!"
-    exit /b 1
+    goto :error_cleanup
 )
 
 echo.
@@ -213,6 +229,22 @@ if exist temp-pack (
 )
 
 exit /b 0
+
+:error_cleanup
+:: Restore the original version if something failed
+call :colorEcho %YELLOW% "Cleaning up after error..."
+echo.
+
+:: Use PowerShell to restore original version in package.json
+set "search=\"version\": \"!newVersion!\""
+set "replace=\"version\": \"!version!\""
+powershell -Command "(Get-Content package.json) -replace [regex]::Escape('!search!'), '!replace!' | Set-Content package.json"
+
+:: Delete the created Git tag
+git tag -d v!newVersion! 2>nul
+
+call :colorEcho %RED% "Process aborted. Version reverted to !version!"
+exit /b 1
 
 :colorEcho
 :: %~1 color code (e.g. 31=red)
