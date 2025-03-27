@@ -113,12 +113,9 @@ if %ERRORLEVEL% NEQ 0 (
     )
 )
 
+echo.
 echo -------------------------------------------
 echo Successfully published version v%VERSION% to NPM!
-echo -------------------------------------------
-echo.
-echo pnpm add @dolusoft/vue3-datatable@%VERSION%
-echo.
 echo -------------------------------------------
 goto :end
 
@@ -130,4 +127,7 @@ exit /b 1
 
 :end
 echo Process completed.
+echo.
+echo pnpm add @dolusoft/vue3-datatable@%VERSION%
+echo.
 pause
