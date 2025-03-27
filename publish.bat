@@ -18,11 +18,49 @@ set "WHITE=37"
 
 :: Colored text function
 call :colorEcho %YELLOW% "Current version: "
-for /f "tokens=*" %%i in ('pnpm -s exec jq -r ".version" package.json') do (
-    call :colorEcho %CYAN% "%%i"
+
+:: Get current version without using jq
+for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do (
+    set "version=%%a"
+    set "version=!version:"=!"
+    set "version=!version: =!"
+    call :colorEcho %CYAN% "!version!"
 )
 echo.
 echo.
+
+:: Check Git status
+echo Checking Git working directory status...
+git status --porcelain > git_status.tmp
+set /p git_status=<git_status.tmp
+del git_status.tmp
+
+if not "!git_status!"=="" (
+    call :colorEcho %YELLOW% "WARNING: Git working directory is not clean."
+    echo Changes detected:
+    git status --short
+    echo.
+    set /p commitFirst="Do you want to commit these changes first? (y/n, default=y): "
+    if "!commitFirst!"=="" set "commitFirst=y"
+    
+    if /i "!commitFirst!"=="y" (
+        set /p commitMsg="Enter commit message (default: 'chore: prepare for version update'): "
+        if "!commitMsg!"=="" set "commitMsg=chore: prepare for version update"
+        
+        git add .
+        git commit -m "!commitMsg!"
+        
+        if !errorlevel! neq 0 (
+            call :colorEcho %RED% "Failed to commit changes!"
+            exit /b 1
+        )
+        call :colorEcho %GREEN% "Changes committed successfully."
+        echo.
+    ) else (
+        call :colorEcho %RED% "Please commit your changes manually before running this script."
+        exit /b 1
+    )
+)
 
 :: Ask for version type
 echo Select version upgrade type:
@@ -82,9 +120,11 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Get new version
-for /f "tokens=*" %%i in ('pnpm -s exec jq -r ".version" package.json') do (
-    set "newVersion=%%i"
+:: Get new version without jq
+for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do (
+    set "newVersion=%%a"
+    set "newVersion=!newVersion:"=!"
+    set "newVersion=!newVersion: =!"
 )
 
 echo.
@@ -105,6 +145,10 @@ dir dist /b
 echo.
 call :colorEcho %YELLOW% "Creating package preview..."
 echo.
+
+:: Create temp directory if it doesn't exist
+if not exist temp-pack mkdir temp-pack
+
 call pnpm pack --pack-destination ./temp-pack
 
 echo.
@@ -138,8 +182,16 @@ if "%versionType%"=="4" (
     call git tag v%newVersion%
 )
 
-call git add .
-call git commit -m "chore: bump version to v%newVersion%"
+:: Only do git add and commit if there are changes
+git status --porcelain > git_status.tmp
+set /p git_status=<git_status.tmp
+del git_status.tmp
+
+if not "!git_status!"=="" (
+    call git add .
+    call git commit -m "chore: bump version to v%newVersion%"
+)
+
 call git push
 
 if %errorlevel% neq 0 (
