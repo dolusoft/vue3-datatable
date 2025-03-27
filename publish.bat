@@ -133,14 +133,22 @@ goto :main
         goto :error_cleanup
     )
 
-    :: Run tailwind build using pnpm run
+    :: Run tailwind build directly with pnpm dlx instead of npm run
     call :colorEcho %YELLOW% "Building Tailwind CSS..."
     echo.
-    call pnpm run tailwind:build
-
+    
+    :: Try pnpm's equivalent of npx (dlx)
+    call pnpm dlx tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --minify
+    
     if %errorlevel% neq 0 (
-        call :colorEcho %RED% "Tailwind CSS build failed!"
-        goto :error_cleanup
+        :: Fallback to node_modules/.bin path
+        call :colorEcho %YELLOW% "Trying alternative method for Tailwind CSS..."
+        call node_modules\.bin\tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --minify
+        
+        if %errorlevel% neq 0 (
+            call :colorEcho %RED% "Tailwind CSS build failed!"
+            goto :error_cleanup
+        )
     )
 
     call :colorEcho %GREEN% "Build successful!"
