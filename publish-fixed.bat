@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 
 :: =================================================================
-:: Vue3-Datatable Automatic Publisher
+:: Vue3-Datatable Automatic Publisher - Fixed Version
 :: This script will:
 ::  1. Update the version number (patch)
 ::  2. Build the project
@@ -36,29 +36,44 @@ if not "%CURRENT_BRANCH%" == "main" (
     )
 )
 
-:: Step 1: Check for uncommitted changes
+:: Step 1: Commit any changes if needed
 git diff --quiet --exit-code
 if %ERRORLEVEL% NEQ 0 (
     echo Uncommitted changes detected.
     echo Automatically committing current changes...
     git add .
     git commit -m "Prepare for new version release"
-    echo Git commit completed with status: %ERRORLEVEL%
+    echo Git commit completed.
 )
 
-:: Step 2: Update version number
+:: Step 2: Update version manually with node script
 echo Updating version number...
-node version-bump.mjs
+
+:: Using temporary JS file to update version
+echo import fs from 'fs'; > update-version.mjs
+echo const packagePath = './package.json'; >> update-version.mjs
+echo const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8')); >> update-version.mjs
+echo const currentVersion = pkg.version; >> update-version.mjs
+echo console.log('Current version: ' + currentVersion); >> update-version.mjs
+echo const parts = currentVersion.split('.'); >> update-version.mjs
+echo parts[2] = (parseInt(parts[2]) + 1).toString(); >> update-version.mjs
+echo const newVersion = parts.join('.'); >> update-version.mjs
+echo pkg.version = newVersion; >> update-version.mjs
+echo fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + '\n'); >> update-version.mjs
+echo console.log('New version: ' + newVersion); >> update-version.mjs
+echo console.log(newVersion); >> update-version.mjs
+
+node update-version.mjs > version-output.txt
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to update version number.
+    del update-version.mjs
     goto :error
 )
 
-:: Get the new version number
-echo Getting version number...
-for /f "tokens=* usebackq" %%a in (`node -e "import fs from 'fs'; console.log(JSON.parse(fs.readFileSync('./package.json')).version)"`) do (
-    set VERSION=%%a
-)
+:: Get the last line which contains just the version
+for /f "delims=" %%i in (version-output.txt) do set VERSION=%%i
+del version-output.txt
+del update-version.mjs
 
 :: Step 3: Build the project
 echo Building project...
@@ -73,7 +88,7 @@ echo Committing changes to git...
 git add package.json dist
 git commit -m "v%VERSION% make setup"
 if %ERRORLEVEL% NEQ 0 (
-    echo Failed to commit changes.
+    echo Failed to commit changes to version.
     goto :error
 )
 
