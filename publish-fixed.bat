@@ -85,7 +85,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 :: Step 4: Commit changes
 echo Committing changes to git...
-git add package.json dist
+git add package.json
 git commit -m "v%VERSION% make setup"
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to commit changes to version.
@@ -102,10 +102,10 @@ if %ERRORLEVEL% NEQ 0 (
 
 :: Step 6: Publish to NPM
 echo Publishing to NPM...
-echo Checking if you're logged in to NPM...
-pnpm whoami >nul 2>nul
-if %ERRORLEVEL% NEQ 0 (
-    echo You need to login to NPM first
+
+:: Check if user is logged in
+pnpm whoami >nul 2>nul || (
+    echo You are not logged in to NPM. Please login:
     pnpm login
 )
 
