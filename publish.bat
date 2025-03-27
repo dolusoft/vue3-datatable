@@ -26,6 +26,20 @@ for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do
     call :colorEcho %CYAN% "!version!"
 )
 echo.
+
+:: Parse version parts (assuming format is x.y.z)
+for /f "tokens=1,2,3 delims=." %%a in ("!version!") do (
+    set "major=%%a"
+    set "minor=%%b"
+    set "patch=%%c"
+)
+
+:: Increment patch version
+set /a "patch=!patch!+1"
+set "newVersion=!major!.!minor!.!patch!"
+
+call :colorEcho %GREEN% "Auto-incrementing to version: !newVersion!"
+echo.
 echo.
 
 :: Check Git working directory status
@@ -61,89 +75,36 @@ if not "!git_status!"=="" (
     )
 )
 
-:: Ask for version type
-echo Select version upgrade type:
-call :colorEcho %GREEN% "1) patch [default]"
-echo  - !version! -^> next patch version
-call :colorEcho %YELLOW% "2) minor"
-echo  - !version! -^> next minor version
-call :colorEcho %RED% "3) major"
-echo  - !version! -^> next major version
-call :colorEcho %BLUE% "4) custom"
-echo  - custom version (manual input)
+echo.
+call :colorEcho %YELLOW% "Updating package.json version to !newVersion!..."
 echo.
 
-set /p versionType="Your choice (1-4, default=1): "
+:: Create a temporary file for sed-like replacement
+type package.json > package.json.tmp
+set "search=\"version\": \"!version!\""
+set "replace=\"version\": \"!newVersion!\""
 
-if "%versionType%"=="" (
-    set "versionType=1"
-    set "versionCmd=patch"
-    echo Using default: patch
-) else if "%versionType%"=="1" (
-    set "versionCmd=patch"
-) else if "%versionType%"=="2" (
-    set "versionCmd=minor"
-) else if "%versionType%"=="3" (
-    set "versionCmd=major"
-) else if "%versionType%"=="4" (
-    set /p customVersion="Enter custom version number (e.g. 1.8.0): "
-    set "versionCmd=%customVersion%"
-) else (
-    call :colorEcho %RED% "Invalid selection! Using default: patch"
-    set "versionType=1"
-    set "versionCmd=patch"
-)
+:: Use PowerShell to replace version in package.json
+powershell -Command "(Get-Content package.json.tmp) -replace [regex]::Escape('!search!'), '!replace!' | Set-Content package.json"
+del package.json.tmp
 
-echo.
-call :colorEcho %YELLOW% "Logging in to NPM..."
-echo.
-call pnpm login
-
-if %errorlevel% neq 0 (
-    call :colorEcho %RED% "NPM login failed!"
-    exit /b 1
-)
-
-echo.
-call :colorEcho %YELLOW% "Upgrading version..."
-echo.
-
-:: Verify current version first
-for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do (
-    set "versionBefore=%%a"
-    set "versionBefore=!versionBefore:"=!"
-    set "versionBefore=!versionBefore: =!"
-)
-
-:: Update version
-if "%versionType%"=="4" (
-    call pnpm version %versionCmd% --no-git-tag-version
-) else (
-    call pnpm version %versionCmd%
-)
-
-if %errorlevel% neq 0 (
-    call :colorEcho %RED% "Version upgrade failed!"
-    exit /b 1
-)
-
-:: Get new version
+:: Verify version change
 for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do (
     set "versionAfter=%%a"
     set "versionAfter=!versionAfter:"=!"
     set "versionAfter=!versionAfter: =!"
 )
 
-:: Verify version actually changed
-if "!versionBefore!"=="!versionAfter!" (
-    call :colorEcho %RED% "ERROR: Version was not updated. Still at !versionBefore!"
+if "!versionAfter!" NEQ "!newVersion!" (
+    call :colorEcho %RED% "ERROR: Failed to update version in package.json!"
     exit /b 1
 )
 
-call :colorEcho %GREEN% "Version updated: !versionBefore! -^> !versionAfter!"
+call :colorEcho %GREEN% "Version updated in package.json: !version! -> !newVersion!"
 echo.
 
-set "newVersion=!versionAfter!"
+:: Create git tag for the new version
+git tag v!newVersion!
 
 echo.
 call :colorEcho %YELLOW% "Building project..."
@@ -154,6 +115,9 @@ if %errorlevel% neq 0 (
     call :colorEcho %RED% "Build failed!"
     exit /b 1
 )
+
+call :colorEcho %GREEN% "Build successful!"
+echo.
 
 echo.
 call :colorEcho %YELLOW% "Built package contents:"
@@ -192,6 +156,16 @@ if /i not "%confirmPublish%"=="y" (
 )
 
 echo.
+call :colorEcho %YELLOW% "Logging in to NPM..."
+echo.
+call pnpm login
+
+if %errorlevel% neq 0 (
+    call :colorEcho %RED% "NPM login failed!"
+    exit /b 1
+)
+
+echo.
 call :colorEcho %YELLOW% "Publishing package to NPM..."
 echo.
 call pnpm publish
@@ -205,20 +179,9 @@ echo.
 call :colorEcho %YELLOW% "Performing Git operations..."
 echo.
 
-:: Create git tag for custom version
-if "%versionType%"=="4" (
-    call git tag v%newVersion%
-)
-
-:: Only do git add and commit if there are changes
-git status --porcelain > git_status.tmp
-set /p git_status=<git_status.tmp
-del git_status.tmp
-
-if not "!git_status!"=="" (
-    call git add .
-    call git commit -m "chore: bump version to v%newVersion%"
-)
+:: Commit the version change
+git add package.json
+git commit -m "chore: bump version to v!newVersion!"
 
 call git push
 
@@ -239,7 +202,7 @@ if %errorlevel% neq 0 (
 
 echo.
 call :colorEcho %GREEN% "========================================"
-call :colorEcho %GREEN% "  Package published successfully: v%newVersion%"
+call :colorEcho %GREEN% "  Package published successfully: v!newVersion!"
 call :colorEcho %GREEN% "========================================"
 echo.
 
