@@ -1,6 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+cls
 echo.
 echo ===================================================
 echo =         Vue3-Datatable Publish Script          =
@@ -16,10 +17,8 @@ set "MAGENTA=35"
 set "CYAN=36"
 set "WHITE=37"
 
-:: Colored text function
+:: Get current version
 call :colorEcho %YELLOW% "Current version: "
-
-:: Get current version without using jq
 for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do (
     set "version=%%a"
     set "version=!version:"=!"
@@ -29,7 +28,7 @@ for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do
 echo.
 echo.
 
-:: Check Git status
+:: Check Git working directory status
 echo Checking Git working directory status...
 git status --porcelain > git_status.tmp
 set /p git_status=<git_status.tmp
@@ -65,11 +64,11 @@ if not "!git_status!"=="" (
 :: Ask for version type
 echo Select version upgrade type:
 call :colorEcho %GREEN% "1) patch [default]"
-echo  - 1.7.1 -^> 1.7.2
+echo  - !version! -^> next patch version
 call :colorEcho %YELLOW% "2) minor"
-echo  - 1.7.1 -^> 1.8.0
+echo  - !version! -^> next minor version
 call :colorEcho %RED% "3) major"
-echo  - 1.7.1 -^> 2.0.0
+echo  - !version! -^> next major version
 call :colorEcho %BLUE% "4) custom"
 echo  - custom version (manual input)
 echo.
@@ -109,6 +108,14 @@ echo.
 call :colorEcho %YELLOW% "Upgrading version..."
 echo.
 
+:: Verify current version first
+for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do (
+    set "versionBefore=%%a"
+    set "versionBefore=!versionBefore:"=!"
+    set "versionBefore=!versionBefore: =!"
+)
+
+:: Update version
 if "%versionType%"=="4" (
     call pnpm version %versionCmd% --no-git-tag-version
 ) else (
@@ -120,12 +127,23 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Get new version without jq
+:: Get new version
 for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" package.json') do (
-    set "newVersion=%%a"
-    set "newVersion=!newVersion:"=!"
-    set "newVersion=!newVersion: =!"
+    set "versionAfter=%%a"
+    set "versionAfter=!versionAfter:"=!"
+    set "versionAfter=!versionAfter: =!"
 )
+
+:: Verify version actually changed
+if "!versionBefore!"=="!versionAfter!" (
+    call :colorEcho %RED% "ERROR: Version was not updated. Still at !versionBefore!"
+    exit /b 1
+)
+
+call :colorEcho %GREEN% "Version updated: !versionBefore! -^> !versionAfter!"
+echo.
+
+set "newVersion=!versionAfter!"
 
 echo.
 call :colorEcho %YELLOW% "Building project..."
@@ -151,7 +169,17 @@ if not exist temp-pack mkdir temp-pack
 
 call pnpm pack --pack-destination ./temp-pack
 
+if %errorlevel% neq 0 (
+    call :colorEcho %RED% "Package preview creation failed!"
+    exit /b 1
+)
+
 echo.
+call :colorEcho %GREEN% "Package preview created successfully."
+echo.
+call :colorEcho %YELLOW% "Ready to publish version !newVersion!"
+echo.
+
 set /p confirmPublish="Do you want to publish the package to NPM? (y/n, default=y): "
 if /i "%confirmPublish%"=="" (
     set "confirmPublish=y"
