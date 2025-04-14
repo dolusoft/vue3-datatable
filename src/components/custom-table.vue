@@ -7,7 +7,7 @@ export default {
 import { useElementSize } from '@vueuse/core'
 import CustomScrollbar from 'custom-vue-scrollbar'
 import { Splitpanes, Pane } from 'splitpanes'
-import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch } from 'vue'
+import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch, nextTick } from 'vue'
 
 
 import ButtonExpand from './button-expand.vue'
@@ -176,8 +176,22 @@ const timer: any = ref(null)
 let clickCount: Ref<number> = ref(0)
 const delay: Ref<number> = ref(230)
 
+// Initialize with minimum width percentage - not needed anymore
+// const initializeMinWidth = () => {
+//   if (leftmenuel.value && leftmenuel.value.parentElement && props.leftmenumin) {
+//     const containerWidth = leftmenuel.value.parentElement.clientWidth
+//     const minPercentage = (props.leftmenumin / containerWidth) * 100
+//     leftmenusize.value = minPercentage
+//   }
+// }
+
 onMounted(() => {
   filterRows()
+  // Yüklendiğinde pane'leri düzgünce başlat
+  nextTick(() => {
+    if (leftmenusize.value <= 0) leftmenusize.value = 10
+    if (topmenusize.value <= 0) topmenusize.value = 10
+  })
 })
 
 
@@ -899,21 +913,35 @@ const topmenuel = ref(null)
 const topmenuheight = useElementSize(topmenuel).height
 
 
-const leftmenusize = ref(Number(props.leftmenusize))
+const leftmenusize = ref(10) // Başlangıçta %10 genişlik
 const leftmenumax = ref(props.leftmenumax)
 const leftmenuel = ref(null)
 const leftmenuwidth = useElementSize(leftmenuel).width
 
-watch(leftmenusize, (newLeftMenuSize) => {
-   leftmenuwidth.value == props.leftmenumaxpx ? leftmenumax.value = newLeftMenuSize : leftmenumax.value = props.leftmenumax
-   emit('currentLeftMenuSize', newLeftMenuSize)
-}, { immediate: true })
+// Önceki boyutu saklayacak referans
+const previousLeftMenuSize = ref(10)
+
+// Handler for left menu resize events
+const handleLeftMenuResize = (panes) => {
+  if (!panes || !panes.length) return
+  const newSize = panes[0].size
+  leftmenusize.value = newSize
+  leftmenumax.value = Math.max(newSize, props.leftmenumax || 50)
+  emit('currentLeftMenuSize', newSize)
+}
 
 
-// top menü size changed
-watch(() => topmenusize.value, (newsize) => {
-  emit('currentTopMenuSize', newsize)
-})
+
+// Eski watch kaldırıldı - DOM genişliği yerine direkt resize olayı kullanılıyor
+
+
+// Handler for top menu resize events
+const handleTopMenuResize = (panes) => {
+  if (!panes || !panes.length) return
+  const newSize = panes[0].size
+  topmenusize.value = newSize
+  emit('currentTopMenuSize', newSize)
+}
 
 
 onUnmounted(() => {
@@ -930,25 +958,27 @@ onUnmounted(() => {
         <splitpanes
           vertical="vertical"
           class="default-theme"
-          @resize="leftmenusize = $event[0].size"
+          @resize="handleLeftMenuResize($event)"
+          push-other-panes
         >
           <pane 
             ref="leftmenuel"
              v-if="enableleftmenu"
             :size="leftmenusize"
-            :max-size="leftmenumax"
-            :style="{ 'min-width': leftmenumin + 'px', 'max-width': leftmenumaxpx  + 'px' }" >
+            :min-size="1"
+            :max-size="props.leftmenumax || 50"
+            :style="{ 'min-width': props.leftmenumin + 'px' }">
             <slot name="tableleftmenu">
               <span>##Left Menu Slot##</span>
             </slot>
           </pane>
           <pane>
-            <splitpanes class="default-theme" horizontal="horizontal" @resize="topmenusize = $event[0].size">
+            <splitpanes class="default-theme" horizontal="horizontal" @resize="handleTopMenuResize" push-other-panes>
               <pane
                 ref="topmenuel"
                 v-if="enabletopmenu"
-                :size="topmenusize"
-                :max-size="topmenumax"
+                :size="topmenusize || 10"
+                :max-size="topmenumax || 100"
                 :style="{ 'min-height': topmenumin + 'px' }"
               >
                 <slot name="tabletopmenu">
