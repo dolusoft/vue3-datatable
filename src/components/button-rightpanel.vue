@@ -1,37 +1,37 @@
 <script lang="ts">
 export default {
-  name: 'ButtonRightPanel'
+    name: 'ButtonRightPanel'
 }
 </script>
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 
 interface Props {
-  item?: any
+    item?: any
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  item: []
+    item: []
 })
 
 const emit = defineEmits(['rightPanelClick'])
 
 function openRightPanel() {
-  emit('rightPanelClick', props.item)
+    emit('rightPanelClick', props.item)
 }
 </script>
 <template>
-  <button class="rightpanelbtn" @click.stop="openRightPanel">
-    <Icon icon="material-symbols:arrow-circle-right" width="20" />
-  </button>
+    <button class="rightpanelbtn" @click.stop="openRightPanel">
+        <Icon icon="lucide:plus" />
+    </button>
 </template>
 <style scoped>
 .rightpanelbtn {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
 }
 </style>
