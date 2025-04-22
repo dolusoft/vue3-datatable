@@ -181,16 +181,16 @@ const leftmenuel = ref(null)
 
 // Toggle left menu between minimized and default width
 const toggleLeftMenu = () => {
-  if (isLeftMenuMinimized.value) {
-    // Expand
-    currentLeftMenuWidth.value = props.leftmenuDefaultWidth
-    isLeftMenuMinimized.value = false
-  } else {
-    // Minimize
-    currentLeftMenuWidth.value = props.leftmenuMinWidth
-    isLeftMenuMinimized.value = true
-  }
-  emit('currentLeftMenuSize', currentLeftMenuWidth.value)
+  // Önce durumu değiştir
+  isLeftMenuMinimized.value = !isLeftMenuMinimized.value;
+
+  // Sonra genişliği yeni duruma göre ayarla
+  currentLeftMenuWidth.value = isLeftMenuMinimized.value
+    ? props.leftmenuMinWidth
+    : props.leftmenuDefaultWidth;
+
+  // Değişikliği bildir
+  emit('currentLeftMenuSize', currentLeftMenuWidth.value);
 }
 
 onMounted(() => {
@@ -938,11 +938,11 @@ onUnmounted(() => {
       <pane>
         <div class="bh-flex bh-h-full">
           <!-- Custom left menu (no longer using splitpanes) -->
-          <div 
+          <div
             ref="leftmenuel"
             v-if="enableleftmenu"
             class="left-menu-container bh-relative"
-            :style="{ 
+            :style="{
               width: currentLeftMenuWidth + 'px',
               transition: 'width 0.3s ease',
               overflow: 'hidden',
@@ -952,20 +952,20 @@ onUnmounted(() => {
             <slot name="tableleftmenu">
               <span>##Left Menu Slot##</span>
             </slot>
-            
+
             <!-- Resize control button -->
-            <div 
+            <div
               class="menu-resize-controls bh-absolute bh-right-0 bh-top-1/2 bh-transform -bh-translate-y-1/2 bh-z-10 bh-bg-gray-100 bh-rounded-l bh-shadow-md"
             >
-              <button 
+              <button
                 @click="toggleLeftMenu"
                 class="bh-w-4 bh-h-10 bh-flex bh-justify-center bh-items-center bh-border-none bh-bg-transparent bh-cursor-pointer bh-outline-none"
               >
-                <svg 
-                  width="8" 
-                  height="12" 
-                  viewBox="0 0 8 12" 
-                  fill="none" 
+                <svg
+                  width="8"
+                  height="12"
+                  viewBox="0 0 8 12"
+                  fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   :style="{ transform: isLeftMenuMinimized ? 'rotate(180deg)' : 'none' }"
                 >
@@ -974,7 +974,7 @@ onUnmounted(() => {
               </button>
             </div>
           </div>
-          
+
           <!-- Main content area -->
           <div class="bh-flex-1">
             <splitpanes class="default-theme" horizontal="horizontal" @resize="handleTopMenuResize" push-other-panes>
@@ -1246,7 +1246,7 @@ onUnmounted(() => {
                           />
                         </tfoot>
                       </table>
-                     
+
                      <div
                         v-if="
                           currentLoader &&
