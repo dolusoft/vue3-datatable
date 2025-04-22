@@ -181,15 +181,16 @@ const leftmenuel = ref(null)
 
 // Toggle left menu between minimized and default width
 const toggleLeftMenu = () => {
-  // Önce durumu değiştir
   isLeftMenuMinimized.value = !isLeftMenuMinimized.value;
-
-  // Sonra genişliği yeni duruma göre ayarla
   currentLeftMenuWidth.value = isLeftMenuMinimized.value
     ? props.leftmenuMinWidth
     : props.leftmenuDefaultWidth;
 
-  // Değişikliği bildir
+  // DOM elementini doğrudan güncelle
+  if (leftmenuel.value) {
+    leftmenuel.value.style.width = currentLeftMenuWidth.value + 'px';
+  }
+
   emit('currentLeftMenuSize', currentLeftMenuWidth.value);
 }
 
