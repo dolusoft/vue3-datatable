@@ -179,6 +179,33 @@ const currentLeftMenuWidth = ref(props.leftmenuDefaultWidth)
 const isLeftMenuMinimized = ref(false)
 const leftmenuel = ref(null)
 
+// Sol menü stilini güncelleme fonksiyonu
+const updateLeftMenuStyle = () => {
+  if (leftmenuel.value) {
+    const minMaxWidth = isLeftMenuMinimized.value ? props.leftmenuMinWidth : props.leftmenuDefaultWidth;
+    leftmenuel.value.style.cssText = `
+      width: ${currentLeftMenuWidth.value}px !important;
+      min-width: ${minMaxWidth}px !important;
+      max-width: ${minMaxWidth}px !important;
+    `;
+  }
+}
+
+// Resize olayını ele alan fonksiyon
+const handleResize = () => {
+  // Menü durumuna göre ayarla
+  if (!isLeftMenuMinimized.value) {
+    // Menü genişletilmişse, default genişliği koru
+    currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
+  } else {
+    // Menü küçültülmüşse, minimum genişliği koru
+    currentLeftMenuWidth.value = props.leftmenuMinWidth;
+  }
+  
+  // updateLeftMenuStyle ile stil güncellemesi yap
+  updateLeftMenuStyle();
+}
+
 // Toggle left menu between minimized and default width
 const toggleLeftMenu = () => {
   isLeftMenuMinimized.value = !isLeftMenuMinimized.value;
@@ -186,11 +213,7 @@ const toggleLeftMenu = () => {
     ? props.leftmenuMinWidth
     : props.leftmenuDefaultWidth;
 
-  // DOM elementini doğrudan güncelle
-  if (leftmenuel.value) {
-    leftmenuel.value.style.width = currentLeftMenuWidth.value + 'px';
-  }
-
+  updateLeftMenuStyle();
   emit('currentLeftMenuSize', currentLeftMenuWidth.value);
 }
 
@@ -201,6 +224,9 @@ onMounted(() => {
     if (topmenusize.value <= 0) topmenusize.value = 10
     // Set left menu initial width
     currentLeftMenuWidth.value = props.leftmenuDefaultWidth
+    updateLeftMenuStyle();
+    // Resize olayını dinle
+    window.addEventListener('resize', handleResize);
   })
 })
 
@@ -927,7 +953,9 @@ const handleTopMenuResize = (panes) => {
 }
 
 onUnmounted(() => {
- clearInterval(dtableloadingkeyInterval)
+  clearInterval(dtableloadingkeyInterval)
+  // Resize listener'ı temizle
+  window.removeEventListener('resize', handleResize);
 })
 
 </script>
@@ -937,7 +965,7 @@ onUnmounted(() => {
   >
     <splitpanes class="default-theme" :style="{ height: props.height }">
       <pane>
-        <div class="bh-flex bh-h-full">
+        <div class="bh-flex bh-h-full" style="min-width: 0;">
           <!-- Custom left menu (no longer using splitpanes) -->
           <div
             ref="leftmenuel"
@@ -947,7 +975,8 @@ onUnmounted(() => {
               width: currentLeftMenuWidth + 'px',
               transition: 'width 0.3s ease',
               overflow: 'hidden',
-              minWidth: props.leftmenuMinWidth + 'px'
+              minWidth: (isLeftMenuMinimized ? props.leftmenuMinWidth : props.leftmenuDefaultWidth) + 'px',
+              maxWidth: (isLeftMenuMinimized ? props.leftmenuMinWidth : props.leftmenuDefaultWidth) + 'px'
             }"
           >
             <slot name="tableleftmenu">
@@ -956,7 +985,7 @@ onUnmounted(() => {
 
             <!-- Resize control button -->
             <div
-              class="menu-resize-controls bh-absolute bh-right-0 bh-top-1/2 bh-transform -bh-translate-y-1/2 bh-z-10 bh-bg-gray-100 bh-rounded-l bh-shadow-md"
+            class="menu-resize-controls bh-absolute bh-right-0 bh-top-1/2 bh-transform -bh-translate-y-1/2 bh-z-10 bh-bg-gray-100 bh-rounded-l bh-shadow-md bh-select-none"
             >
               <button
                 @click="toggleLeftMenu"
@@ -1469,6 +1498,7 @@ onUnmounted(() => {
 /* Custom left menu styles */
 .left-menu-container {
   position: relative;
+  flex-shrink: 0 !important; /* Prevent flex container from shrinking this element */
 }
 
 .menu-resize-controls {
@@ -1491,5 +1521,6 @@ onUnmounted(() => {
   border: none;
   background: transparent;
   cursor: pointer;
+  user-select: none;
 }
 </style>
