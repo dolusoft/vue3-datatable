@@ -70,10 +70,9 @@ interface Props {
   scrollbardirection?: string
   enableleftmenu?: boolean
   enabletopmenu?: boolean
-  leftmenusize?: number
-  leftmenumax?: number
-  leftmenumin?: number
-  leftmenumaxpx?:number
+  // Left menu props
+  leftmenuMinWidth?: number
+  leftmenuDefaultWidth?: number
   topmenusize?: number
   topmenumax?: number
   topmenumin?: number
@@ -133,10 +132,9 @@ const props = withDefaults(defineProps<Props>(), {
   scrollbardirection: 'vertical',
   footerOffset: 0,
   tableRightOffset: 0,
-  leftmenumax: 50,
-  leftmenumin: 1,
-  leftmenumaxpx: 0
-
+  // Left menu prop defaults
+  leftmenuMinWidth: 50,
+  leftmenuDefaultWidth: 250
 })
 
 // set default columns values
@@ -176,25 +174,34 @@ const timer: any = ref(null)
 let clickCount: Ref<number> = ref(0)
 const delay: Ref<number> = ref(230)
 
-// Initialize with minimum width percentage - not needed anymore
-// const initializeMinWidth = () => {
-//   if (leftmenuel.value && leftmenuel.value.parentElement && props.leftmenumin) {
-//     const containerWidth = leftmenuel.value.parentElement.clientWidth
-//     const minPercentage = (props.leftmenumin / containerWidth) * 100
-//     leftmenusize.value = minPercentage
-//   }
-// }
+// Left menu state
+const currentLeftMenuWidth = ref(props.leftmenuDefaultWidth)
+const isLeftMenuMinimized = ref(false)
+const leftmenuel = ref(null)
+
+// Toggle left menu between minimized and default width
+const toggleLeftMenu = () => {
+  if (isLeftMenuMinimized.value) {
+    // Expand
+    currentLeftMenuWidth.value = props.leftmenuDefaultWidth
+    isLeftMenuMinimized.value = false
+  } else {
+    // Minimize
+    currentLeftMenuWidth.value = props.leftmenuMinWidth
+    isLeftMenuMinimized.value = true
+  }
+  emit('currentLeftMenuSize', currentLeftMenuWidth.value)
+}
 
 onMounted(() => {
   filterRows()
-  // Yüklendiğinde pane'leri düzgünce başlat
+  // Initialize menu sizes
   nextTick(() => {
-    if (leftmenusize.value <= 0) leftmenusize.value = 10
     if (topmenusize.value <= 0) topmenusize.value = 10
+    // Set left menu initial width
+    currentLeftMenuWidth.value = props.leftmenuDefaultWidth
   })
 })
-
-
 
 const emit = defineEmits([
   'change',
@@ -906,34 +913,9 @@ const dtableloadingkeyInterval = setInterval(function () {
   dtableloadingkey.value++
 }, 2200)
 
-
-
 const topmenusize = ref(props.topmenusize)
 const topmenuel = ref(null)
 const topmenuheight = useElementSize(topmenuel).height
-
-
-const leftmenusize = ref(10) // Başlangıçta %10 genişlik
-const leftmenumax = ref(props.leftmenumax)
-const leftmenuel = ref(null)
-const leftmenuwidth = useElementSize(leftmenuel).width
-
-// Önceki boyutu saklayacak referans
-const previousLeftMenuSize = ref(10)
-
-// Handler for left menu resize events
-const handleLeftMenuResize = (panes) => {
-  if (!panes || !panes.length) return
-  const newSize = panes[0].size
-  leftmenusize.value = newSize
-  leftmenumax.value = Math.max(newSize, props.leftmenumax || 50)
-  emit('currentLeftMenuSize', newSize)
-}
-
-
-
-// Eski watch kaldırıldı - DOM genişliği yerine direkt resize olayı kullanılıyor
-
 
 // Handler for top menu resize events
 const handleTopMenuResize = (panes) => {
@@ -942,7 +924,6 @@ const handleTopMenuResize = (panes) => {
   topmenusize.value = newSize
   emit('currentTopMenuSize', newSize)
 }
-
 
 onUnmounted(() => {
  clearInterval(dtableloadingkeyInterval)
@@ -955,24 +936,47 @@ onUnmounted(() => {
   >
     <splitpanes class="default-theme" :style="{ height: props.height }">
       <pane>
-        <splitpanes
-          vertical="vertical"
-          class="default-theme"
-          @resize="handleLeftMenuResize($event)"
-          push-other-panes
-        >
-          <pane 
+        <div class="bh-flex bh-h-full">
+          <!-- Custom left menu (no longer using splitpanes) -->
+          <div 
             ref="leftmenuel"
-             v-if="enableleftmenu"
-            :size="leftmenusize"
-            :min-size="1"
-            :max-size="props.leftmenumax || 50"
-            :style="{ 'min-width': props.leftmenumin + 'px' }">
+            v-if="enableleftmenu"
+            class="left-menu-container bh-relative"
+            :style="{ 
+              width: currentLeftMenuWidth + 'px',
+              transition: 'width 0.3s ease',
+              overflow: 'hidden',
+              minWidth: props.leftmenuMinWidth + 'px'
+            }"
+          >
             <slot name="tableleftmenu">
               <span>##Left Menu Slot##</span>
             </slot>
-          </pane>
-          <pane>
+            
+            <!-- Resize control button -->
+            <div 
+              class="menu-resize-controls bh-absolute bh-right-0 bh-top-1/2 bh-transform -bh-translate-y-1/2 bh-z-10 bh-bg-gray-100 bh-rounded-l bh-shadow-md"
+            >
+              <button 
+                @click="toggleLeftMenu"
+                class="bh-w-4 bh-h-10 bh-flex bh-justify-center bh-items-center bh-border-none bh-bg-transparent bh-cursor-pointer bh-outline-none"
+              >
+                <svg 
+                  width="8" 
+                  height="12" 
+                  viewBox="0 0 8 12" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  :style="{ transform: isLeftMenuMinimized ? 'rotate(180deg)' : 'none' }"
+                >
+                  <path d="M7 1L1 6L7 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Main content area -->
+          <div class="bh-flex-1">
             <splitpanes class="default-theme" horizontal="horizontal" @resize="handleTopMenuResize" push-other-panes>
               <pane
                 ref="topmenuel"
@@ -1217,25 +1221,6 @@ onUnmounted(() => {
                                     }}
                                   </template>
                                 </td>
-
-                                <!-- <td
-                                    v-if="!col.hide"
-                                    :key="col.field"
-                                    :class="[
-                                        typeof props.cellClass === 'function' ? cellClass(item) : props.cellClass,
-                                        j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
-                                        props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
-                                        col.cellClass ? col.cellClass : '',
-                                    ]"
-                                >
-                                    <template v-if="slots[col.field]">
-                                        <slot :name="col.field" :value="item"></slot>
-                                    </template>
-                                    <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
-                                    <template v-else>
-                                        {{ cellValue(item, col.field) }}
-                                    </template>
-                                </td> -->
                               </template>
                             </tr>
                           </template>
@@ -1293,8 +1278,8 @@ onUnmounted(() => {
                 </div>
               </pane>
             </splitpanes>
-          </pane>
-        </splitpanes>
+          </div>
+        </div>
       </pane>
     </splitpanes>
 
@@ -1479,3 +1464,31 @@ onUnmounted(() => {
   </div>
 </template>
 
+<style>
+/* Custom left menu styles */
+.left-menu-container {
+  position: relative;
+}
+
+.menu-resize-controls {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: #f0f0f0;
+  border-radius: 3px 0 0 3px;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+}
+
+.menu-resize-controls button {
+  width: 16px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+</style>
