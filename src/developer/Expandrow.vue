@@ -10,6 +10,9 @@ onMounted(() => {
   getUsers()
 })
 
+// Basitleştirilmiş çözüm; doğrudan CSS özellikleriyle çalışacağız
+// ResizeObserver kaldırıldı
+
 const datatable: any = ref(null)
 const loading: any = ref(true)
 const total_rows = ref(0)
@@ -55,6 +58,7 @@ const filterUsers = () => {
     getUsers()
   }, 150)
 }
+
 const getUsers = async () => {
   // cancel request if previous request still pending before next request fire
   if (controller) {
@@ -96,8 +100,7 @@ footer_rows.value = [
   }
 ]
 
-function resetFunc()
-{
+function resetFunc() {
   datatable.value.reset()
 }
 
@@ -138,10 +141,10 @@ function resetFunc()
       :stickyHeader="true"
       :stickyFooter="true"
       :enableleftmenu="true"
-      :leftmenusize="100"
-      :leftmenumax="50"
+      :leftmenusize="10"
+      :leftmenumax="25"
       :leftmenumaxpx="250"
-      :leftmenumin="100"
+      :leftmenumin="50"
       :enabletopmenu="true"
       :topmenusize="1"
       :topmenumax="30"
@@ -156,6 +159,18 @@ function resetFunc()
       skin="bh-table-striped bh-table-hover bh-table-bordered"
       @change="changeServer"
     >
+      <!-- Sol menü için içerik -->
+      <template #tableleftmenu>
+        <div style="min-width: 50px; max-width: 250px !important; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; box-sizing: border-box; background-color: #f5f5f5; padding: 10px;">
+          <div style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Sabit Genişlikli Menü</div>
+          <div style="margin-bottom: 5px; padding: 8px; background-color: #e0e0ff; border-radius: 4px;">Menü Öğesi 1</div>
+          <div style="margin-bottom: 5px; padding: 8px; background-color: #e0e0ff; border-radius: 4px;">Menü Öğesi 2</div>
+          <div style="margin-bottom: 5px; padding: 8px; background-color: #e0e0ff; border-radius: 4px;">Menü Öğesi 3</div>
+          <div style="margin-bottom: 5px; padding: 8px; background-color: #e0e0ff; border-radius: 4px;">Çok Uzun Bir Menü Öğesi İsmi</div>
+          <div style="margin-bottom: 5px; padding: 8px; background-color: #e0e0ff; border-radius: 4px;">Menü Öğesi 5</div>
+        </div>
+      </template>
+
       <template #email="data">
         <a
           :href="`mailto:${data.value.email}`"
@@ -332,3 +347,4 @@ function resetFunc()
   }
 }
 </style>
+
