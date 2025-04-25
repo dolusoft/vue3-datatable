@@ -129,7 +129,7 @@ const props = withDefaults(defineProps<Props>(), {
   scrollbarautohide: true,
   scrollbarfixedthumb: false,
   scrollbarautoexpand: false,
-  scrollbardirection: 'vertical',
+  scrollbardirection: 'both',
   footerOffset: 0,
   tableRightOffset: 0,
   // Left menu prop defaults
@@ -201,7 +201,7 @@ const handleResize = () => {
     // Menü küçültülmüşse, minimum genişliği koru
     currentLeftMenuWidth.value = props.leftmenuMinWidth;
   }
-  
+
   // updateLeftMenuStyle ile stil güncellemesi yap
   updateLeftMenuStyle();
 }
@@ -965,7 +965,7 @@ onUnmounted(() => {
   >
     <splitpanes class="default-theme" :style="{ height: props.height }">
       <pane>
-        <div class="bh-flex bh-h-full" style="min-width: 0;">
+        <div class="bh-flex bh-h-full" >
           <!-- Custom left menu (no longer using splitpanes) -->
           <div
             ref="leftmenuel"
@@ -1006,7 +1006,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Main content area -->
-          <div class="bh-flex-1">
+          <div class="bh-flex-1" style="overflow: auto; min-width: 0;">
             <splitpanes class="default-theme" horizontal="horizontal" @resize="handleTopMenuResize" push-other-panes>
               <pane
                 ref="topmenuel"
