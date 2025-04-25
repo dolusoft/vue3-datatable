@@ -45,7 +45,7 @@ watch(() => props.checkAll, checkboxChange)
     <th
       v-if="props.all.hasCheckbox"
       :key="'chkall'"
-      :style="{ width: props.all.checkboxColumnWidth, minWidth: props.all.checkboxColumnWidth }"
+      :style="{ width: props.all.checkboxColumnWidth + ' !important', minWidth: props.all.checkboxColumnWidth + ' !important' }"
       :class="{
         'bh-sticky bh-bg-blue-light bh-z-[1]':
           props.all.stickyHeader || props.all.stickyFirstColumn,
@@ -67,7 +67,7 @@ watch(() => props.checkAll, checkboxChange)
     </th>
     <th
     v-if="props.all.hasRightPanel"
-    :style="{ width: props.all.rightPanelColumnWidth, minWidth: props.all.rightPanelColumnWidth }"
+    :style="{ width: props.all.rightPanelColumnWidth + ' !important', minWidth: props.all.rightPanelColumnWidth + ' !important' }"
     :class="{
     'bh-sticky bh-bg-blue-light bh-z-[1]':
     props.all.stickyHeader || props.all.stickyFirstColumn,
@@ -78,7 +78,7 @@ watch(() => props.checkAll, checkboxChange)
       <!-- Right Panel Button Column -->
     </th>
     <template v-if="props.all.hasSubtable">
-      <th :style="{ width: props.all.subtableColumnWidth, minWidth: props.all.subtableColumnWidth }">
+      <th :style="{ width: props.all.subtableColumnWidth + ' !important', minWidth: props.all.subtableColumnWidth + ' !important' }">
         <template v-if="props.all.expandall">
           <button-expand
             :expandedrows="props.expandedrows"

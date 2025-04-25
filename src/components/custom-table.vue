@@ -1088,7 +1088,7 @@ onUnmounted(() => {
                             >
                               <td
                                 v-if="props.hasCheckbox"
-                                :style="{ width: props.checkboxColumnWidth, minWidth: props.checkboxColumnWidth }"
+                                :style="{ width: props.checkboxColumnWidth + ' !important', minWidth: props.checkboxColumnWidth + ' !important' }"
                                 :class="{
                                   'bh-sticky bh-left-0 bh-bg-blue-light':
                                     props.stickyFirstColumn
@@ -1110,7 +1110,7 @@ onUnmounted(() => {
                               </td>
                               <td
                                 v-if="props.hasRightPanel"
-                                :style="{ width: props.rightPanelColumnWidth, minWidth: props.rightPanelColumnWidth }"
+                                :style="{ width: props.rightPanelColumnWidth + ' !important', minWidth: props.rightPanelColumnWidth + ' !important' }"
                                 :class="{
                                   'bh-sticky bh-left-0 bh-bg-blue-light':
                                     props.stickyFirstColumn
@@ -1124,7 +1124,7 @@ onUnmounted(() => {
                               </td>
                               <td
                                 v-if="props.hasSubtable"
-                                :style="{ width: props.subtableColumnWidth, minWidth: props.subtableColumnWidth }"
+                                :style="{ width: props.subtableColumnWidth + ' !important', minWidth: props.subtableColumnWidth + ' !important' }"
                                 :class="{
                                   'bh-sticky bh-left-0 bh-bg-blue-light':
                                     props.stickyFirstColumn
