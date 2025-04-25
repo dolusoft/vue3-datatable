@@ -32,6 +32,9 @@ interface Props {
   hasCheckbox?: boolean
   hasSubtable?: boolean
   hasRightPanel?: boolean
+  checkboxColumnWidth?: string
+  rightPanelColumnWidth?: string
+  subtableColumnWidth?: string
   expandall?: boolean
   search?: string
   columnChooser?: boolean
@@ -94,6 +97,9 @@ const props = withDefaults(defineProps<Props>(), {
   hasCheckbox: false,
   hasSubtable: false,
   hasRightPanel: false,
+  checkboxColumnWidth: '40px',
+  rightPanelColumnWidth: '40px',
+  subtableColumnWidth: '40px',
   expandall: false,
   search: '',
   columnChooser: false,
@@ -1082,6 +1088,7 @@ onUnmounted(() => {
                             >
                               <td
                                 v-if="props.hasCheckbox"
+                                :style="{ width: props.checkboxColumnWidth, minWidth: props.checkboxColumnWidth }"
                                 :class="{
                                   'bh-sticky bh-left-0 bh-bg-blue-light':
                                     props.stickyFirstColumn
@@ -1103,6 +1110,7 @@ onUnmounted(() => {
                               </td>
                               <td
                                 v-if="props.hasRightPanel"
+                                :style="{ width: props.rightPanelColumnWidth, minWidth: props.rightPanelColumnWidth }"
                                 :class="{
                                   'bh-sticky bh-left-0 bh-bg-blue-light':
                                     props.stickyFirstColumn
@@ -1116,6 +1124,7 @@ onUnmounted(() => {
                               </td>
                               <td
                                 v-if="props.hasSubtable"
+                                :style="{ width: props.subtableColumnWidth, minWidth: props.subtableColumnWidth }"
                                 :class="{
                                   'bh-sticky bh-left-0 bh-bg-blue-light':
                                     props.stickyFirstColumn
