@@ -998,7 +998,7 @@ onUnmounted(() => {
                     </div>
 
                     <!-- Main content area -->
-                    <div class="bh-flex-1" style="overflow: auto; min-width: 0;">
+                    <div class="bh-flex-1" style="overflow: auto; min-width: 0; width:100%">
                         <splitpanes class="default-theme" horizontal="horizontal" @resize="handleTopMenuResize"
                             push-other-panes>
                             <pane ref="topmenuel" v-if="enabletopmenu" :size="topmenusize || 10"
@@ -1165,7 +1165,7 @@ onUnmounted(() => {
                                                                     ">
                                                                         {{
                                                                             item.cells.find(x => x.field == col.field)
-                                                                        .text
+                                                                                .text
                                                                         }}
                                                                     </template>
                                                                 </td>
@@ -1231,8 +1231,8 @@ onUnmounted(() => {
                                     props.paginationInfo,
                                     filterRowCount ? offset : 0,
                                     limit,
-                            filterRowCount
-                            )
+                                    filterRowCount
+                                )
                             }}
                         </span>
                         <select v-if="props.showPageSize" v-model="currentPageSize" class="bh-pagesize">
