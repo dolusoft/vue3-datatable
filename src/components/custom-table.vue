@@ -84,6 +84,7 @@ interface Props {
     enablefooterpagination?: boolean
     footerOffset?: number,
     tableRightOffset?: number
+  tableLeftOffset?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -138,6 +139,7 @@ const props = withDefaults(defineProps<Props>(), {
     scrollbardirection: 'both',
     footerOffset: 0,
     tableRightOffset: 0,
+  tableLeftOffset: 5,
     // Left menu prop defaults
     leftmenuMinWidth: 50,
     leftmenuDefaultWidth: 250
@@ -1007,7 +1009,7 @@ onUnmounted(() => {
                                     <span>##Top Menu Slot##</span>
                                 </slot>
                             </pane>
-                            <pane :style="{ 'padding-right': tableRightOffset + 'px' }">
+                            <pane :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
                                 <slot name="tableactionheader">
                                     <span>##Table Action Header Slot##</span>
                                 </slot>
