@@ -84,7 +84,8 @@ interface Props {
     enablefooterpagination?: boolean
     footerOffset?: number,
     tableRightOffset?: number
-  tableLeftOffset?: number
+    tableLeftOffset?: number
+    initialLeftMenuState?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -139,10 +140,11 @@ const props = withDefaults(defineProps<Props>(), {
     scrollbardirection: 'both',
     footerOffset: 0,
     tableRightOffset: 0,
-  tableLeftOffset: 5,
+    tableLeftOffset: 5,
     // Left menu prop defaults
     leftmenuMinWidth: 50,
-    leftmenuDefaultWidth: 250
+    leftmenuDefaultWidth: 250,
+    initialLeftMenuState: undefined
 })
 
 // set default columns values
@@ -226,16 +228,34 @@ const toggleLeftMenu = () => {
 }
 
 onMounted(() => {
-    filterRows()
+    filterRows();
+    
     // Initialize menu sizes
     nextTick(() => {
-        if (topmenusize.value <= 0) topmenusize.value = 10
-        // Set left menu initial width
-        currentLeftMenuWidth.value = props.leftmenuDefaultWidth
+        if (topmenusize.value <= 0) topmenusize.value = 10;
+        
+        // Initialize menu state from props.initialLeftMenuState if provided
+        if (props.initialLeftMenuState !== undefined) {
+            // initialLeftMenuState true means menu should be minimized
+            isLeftMenuMinimized.value = props.initialLeftMenuState;
+            currentLeftMenuWidth.value = isLeftMenuMinimized.value
+                ? props.leftmenuMinWidth
+                : props.leftmenuDefaultWidth;
+            
+            // Log for debugging
+            console.log('Setting initial left menu state:', isLeftMenuMinimized.value);
+            console.log('Setting initial left menu width:', currentLeftMenuWidth.value);
+        } else {
+            // Default to expanded menu
+            currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
+        }
+        
+        // Apply menu style based on current state
         updateLeftMenuStyle();
+        
         // Resize olayını dinle
         window.addEventListener('resize', handleResize);
-    })
+    });
 })
 
 const emit = defineEmits([
@@ -276,8 +296,27 @@ defineExpose({
     },
     getFilteredRows() {
         return filteredRows()
+    },
+    // Expose function to set the left menu state
+    setLeftMenuState(minimized: boolean) {
+        isLeftMenuMinimized.value = minimized;
+        currentLeftMenuWidth.value = minimized 
+            ? props.leftmenuMinWidth 
+            : props.leftmenuDefaultWidth;
+        updateLeftMenuStyle();
     }
 })
+
+// This watcher is important for initializing menu state when the component is updated
+watch(() => props.initialLeftMenuState, (newValue) => {
+    if (newValue !== undefined) {
+        isLeftMenuMinimized.value = newValue;
+        currentLeftMenuWidth.value = isLeftMenuMinimized.value
+            ? props.leftmenuMinWidth
+            : props.leftmenuDefaultWidth;
+        updateLeftMenuStyle();
+    }
+}, { immediate: true });
 
 const stringFormat = (template: string, ...args: any[]) => {
     return template.replace(/{(\d+)}/g, (match, number) => {

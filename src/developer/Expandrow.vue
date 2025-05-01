@@ -141,10 +141,7 @@ function resetFunc() {
       :stickyHeader="true"
       :stickyFooter="true"
       :enableleftmenu="true"
-      :leftmenusize="10"
-      :leftmenumax="25"
-      :leftmenumaxpx="250"
-      :leftmenumin="50"
+      :initialLeftMenuState="true"
       :enabletopmenu="true"
       :topmenusize="1"
       :topmenumax="30"
@@ -347,4 +344,3 @@ function resetFunc() {
   }
 }
 </style>
-
