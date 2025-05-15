@@ -1,3 +1,8 @@
+// topmenusize izleme ekleyelim
+watch(() => topmenusize.value, (newSize) => {
+console.log('Topmenusize değişti:', newSize)
+emit('currentTopMenuSize', newSize)
+})
 <script lang="ts">
 export default {
     name: 'Vue3Datatable'
@@ -233,11 +238,11 @@ const toggleLeftMenu = () => {
 
 onMounted(() => {
     filterRows();
-    
+
     // Initialize menu sizes
     nextTick(() => {
         if (topmenusize.value <= 0) topmenusize.value = 10;
-        
+
         // Initialize menu state from props.initialLeftMenuState if provided
         if (props.initialLeftMenuState !== undefined) {
             // initialLeftMenuState true means menu should be minimized
@@ -245,7 +250,7 @@ onMounted(() => {
             currentLeftMenuWidth.value = isLeftMenuMinimized.value
                 ? props.leftmenuMinWidth
                 : props.leftmenuDefaultWidth;
-            
+
             // Log for debugging
             console.log('Setting initial left menu state:', isLeftMenuMinimized.value);
             console.log('Setting initial left menu width:', currentLeftMenuWidth.value);
@@ -253,10 +258,10 @@ onMounted(() => {
             // Default to expanded menu
             currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
         }
-        
+
         // Apply menu style based on current state
         updateLeftMenuStyle();
-        
+
         // Resize olayını dinle
         window.addEventListener('resize', handleResize);
     });
@@ -304,8 +309,8 @@ defineExpose({
     // Expose function to set the left menu state
     setLeftMenuState(minimized: boolean) {
         isLeftMenuMinimized.value = minimized;
-        currentLeftMenuWidth.value = minimized 
-            ? props.leftmenuMinWidth 
+        currentLeftMenuWidth.value = minimized
+            ? props.leftmenuMinWidth
             : props.leftmenuDefaultWidth;
         updateLeftMenuStyle();
     }
@@ -996,11 +1001,20 @@ const topmenuel = ref(null)
 const topmenuheight = useElementSize(topmenuel).height
 
 // Handler for top menu resize events
-const handleTopMenuResize = (panes) => {
-    if (!panes || !panes.length) return
-    const newSize = panes[0].size
-    topmenusize.value = newSize
-    emit('currentTopMenuSize', newSize)
+const handleTopMenuResize = (event) => {
+    if (!event || !event.panes || !event.panes.length) return
+
+    const newSizePercent = event.panes[0].size
+    topmenusize.value = newSizePercent
+
+    // Piksel değeri hesapla (DOM elementinin gerçek yüksekliği)
+    nextTick(() => {
+        const topMenuElement = topmenuel.value?.$el
+        const pixelHeight = topMenuElement ? topMenuElement.offsetHeight : 0
+
+        // Hem piksel hem yüzde değerini gönder
+        emit('currentTopMenuSize', pixelHeight)
+    })
 }
 
 onUnmounted(() => {
@@ -1045,16 +1059,18 @@ onUnmounted(() => {
                     <!-- Main content area -->
                     <div class="bh-flex-1" style="overflow: auto; min-width: 0; width:100%">
                         <splitpanes class="default-theme" horizontal="horizontal" @resize="handleTopMenuResize"
-                            push-other-panes>
+                            push-other-panes v-if="enabletopmenu">
                             <pane ref="topmenuel" v-if="enabletopmenu" :size="topmenusize || 10"
                                 :max-size="topmenumax || 100" :style="{ 'min-height': topmenumin + 'px' }">
                                 <slot name="tabletopmenu">
                                     <span>##Top Menu Slot##</span>
                                 </slot>
                             </pane>
-                            <pane :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
+                            <pane
+                                :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
                                 <!-- Header Area Slot - Fixed height area above the table action header -->
-                                <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto" :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
+                                <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
+                                    :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
                                     <slot name="tableHeaderArea">
                                         <span>##Table Header Area Slot##</span>
                                     </slot>
