@@ -73,6 +73,8 @@ interface Props {
     scrollbardirection?: string
     enableleftmenu?: boolean
     enabletopmenu?: boolean
+    enableHeaderArea?: boolean // Enables the tableHeaderArea slot
+    headerAreaHeight?: string // Height for the tableHeaderArea, e.g., '100px'
     // Left menu props
     leftmenuMinWidth?: number
     leftmenuDefaultWidth?: number
@@ -138,6 +140,8 @@ const props = withDefaults(defineProps<Props>(), {
     scrollbarfixedthumb: false,
     scrollbarautoexpand: false,
     scrollbardirection: 'both',
+    enableHeaderArea: false,
+    headerAreaHeight: '80px',
     footerOffset: 0,
     tableRightOffset: 0,
     tableLeftOffset: 5,
@@ -1049,6 +1053,12 @@ onUnmounted(() => {
                                 </slot>
                             </pane>
                             <pane :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
+                                <!-- Header Area Slot - Fixed height area above the table action header -->
+                                <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto" :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
+                                    <slot name="tableHeaderArea">
+                                        <span>##Table Header Area Slot##</span>
+                                    </slot>
+                                </div>
                                 <slot name="tableactionheader">
                                     <span>##Table Action Header Slot##</span>
                                 </slot>
