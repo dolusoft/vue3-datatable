@@ -108,8 +108,8 @@ function resetFunc() {
 
 // Üst menü boyut değişikliğini izleyen fonksiyon
 function handleTopMenuResize(height) {
-  // Referans değişkenini güncelle
-  currentTopMenuSize.value = height
+    // Referans değişkenini güncelle
+    currentTopMenuSize.value = height
 
 }
 
@@ -180,8 +180,8 @@ function handleTopMenuResize(height) {
                                 paginationInfo,
                                 filterRowCount ? offset : 0,
                                 limit,
-                        filterRowCount
-                        )
+                                filterRowCount
+                            )
                         }}
                     </span>
                     <select v-if="showPageSize" @change="setPageSize($event.target.value)" class="bh-pagesize">

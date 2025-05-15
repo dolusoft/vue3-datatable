@@ -242,7 +242,10 @@ onMounted(() => {
     // Initialize menu sizes
     nextTick(() => {
         if (topmenusize.value <= 0) topmenusize.value = 10;
-
+        
+        // İlk açılışta varsayılan piksel yüksekliği gönder
+        emit('currentTopMenuSize', props.topmenumin || 20);
+        
         // Initialize menu state from props.initialLeftMenuState if provided
         if (props.initialLeftMenuState !== undefined) {
             // initialLeftMenuState true means menu should be minimized
