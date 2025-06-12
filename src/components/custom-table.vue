@@ -1404,4 +1404,19 @@ onUnmounted(() => {
     cursor: pointer;
     user-select: none;
 }
+
+/* Fix sticky header z-index issue with subtables */
+.bh-datatable thead {
+    z-index: 15 !important;
+}
+
+.bh-datatable tbody tr {
+    position: relative;
+    z-index: 1;
+}
+
+/* Subtable rows should have lower z-index */
+.bh-datatable tbody tr:has(td[colspan]) {
+    z-index: 0;
+}
 </style>
