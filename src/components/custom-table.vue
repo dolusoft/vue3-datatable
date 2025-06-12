@@ -1147,8 +1147,7 @@ onUnmounted(() => {
                                                                     'bh-sticky bh-left-0 bh-bg-blue-light':
                                                                         props.stickyFirstColumn
                                                                 }">
-                                                                <button-expand :item="item"
-                                                                    :expandedrows="expandedrows">
+                                                                <button-expand :item="{ ...item, _rowIndex: i }" :expandedrows="expandedrows">
                                                                 </button-expand>
                                                             </td>
                                                             <template v-for="(col, j) in props.columns">
@@ -1178,7 +1177,7 @@ onUnmounted(() => {
                                                             </template>
                                                         </tr>
                                                         <template v-if="
-                                                            expandedrows.find(x => x.id == item.id)
+                                                            expandedrows.find(x => x.id == (item._rowIndex !== undefined ? item._rowIndex : (item.id || i)))
                                                                 ?.isExpanded && props.hasSubtable
                                                         ">
                                                             <tr :class="[

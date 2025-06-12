@@ -132,7 +132,7 @@ function handleTopMenuResize(height) {
             :totalRows="total_rows" :isServerMode="true" :page="params.current_page" :pageSize="params.pagesize"
             :pageSizeOptions="[1, 3, 5, 10, 100]" :sortable="true" :sortColumn="params.sort_column"
             :sortDirection="params.sort_direction" :search="params.search" :hasCheckbox="true" :hasSubtable="true"
-            :expandall="true" :columnFilter="true" :stickyHeader="true" :stickyFooter="true" :enableleftmenu="true"
+            :expandall="false" :columnFilter="true" :stickyHeader="true" :stickyFooter="true" :enableleftmenu="true"
             :initialLeftMenuState="true" :enabletopmenu="true" :topmenusize="1" :topmenumax="30" :topmenumin="20"
             :skeletonloader="false" :height="'800px'" @currentTopMenuSize="handleTopMenuResize"
             :scrollbarstyle="$style.customCls" :enablefooterpagination="true" :footerOffset="20" :tableRightOffset="0"
