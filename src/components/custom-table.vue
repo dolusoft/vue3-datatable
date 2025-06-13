@@ -259,8 +259,6 @@ onMounted(() => {
                 : props.leftmenuDefaultWidth;
 
             // Log for debugging
-            console.log('Setting initial left menu state:', isLeftMenuMinimized.value);
-            console.log('Setting initial left menu width:', currentLeftMenuWidth.value);
         } else {
             // Default to expanded menu
             currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
