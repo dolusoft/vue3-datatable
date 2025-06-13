@@ -246,10 +246,10 @@ onMounted(() => {
     // Initialize menu sizes
     nextTick(() => {
         if (topmenusize.value <= 0) topmenusize.value = 10;
-        
+
         // İlk açılışta varsayılan piksel yüksekliği gönder
         emit('currentTopMenuSize', props.topmenumin || 20);
-        
+
         // Initialize menu state from props.initialLeftMenuState if provided
         if (props.initialLeftMenuState !== undefined) {
             // initialLeftMenuState true means menu should be minimized
@@ -1151,7 +1151,8 @@ onUnmounted(() => {
                                                                     'bh-sticky bh-left-0 bh-bg-blue-light':
                                                                         props.stickyFirstColumn
                                                                 }">
-                                                                <button-expand :item="{ ...item, _rowIndex: i }" :expandedrows="expandedrows">
+                                                                <button-expand :item="{ ...item, _rowIndex: i }"
+                                                                    :expandedrows="expandedrows">
                                                                 </button-expand>
                                                             </td>
                                                             <template v-for="(col, j) in props.columns">
@@ -1194,15 +1195,9 @@ onUnmounted(() => {
                                                             ]" @click.prevent="rowClick(item, i)">
                                                                 <td :colspan="props.columns.length + extracolumnlength
                                                                     ">
-                                                                    <div class="subtable-container" :style="{
-                                                                        maxHeight: props.subtableMaxHeight,
-                                                                        overflow: 'auto',
-                                                                        padding: '10px',
-                                                                        background: 'var(--white)',
-                                                                        border: '1px solid var(--fade-grey)'
-                                                                    }">
-                                                                        <slot name="tsub" :rowData="item" :rowIndex="i" :filterItems="filterItems"></slot>
-                                                                    </div>
+
+                                                                    <slot name="tsub" :rowData="item" :rowIndex="i"
+                                                                        :filterItems="filterItems"></slot>
                                                                 </td>
                                                             </tr>
                                                         </template>
@@ -1291,9 +1286,10 @@ onUnmounted(() => {
                                 </div>
                             </pane>
                         </splitpanes>
-                        
+
                         <!-- Fallback when enabletopmenu is false -->
-                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full" :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
+                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full"
+                            :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
                             <!-- Header Area Slot - Fixed height area above the table action header -->
                             <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
                                 :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
@@ -1320,9 +1316,8 @@ onUnmounted(() => {
                                                     :currentSortColumn="currentSortColumn"
                                                     :currentSortDirection="currentSortDirection"
                                                     :isOpenFilter="isOpenFilter" :checkAll="selectedAll"
-                                                    :columnFilterLang="props.columnFilterLang"
-                                                    @selectAll="selectAll" @sortChange="sortChange"
-                                                    @filterChange="filterChange"
+                                                    :columnFilterLang="props.columnFilterLang" @selectAll="selectAll"
+                                                    @sortChange="sortChange" @filterChange="filterChange"
                                                     @toggleFilterMenu="toggleFilterMenu" />
                                             </thead>
                                             <tbody>
@@ -1366,7 +1361,8 @@ onUnmounted(() => {
                                                                 'bh-sticky bh-left-0 bh-bg-blue-light':
                                                                     props.stickyFirstColumn
                                                             }">
-                                                            <button-expand :item="{ ...item, _rowIndex: i }" :expandedrows="expandedrows">
+                                                            <button-expand :item="{ ...item, _rowIndex: i }"
+                                                                :expandedrows="expandedrows">
                                                             </button-expand>
                                                         </td>
                                                         <template v-for="(col, j) in props.columns">
@@ -1416,7 +1412,8 @@ onUnmounted(() => {
                                                                     background: 'var(--white)',
                                                                     border: '1px solid var(--fade-grey)'
                                                                 }">
-                                                                    <slot name="tsub" :rowData="item" :rowIndex="i" :filterItems="filterItems"></slot>
+                                                                    <slot name="tsub" :rowData="item" :rowIndex="i"
+                                                                        :filterItems="filterItems"></slot>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -1439,8 +1436,8 @@ onUnmounted(() => {
                                                     <tr v-for="(item, i) in props.footerRows"
                                                         :key="item[uniqueKey] ? item[uniqueKey] : i"
                                                         class="sticky-table-footer">
-                                                        <td v-if="extracolumnlength > 0"
-                                                            :colspan="extracolumnlength"></td>
+                                                        <td v-if="extracolumnlength > 0" :colspan="extracolumnlength">
+                                                        </td>
                                                         <template v-for="(col, j) in props.columns">
                                                             <td v-if="!col.hide" :key="col.field" :class="[
                                                                 typeof props.cellClass === 'function'
