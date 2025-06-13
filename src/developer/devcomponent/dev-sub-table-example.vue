@@ -5,6 +5,8 @@ import '../../../dist/style.css'
 import Vue3Datatable from '../../components/custom-table.vue'
 import type { ColumnDefinition } from '../../model/column-model'
 
+
+
 onMounted(() => {
   getUsers()
 })
@@ -89,25 +91,28 @@ const getUsers = async () => {
 }
 </script>
 <template>
-  <vue3-datatable
-    ref="datatable"
-    :loading="loading"
-    :rows="rows"
-    :columns="cols"
-    :totalRows="total_rows"
-    :isServerMode="true"
-    :page="params.current_page"
-    :pageSize="params.pagesize"
-    :pageSizeOptions="[1, 3, 5, 10]"
-    :sortable="false"
-    :sortColumn="params.sort_column"
-    :sortDirection="params.sort_direction"
-    :search="params.search"
-    :hasCheckbox="false"
-    :hasSubtable="false"
-    :expandall="false"
-    :columnFilter="false"
-    @change="changeServer"
-  >
-  </vue3-datatable>
+      <vue3-datatable
+        ref="datatable"
+        :loading="loading"
+        :rows="rows"
+        :columns="cols"
+        :totalRows="total_rows"
+        :isServerMode="true"
+        :page="params.current_page"
+        :pageSize="params.pagesize"
+        :pageSizeOptions="[1, 3, 5, 10]"
+        :sortable="false"
+        :sortColumn="params.sort_column"
+        :sortDirection="params.sort_direction"
+        :search="params.search"
+        :hasCheckbox="false"
+        :hasSubtable="false"
+        :expandall="false"
+        :columnFilter="false"
+        :enabletopmenu="false"
+        :enableleftmenu="false"
+        height="300px"
+        @change="changeServer"
+      >
+      </vue3-datatable>
 </template>
