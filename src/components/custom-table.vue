@@ -1298,7 +1298,6 @@ onUnmounted(() => {
                                 </slot>
                             </div>
                             <slot name="tableactionheader">
-                                <span>##Table Action Header Slot##</span>
                             </slot>
                             <div :class="props.scrollbarstyle">
                                 <custom-scrollbar :style="{
