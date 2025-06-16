@@ -311,6 +311,9 @@ defineExpose({
     getFilteredRows() {
         return filteredRows()
     },
+    collapseAll() {
+        collapseAll()
+    },
     // Expose function to set the left menu state
     setLeftMenuState(minimized: boolean) {
         isLeftMenuMinimized.value = minimized;
@@ -984,6 +987,13 @@ const isRowSelected = (index: number) => {
         )
     }
     return false
+}
+
+// Collapse all expanded rows
+const collapseAll = () => {
+    expandedrows.value.forEach(row => {
+        row.isExpanded = false
+    })
 }
 
 let extracolumnlength = 0
