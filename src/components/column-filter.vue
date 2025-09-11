@@ -44,7 +44,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['Equal']) ??
-            'Equal'
+            'Equal (=)'
           }}
         </button>
         <button
@@ -54,7 +54,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
-            'NotEqual'
+            'NotEqual (!=)'
           }}
         </button>
         <button
@@ -86,7 +86,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['Equal']) ??
-            'Equal'
+            'Equal (=)'
           }}
         </button>
         <button
@@ -96,7 +96,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
-            'NotEqual'
+            'NotEqual (!=)'
           }}
         </button>
         <button
@@ -107,7 +107,7 @@
           {{
             (props.columnFilterLang &&
               props.columnFilterLang['GreaterThan']) ??
-            'GreaterThan'
+            'GreaterThan (>)'
           }}
         </button>
         <button
@@ -118,7 +118,7 @@
           {{
             (props.columnFilterLang &&
               props.columnFilterLang['GreaterThanOrEqual']) ??
-            'GreaterThanOrEqual'
+            'GreaterThanOrEqual (>=)'
           }}
         </button>
         <button
@@ -128,7 +128,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['LessThan']) ??
-            'LessThan'
+            'LessThan (<)'
           }}
         </button>
         <button
@@ -139,7 +139,7 @@
           {{
             (props.columnFilterLang &&
               props.columnFilterLang['LessThanOrEqual']) ??
-            'LessThanOrEqual'
+            'LessThanOrEqual (<=)'
           }}
         </button>
       </template>
@@ -151,7 +151,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['Equal']) ??
-            'Equal'
+            'Equal (=)'
           }}
         </button>
         <button
@@ -161,7 +161,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
-            'Not equal'
+            'Not equal (!=)'
           }}
         </button>
         <button
@@ -172,7 +172,7 @@
           {{
             (props.columnFilterLang &&
               props.columnFilterLang['GreaterThan']) ??
-            'GreaterThan'
+            'GreaterThan (>)'
           }}
         </button>
         <button
@@ -182,7 +182,7 @@
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['LessThan']) ??
-            'LessThan'
+            'LessThan (<)'
           }}
         </button>
       </template>

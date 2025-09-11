@@ -1295,9 +1295,9 @@ onUnmounted(() => {
                             </pane>
                         </splitpanes>
 
-                        <!-- Fallback when enabletopmenu is false -->
-                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full"
-                            :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
+                        <!-- Fallback when enabletopmenu is false - Apply same CSS structure as splitpanes -->
+                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full default-theme splitpanes__pane"
+                        :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
                             <!-- Header Area Slot - Fixed height area above the table action header -->
                             <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
                                 :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">

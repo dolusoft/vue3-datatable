@@ -151,21 +151,21 @@ watch(() => props.checkAll, checkboxChange)
         <template v-if="props.all.columnFilter && !props.isFooter">
           <div v-if="col.filter" class="bh-filter bh-relative">
             <input
-              v-if="col.type === 'string'"
+              v-if="col.type === 'string' || col.type==='String'"
               v-model.trim="col.value"
               type="text"
               class="bh-form-control"
               @keyup="emit('filterChange')"
             />
             <input
-              v-if="col.type === 'number'"
+              v-if="col.type === 'number' || col.type === 'integer' || col.type=== 'Integer'"
               v-model.number.trim="col.value"
               type="number"
               class="bh-form-control"
               @keyup="emit('filterChange')"
             />
             <input
-              v-else-if="col.type === 'date'"
+              v-else-if="col.type === 'date' || col.type=== 'DateTime'"
               v-model="col.value"
               type="date"
               class="bh-form-control"
