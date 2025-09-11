@@ -1296,7 +1296,7 @@ onUnmounted(() => {
                         </splitpanes>
 
                         <!-- Fallback when enabletopmenu is false - Apply same CSS structure as splitpanes -->
-                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full default-theme splitpanes__pane"
+                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full"
                         :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
                             <!-- Header Area Slot - Fixed height area above the table action header -->
                             <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
@@ -1309,7 +1309,9 @@ onUnmounted(() => {
                             </slot>
                             <div :class="props.scrollbarstyle">
                                 <custom-scrollbar :style="{
-                                    height: props.height
+                                    height: props.stickyHeader ? 
+                                        (Number(props.height.replace('px', '')) - footerOffset) + 'px' :
+                                        props.height
                                 }" :autoHide="props.scrollbarautohide" :fixedThumb="props.scrollbarfixedthumb"
                                     :autoExpand="props.scrollbarautoexpand" :direction="props.scrollbardirection"
                                     throttleType="none">

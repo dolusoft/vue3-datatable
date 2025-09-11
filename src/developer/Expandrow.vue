@@ -73,7 +73,7 @@ const getUsers = async () => {
         loading.value = true
 
         const response = await fetch(
-            'https://172.16.40.25:5001/datatable/api/user',
+            'http://localhost:8080/datatable/api/user',
             {
                 method: 'POST',
                 headers: new Headers({ 'content-type': 'application/json' }),
@@ -133,7 +133,7 @@ function handleTopMenuResize(height) {
             :pageSizeOptions="[1, 3, 5, 10, 100]" :sortable="true" :sortColumn="params.sort_column"
             :sortDirection="params.sort_direction" :search="params.search" :hasCheckbox="true" :hasSubtable="true"
             :expandall="false" :columnFilter="true" :stickyHeader="true" :stickyFooter="true" :enableleftmenu="true"
-            :initialLeftMenuState="true" :enabletopmenu="true" :topmenusize="1" :topmenumax="30" :topmenumin="20"
+            :initialLeftMenuState="true" :enabletopmenu="false" :topmenusize="1" :topmenumax="30" :topmenumin="20"
             :skeletonloader="false" :height="'800px'" @currentTopMenuSize="handleTopMenuResize"
             :scrollbarstyle="$style.customCls" :enablefooterpagination="true" :footerOffset="20" :tableRightOffset="0"
             :enableloadinganimation="false" skin="bh-table-striped bh-table-hover bh-table-bordered"

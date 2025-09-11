@@ -72,7 +72,7 @@ const getUsers = async () => {
     loading.value = true
 
     const response = await fetch(
-      'https://172.16.40.25:5001/datatable/api/user',
+      'http://localhost:8080/datatable/api/user',
       {
         method: 'POST',
         headers: new Headers({ 'content-type': 'application/json' }),
