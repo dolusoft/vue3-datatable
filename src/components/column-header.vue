@@ -80,7 +80,9 @@ watch(() => props.checkAll, checkboxChange)
 
 // Check if column has active filter
 const hasActiveFilter = (col: any) => {
-  return col.value !== '' && col.value !== null && col.value !== undefined
+  if (!col.field) return false
+  const inputValue = filterInputs.value[col.field]
+  return inputValue !== '' && inputValue !== null && inputValue !== undefined
 }
 </script>
 <template>
