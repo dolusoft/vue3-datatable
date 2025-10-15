@@ -1,15 +1,15 @@
 <template>
   <div
-    class="bh-filter-menu bh-absolute bh-z-[1] bh-bg-white bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-mt-1"
+    ref="menuRef"
+    class="bh-filter-menu bh-absolute bh-z-[1] bh-bg-white dark:bh-bg-gray-800 bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-mt-1 bh-border bh-border-solid bh-border-gray-200 dark:bh-border-gray-600"
   >
     <div
       class="bh-text-[13px] bh-font-normal bh-rounded bh-overflow-hidden"
-      @click.stop="close"
     >
       <button
         type="button"
         :class="{ active: props.column.condition === '' }"
-        @click="select('')"
+        @click.stop="select('')"
       >
         {{
           (props.columnFilterLang && props.columnFilterLang['NoFilter']) ??
@@ -20,7 +20,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'Contains' }"
-          @click="select('Contains')"
+          @click.stop="select('Contains')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['Contains']) ??
@@ -30,7 +30,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'NotContains' }"
-          @click="select('NotContains')"
+          @click.stop="select('NotContains')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['NotContains']) ??
@@ -40,7 +40,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'Equal' }"
-          @click="select('Equal')"
+          @click.stop="select('Equal')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['Equal']) ??
@@ -50,7 +50,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'NotEqual' }"
-          @click="select('NotEqual')"
+          @click.stop="select('NotEqual')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
@@ -60,7 +60,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'StartsWith' }"
-          @click="select('StartsWith')"
+          @click.stop="select('StartsWith')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['StartsWith']) ??
@@ -70,7 +70,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'EndsWith' }"
-          @click="select('EndsWith')"
+          @click.stop="select('EndsWith')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['EndsWith']) ??
@@ -82,7 +82,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'Equal' }"
-          @click="select('Equal')"
+          @click.stop="select('Equal')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['Equal']) ??
@@ -92,7 +92,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'NotEqual' }"
-          @click="select('NotEqual')"
+          @click.stop="select('NotEqual')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
@@ -102,7 +102,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'GreaterThan' }"
-          @click="select('GreaterThan')"
+          @click.stop="select('GreaterThan')"
         >
           {{
             (props.columnFilterLang &&
@@ -113,7 +113,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'GreaterThanOrEqual' }"
-          @click="select('GreaterThanOrEqual')"
+          @click.stop="select('GreaterThanOrEqual')"
         >
           {{
             (props.columnFilterLang &&
@@ -124,7 +124,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'LessThan' }"
-          @click="select('LessThan')"
+          @click.stop="select('LessThan')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['LessThan']) ??
@@ -134,7 +134,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'LessThanOrEqual' }"
-          @click="select('LessThanOrEqual')"
+          @click.stop="select('LessThanOrEqual')"
         >
           {{
             (props.columnFilterLang &&
@@ -147,7 +147,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'Equal' }"
-          @click="select('Equal')"
+          @click.stop="select('Equal')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['Equal']) ??
@@ -157,7 +157,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'NotEqual' }"
-          @click="select('NotEqual')"
+          @click.stop="select('NotEqual')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['NotEqual']) ??
@@ -167,7 +167,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'GreaterThan' }"
-          @click="select('GreaterThan')"
+          @click.stop="select('GreaterThan')"
         >
           {{
             (props.columnFilterLang &&
@@ -178,7 +178,7 @@
         <button
           type="button"
           :class="{ active: props.column.condition === 'LessThan' }"
-          @click="select('LessThan')"
+          @click.stop="select('LessThan')"
         >
           {{
             (props.columnFilterLang && props.columnFilterLang['LessThan']) ??
@@ -190,7 +190,7 @@
       <button
         type="button"
         :class="{ active: props.column.condition === 'IsNull' }"
-        @click="select('IsNull')"
+        @click.stop="select('IsNull')"
       >
         {{
           (props.columnFilterLang && props.columnFilterLang['IsNull']) ??
@@ -200,7 +200,7 @@
       <button
         type="button"
         :class="{ active: props.column.condition === 'IsNotNull' }"
-        @click="select('IsNotNull')"
+        @click.stop="select('IsNotNull')"
       >
         {{
           (props.columnFilterLang && props.columnFilterLang['IsNotNull']) ??
@@ -216,21 +216,18 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { ref } from 'vue'
+import { onClickOutside } from '@vueuse/core'
 
 const props = defineProps(['column', 'columnFilterLang'])
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', close)
-})
-onMounted(() => {
-  document.addEventListener('click', close)
-})
 const emit = defineEmits(['close', 'filterChange'])
 
-const close = () => {
+const menuRef = ref(null)
+
+// Close menu when clicking outside
+onClickOutside(menuRef, () => {
   emit('close')
-}
+})
 
 const select = (condition: any) => {
   props.column.condition = condition
@@ -239,5 +236,6 @@ const select = (condition: any) => {
   }
 
   emit('filterChange', props.column)
+  emit('close')
 }
 </script>

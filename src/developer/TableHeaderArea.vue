@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 
-import '../../dist/style.css'
+import '../assets/css/tailwind.css'
 import Vue3Datatable from '../components/custom-table.vue'
 import type { ColumnDefinition } from '../model/column-model'
 
@@ -100,7 +100,7 @@ const headerStats = ref({
 const headerHeight = ref('120px')
 </script>
 <template>
-  <div class="bh-p-10">
+  <div class="bh-p-10 dark">
     <h2 class="bh-text-2xl bh-font-bold bh-mb-4">Table Header Area Test</h2>
     
     <vue3-datatable

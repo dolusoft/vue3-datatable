@@ -4,7 +4,8 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { watch, ref } from 'vue'
+import { watch, ref, onMounted } from 'vue'
+import { watchDebounced } from '@vueuse/core'
 
 import ButtonExpand from './button-expand.vue'
 import columnFilter from './column-filter.vue'
@@ -31,6 +32,43 @@ const emit = defineEmits([
   'filterChange',
   'toggleFilterMenu'
 ])
+
+// Local state for filter inputs to avoid props mutation
+const filterInputs = ref<Record<string, any>>({})
+
+// Initialize filter inputs from columns
+onMounted(() => {
+  if (props.all?.columns) {
+    props.all.columns.forEach((col: any) => {
+      if (col.filter && col.field) {
+        filterInputs.value[col.field] = col.value || ''
+      }
+    })
+  }
+})
+
+// Watch filter inputs with debounce and update columns
+watchDebounced(
+  filterInputs,
+  (newValues) => {
+    if (props.all?.columns) {
+      Object.keys(newValues).forEach((field) => {
+        const col = props.all.columns.find((c: any) => c.field === field)
+        if (col) {
+          // Trim string values
+          if (col.type === 'string' || col.type === 'String') {
+            col.value = typeof newValues[field] === 'string' ? newValues[field].trim() : newValues[field]
+          } else {
+            col.value = newValues[field]
+          }
+        }
+      })
+      emit('filterChange')
+    }
+  },
+  { debounce: 300, deep: true }
+)
+
 const checkboxChange = () => {
   if (selectedAll.value) {
     selectedAll.value.indeterminate =
@@ -39,6 +77,11 @@ const checkboxChange = () => {
   }
 }
 watch(() => props.checkAll, checkboxChange)
+
+// Check if column has active filter
+const hasActiveFilter = (col: any) => {
+  return col.value !== '' && col.value !== null && col.value !== undefined
+}
 </script>
 <template>
   <tr key="hdrrow">
@@ -152,30 +195,26 @@ watch(() => props.checkAll, checkboxChange)
           <div v-if="col.filter" class="bh-filter bh-relative">
             <input
               v-if="col.type === 'string' || col.type==='String'"
-              v-model.trim="col.value"
+              v-model="filterInputs[col.field]"
               type="text"
               class="bh-form-control"
-              @keyup="emit('filterChange')"
             />
             <input
               v-if="col.type === 'number' || col.type === 'integer' || col.type=== 'Integer'"
-              v-model.number.trim="col.value"
+              v-model.number="filterInputs[col.field]"
               type="number"
               class="bh-form-control"
-              @keyup="emit('filterChange')"
             />
             <input
               v-else-if="col.type === 'date' || col.type=== 'DateTime'"
-              v-model="col.value"
+              v-model="filterInputs[col.field]"
               type="date"
               class="bh-form-control"
-              @change="emit('filterChange')"
             />
             <select
               v-else-if="col.type === 'bool'"
-              v-model="col.value"
+              v-model="filterInputs[col.field]"
               class="bh-form-control"
-              @change="emit('filterChange')"
               @click="props.isOpenFilter"
             >
               <option :value="undefined">All</option>
@@ -187,8 +226,18 @@ watch(() => props.checkAll, checkboxChange)
               v-if="col.type !== 'bool'"
               type="button"
               @click.stop="emit('toggleFilterMenu', col)"
+              :class="{
+                '!bh-bg-primary/10 !bh-border-primary': hasActiveFilter(col),
+                'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasActiveFilter(col)
+              }"
             >
-              <icon-filter class="bh-w-4" />
+              <icon-filter 
+                class="bh-w-4" 
+                :class="{
+                  'bh-text-primary': hasActiveFilter(col),
+                  'bh-text-black/70 dark:bh-text-gray-300': !hasActiveFilter(col)
+                }"
+              />
             </button>
 
             <column-filter
