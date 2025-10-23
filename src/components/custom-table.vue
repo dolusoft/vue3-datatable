@@ -1,8 +1,3 @@
-// topmenusize izleme ekleyelim
-watch(() => topmenusize.value, (newSize) => {
-console.log('Topmenusize değişti:', newSize)
-emit('currentTopMenuSize', newSize)
-})
 <script lang="ts">
 export default {
     name: 'Vue3Datatable'
@@ -202,204 +197,74 @@ const currentLeftMenuWidth = ref(props.leftmenuDefaultWidth)
 const isLeftMenuMinimized = ref(false)
 const leftmenuel = ref(null)
 
-// Sol menü stilini güncelleme fonksiyonu
-const updateLeftMenuStyle = () => {
-    if (leftmenuel.value) {
-        const minMaxWidth = isLeftMenuMinimized.value ? props.leftmenuMinWidth : props.leftmenuDefaultWidth;
-        leftmenuel.value.style.cssText = `
-      width: ${currentLeftMenuWidth.value}px !important;
-      min-width: ${minMaxWidth}px !important;
-      max-width: ${minMaxWidth}px !important;
-    `;
+// ============================================================================
+// FAZ I OPTIMIZATION 1: cellValue memoization with Map cache
+// ============================================================================
+const cellValueCache = new Map<string, any>()
+
+const cellValue = (item: any, field: string | undefined) => {
+    if (!field) return undefined
+    
+    const cacheKey = `${item.id || JSON.stringify(item)}-${field}`
+    
+    if (cellValueCache.has(cacheKey)) {
+        return cellValueCache.get(cacheKey)
     }
+    
+    const value = field.split('.').reduce((obj, key) => obj?.[key], item)
+    cellValueCache.set(cacheKey, value)
+    
+    return value
 }
 
-// Resize olayını ele alan fonksiyon
-const handleResize = () => {
-    // Menü durumuna göre ayarla
-    if (!isLeftMenuMinimized.value) {
-        // Menü genişletilmişse, default genişliği koru
-        currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
-    } else {
-        // Menü küçültülmüşse, minimum genişliği koru
-        currentLeftMenuWidth.value = props.leftmenuMinWidth;
-    }
+// Clear cache when rows change
+watch(() => props.rows, () => {
+    cellValueCache.clear()
+}, { deep: false })
 
-    // updateLeftMenuStyle ile stil güncellemesi yap
-    updateLeftMenuStyle();
-}
-
-// Toggle left menu between minimized and default width
-const toggleLeftMenu = () => {
-    isLeftMenuMinimized.value = !isLeftMenuMinimized.value;
-    currentLeftMenuWidth.value = isLeftMenuMinimized.value
-        ? props.leftmenuMinWidth
-        : props.leftmenuDefaultWidth;
-
-    updateLeftMenuStyle();
-    emit('currentLeftMenuSize', currentLeftMenuWidth.value);
-}
-
-onMounted(() => {
-    filterRows();
-
-    // Initialize menu sizes
-    nextTick(() => {
-        if (topmenusize.value <= 0) topmenusize.value = 10;
-
-        // İlk açılışta varsayılan piksel yüksekliği gönder
-        emit('currentTopMenuSize', props.topmenumin || 20);
-
-        // Initialize menu state from props.initialLeftMenuState if provided
-        if (props.initialLeftMenuState !== undefined) {
-            // initialLeftMenuState true means menu should be minimized
-            isLeftMenuMinimized.value = props.initialLeftMenuState;
-            currentLeftMenuWidth.value = isLeftMenuMinimized.value
-                ? props.leftmenuMinWidth
-                : props.leftmenuDefaultWidth;
-
-            // Log for debugging
-        } else {
-            // Default to expanded menu
-            currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
-        }
-
-        // Apply menu style based on current state
-        updateLeftMenuStyle();
-
-        // Resize olayını dinle
-        window.addEventListener('resize', handleResize);
-    });
-})
-
-const emit = defineEmits([
-    'change',
-    'sortChange',
-    'searchChange',
-    'pageChange',
-    'pageSizeChange',
-    'rowSelect',
-    'filterChange',
-    'rowClick',
-    'rowDBClick',
-    'currentTopMenuSize',
-    'currentLeftMenuSize',
-    'rowRightPanelClick'
-])
-defineExpose({
-    reset() {
-        reset()
-    },
-    getSelectedRows() {
-        return getSelectedRows()
-    },
-    getColumnFilters() {
-        return getColumnFilters()
-    },
-    clearSelectedRows() {
-        return clearSelectedRows()
-    },
-    selectRow(index: number) {
-        selectRow(index)
-    },
-    unselectRow(index: number) {
-        unselectRow(index)
-    },
-    isRowSelected(index: number) {
-        return isRowSelected(index)
-    },
-    getFilteredRows() {
-        return filteredRows()
-    },
-    collapseAll() {
-        collapseAll()
-    },
-    // Expose function to set the left menu state
-    setLeftMenuState(minimized: boolean) {
-        isLeftMenuMinimized.value = minimized;
-        currentLeftMenuWidth.value = minimized
-            ? props.leftmenuMinWidth
-            : props.leftmenuDefaultWidth;
-        updateLeftMenuStyle();
-    }
-})
-
-// This watcher is important for initializing menu state when the component is updated
-watch(() => props.initialLeftMenuState, (newValue) => {
-    if (newValue !== undefined) {
-        isLeftMenuMinimized.value = newValue;
-        currentLeftMenuWidth.value = isLeftMenuMinimized.value
-            ? props.leftmenuMinWidth
-            : props.leftmenuDefaultWidth;
-        updateLeftMenuStyle();
-    }
-}, { immediate: true });
-
-const stringFormat = (template: string, ...args: any[]) => {
-    return template.replace(/{(\d+)}/g, (match, number) => {
-        return typeof args[number] !== 'undefined' ? args[number] : match
-    })
-}
-
+// ============================================================================
+// FAZ I OPTIMIZATION 2: uniqueKey computed (zaten computed ama pre-compute edelim)
+// ============================================================================
 const uniqueKey = computed(() => {
     const col = props.columns.find(d => d.isUnique)
-
     return col?.field || null
 })
 
-// Maximum number of pages
-const maxPage = computed(() => {
-    const totalPages =
-        <number>currentPageSize.value < 1
-            ? 1
-            : Math.ceil(<number>filterRowCount.value / <number>currentPageSize.value)
-    return Math.max(totalPages || 0, 1)
-})
-
-// The starting value of the page number
-const offset = computed(() => {
-    return (currentPage.value - 1) * <number>currentPageSize.value + 1
-})
-
-// Maximum number of pages
-const limit = computed(() => {
-    const limit = currentPage.value * <number>currentPageSize.value
-    return <number>filterRowCount.value >= limit ? limit : filterRowCount.value
-})
-
-// Paging array
-const paging = computed(() => {
-    let startPage: number, endPage: number
-    let isMaxSized =
-        typeof props.showNumbersCount !== 'undefined' &&
-        <number>props.showNumbersCount < maxPage.value
-    // recompute if maxSize
-    if (isMaxSized) {
-        // Current page is displayed in the middle of the visible ones
-        startPage = Math.max(
-            currentPage.value - Math.floor(<number>props.showNumbersCount / 2),
-            1
-        )
-        endPage = startPage + <number>props.showNumbersCount - 1
-
-        // Adjust if limit is exceeded
-        if (endPage > maxPage.value) {
-            endPage = maxPage.value
-            startPage = endPage - <number>props.showNumbersCount + 1
-        }
-    } else {
-        startPage = 1
-        endPage = maxPage.value
-    }
-
-    const pages = Array.from(Array(endPage + 1 - startPage).keys()).map(
-        i => startPage + i
+// Pre-compute unique keys for all rows
+const rowKeys = computed(() => {
+    return filterItems.value.map((item, index) => 
+        uniqueKey.value ? item[uniqueKey.value as never] : index
     )
-
-    return pages
 })
 
-const filteredRows = () => {
+// ============================================================================
+// FAZ I OPTIMIZATION 3: typeof checks → computed boolean flags
+// ============================================================================
+const isRowClassFunction = computed(() => typeof props.rowClass === 'function')
+const isCellClassFunction = computed(() => typeof props.cellClass === 'function')
+
+// ============================================================================
+// FAZ III OPTIMIZATION: Intl.Collator instance cache
+// ============================================================================
+const collatorCache = new Map<string, Intl.Collator>()
+
+const getCollator = (isNumeric: boolean) => {
+    const key = isNumeric ? 'numeric' : 'string'
+    
+    if (!collatorCache.has(key)) {
+        collatorCache.set(key, new Intl.Collator(undefined, {
+            numeric: isNumeric,
+            sensitivity: 'base'
+        }))
+    }
+    
+    return collatorCache.get(key)!
+}
+
+// ============================================================================
+// FAZ I OPTIMIZATION 4: filteredRows() → computed (EN KRİTİK!)
+// ============================================================================
+const filteredRows = computed(() => {
     let rows = props.rows || []
 
     if (!props.isServerMode) {
@@ -599,13 +464,9 @@ const filteredRows = () => {
             rows = final
         }
 
-        // sort rows
-        var collator = new Intl.Collator(undefined, {
-            numeric:
-                props.columns.find(col => col.field == currentSortColumn.value)
-                    ?.type === 'number',
-            sensitivity: 'base'
-        })
+        // sort rows - Use cached collator
+        const isNumeric = props.columns.find(col => col.field == currentSortColumn.value)?.type === 'number'
+        const collator = getCollator(isNumeric || false)
         const sortOrder = currentSortDirection.value === 'desc' ? -1 : 1
 
         rows.sort((a: any, b: any): number => {
@@ -621,13 +482,14 @@ const filteredRows = () => {
     }
 
     return rows
-}
+})
 
 const expandedrows = ref<ExpandedRow[]>([])
 
+// Update filterRows to use computed filteredRows
 const filterRows = () => {
     let result = []
-    let rows = filteredRows()
+    let rows = filteredRows.value  // Use .value to access computed
 
     if (props.isServerMode) {
         filterRowCount.value = props.totalRows || 0
@@ -653,6 +515,178 @@ const filterRows = () => {
 
     filterItems.value = result || []
 }
+
+// Sol menü stilini güncelleme fonksiyonu
+const updateLeftMenuStyle = () => {
+    if (leftmenuel.value) {
+        const minMaxWidth = isLeftMenuMinimized.value ? props.leftmenuMinWidth : props.leftmenuDefaultWidth;
+        leftmenuel.value.style.cssText = `
+      width: ${currentLeftMenuWidth.value}px !important;
+      min-width: ${minMaxWidth}px !important;
+      max-width: ${minMaxWidth}px !important;
+    `;
+    }
+}
+
+// Resize olayını ele alan fonksiyon
+const handleResize = () => {
+    if (!isLeftMenuMinimized.value) {
+        currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
+    } else {
+        currentLeftMenuWidth.value = props.leftmenuMinWidth;
+    }
+    updateLeftMenuStyle();
+}
+
+// Toggle left menu between minimized and default width
+const toggleLeftMenu = () => {
+    isLeftMenuMinimized.value = !isLeftMenuMinimized.value;
+    currentLeftMenuWidth.value = isLeftMenuMinimized.value
+        ? props.leftmenuMinWidth
+        : props.leftmenuDefaultWidth;
+
+    updateLeftMenuStyle();
+    emit('currentLeftMenuSize', currentLeftMenuWidth.value);
+}
+
+onMounted(() => {
+    filterRows();
+
+    nextTick(() => {
+        if (topmenusize.value <= 0) topmenusize.value = 10;
+        emit('currentTopMenuSize', props.topmenumin || 20);
+
+        if (props.initialLeftMenuState !== undefined) {
+            isLeftMenuMinimized.value = props.initialLeftMenuState;
+            currentLeftMenuWidth.value = isLeftMenuMinimized.value
+                ? props.leftmenuMinWidth
+                : props.leftmenuDefaultWidth;
+        } else {
+            currentLeftMenuWidth.value = props.leftmenuDefaultWidth;
+        }
+
+        updateLeftMenuStyle();
+        window.addEventListener('resize', handleResize);
+    });
+})
+
+const emit = defineEmits([
+    'change',
+    'sortChange',
+    'searchChange',
+    'pageChange',
+    'pageSizeChange',
+    'rowSelect',
+    'filterChange',
+    'rowClick',
+    'rowDBClick',
+    'currentTopMenuSize',
+    'currentLeftMenuSize',
+    'rowRightPanelClick'
+])
+
+defineExpose({
+    reset() {
+        reset()
+    },
+    getSelectedRows() {
+        return getSelectedRows()
+    },
+    getColumnFilters() {
+        return getColumnFilters()
+    },
+    clearSelectedRows() {
+        return clearSelectedRows()
+    },
+    selectRow(index: number) {
+        selectRow(index)
+    },
+    unselectRow(index: number) {
+        unselectRow(index)
+    },
+    isRowSelected(index: number) {
+        return isRowSelected(index)
+    },
+    getFilteredRows() {
+        return filteredRows.value
+    },
+    collapseAll() {
+        collapseAll()
+    },
+    setLeftMenuState(minimized: boolean) {
+        isLeftMenuMinimized.value = minimized;
+        currentLeftMenuWidth.value = minimized
+            ? props.leftmenuMinWidth
+            : props.leftmenuDefaultWidth;
+        updateLeftMenuStyle();
+    }
+})
+
+watch(() => props.initialLeftMenuState, (newValue) => {
+    if (newValue !== undefined) {
+        isLeftMenuMinimized.value = newValue;
+        currentLeftMenuWidth.value = isLeftMenuMinimized.value
+            ? props.leftmenuMinWidth
+            : props.leftmenuDefaultWidth;
+        updateLeftMenuStyle();
+    }
+}, { immediate: true });
+
+const stringFormat = (template: string, ...args: any[]) => {
+    return template.replace(/{(\d+)}/g, (match, number) => {
+        return typeof args[number] !== 'undefined' ? args[number] : match
+    })
+}
+
+// Maximum number of pages
+const maxPage = computed(() => {
+    const totalPages =
+        <number>currentPageSize.value < 1
+            ? 1
+            : Math.ceil(<number>filterRowCount.value / <number>currentPageSize.value)
+    return Math.max(totalPages || 0, 1)
+})
+
+// The starting value of the page number
+const offset = computed(() => {
+    return (currentPage.value - 1) * <number>currentPageSize.value + 1
+})
+
+// Maximum number of pages
+const limit = computed(() => {
+    const limit = currentPage.value * <number>currentPageSize.value
+    return <number>filterRowCount.value >= limit ? limit : filterRowCount.value
+})
+
+// Paging array
+const paging = computed(() => {
+    let startPage: number, endPage: number
+    let isMaxSized =
+        typeof props.showNumbersCount !== 'undefined' &&
+        <number>props.showNumbersCount < maxPage.value
+    if (isMaxSized) {
+        startPage = Math.max(
+            currentPage.value - Math.floor(<number>props.showNumbersCount / 2),
+            1
+        )
+        endPage = startPage + <number>props.showNumbersCount - 1
+
+        if (endPage > maxPage.value) {
+            endPage = maxPage.value
+            startPage = endPage - <number>props.showNumbersCount + 1
+        }
+    } else {
+        startPage = 1
+        endPage = maxPage.value
+    }
+
+    const pages = Array.from(Array(endPage + 1 - startPage).keys()).map(
+        i => startPage + i
+    )
+
+    return pages
+})
+
 watch(
     () => props.loading,
     () => {
@@ -672,7 +706,6 @@ const toggleFilterMenu = (col: ColumnDefinition) => {
     }
 }
 
-// previous page
 const previousPage = () => {
     if (currentPage.value == 1) {
         return false
@@ -680,12 +713,10 @@ const previousPage = () => {
     currentPage.value--
 }
 
-// page change
 const movePage = (page: number) => {
     currentPage.value = page
 }
 
-// next page
 const nextPage = () => {
     if (currentPage.value >= maxPage.value) {
         return false
@@ -693,7 +724,6 @@ const nextPage = () => {
     currentPage.value++
 }
 
-// page changed
 const changePage = () => {
     selectAll(false)
 
@@ -706,10 +736,6 @@ const changePage = () => {
 }
 watch(() => currentPage.value, changePage)
 
-
-
-
-// row update
 const changeRows = () => {
     if (!props.isServerMode) {
         currentPage.value = 1
@@ -723,16 +749,14 @@ const setPageSize = (pagesize: number) => {
     currentPageSize.value = pagesize
 }
 
-// pagesize changed
 const changePageSize = () => {
     selectAll(false)
 
     if (props.isServerMode) {
-        // for server side paginations
         if (currentPage.value === 1) {
             changeForServer('pagesize', true)
         } else {
-            currentPage.value = 1 // changeForServer method call when currentPage change
+            currentPage.value = 1
         }
     } else {
         currentPage.value = 1
@@ -742,7 +766,6 @@ const changePageSize = () => {
 }
 watch(() => currentPageSize.value, changePageSize)
 
-// sorting
 const sortChange = (field: string) => {
     let direction = 'asc'
     if (field == currentSortColumn.value) {
@@ -765,7 +788,6 @@ const sortChange = (field: string) => {
     }
 }
 
-// checkboax
 const checkboxChange = (value: any) => {
     selectedAll.value =
         value.length &&
@@ -779,6 +801,7 @@ const checkboxChange = (value: any) => {
     emit('rowSelect', rows)
 }
 watch(() => selected.value, checkboxChange)
+
 const selectAll = (checked: any) => {
     if (checked) {
         selected.value = filterItems.value.map((d, i) =>
@@ -789,16 +812,14 @@ const selectAll = (checked: any) => {
     }
 }
 
-// columns filter
 const filterChange = () => {
     selectAll(false)
 
     if (props.isServerMode) {
-        // for server side paginations
         if (currentPage.value === 1) {
             changeForServer('filter', true)
         } else {
-            currentPage.value = 1 // changeForServer method call when currentPage change
+            currentPage.value = 1
         }
     } else {
         currentPage.value = 1
@@ -807,16 +828,14 @@ const filterChange = () => {
     }
 }
 
-// search
 const changeSearch = () => {
     selectAll(false)
 
     if (props.isServerMode) {
-        // for server side paginations
         if (currentPage.value === 1) {
             changeForServer('search', true)
         } else {
-            currentPage.value = 1 // changeForServer method call when currentPage change
+            currentPage.value = 1
         }
     } else {
         currentPage.value = 1
@@ -832,10 +851,6 @@ watch(
         changeSearch()
     }
 )
-
-const cellValue = (item: any, field: string | undefined) => {
-    return field?.split('.').reduce((obj, key) => obj?.[key], item)
-}
 
 const dateFormat = (date: any) => {
     try {
@@ -858,7 +873,6 @@ const dateFormat = (date: any) => {
     return ''
 }
 
-//row click
 const rowClick = (item: any, index: number) => {
     clickCount.value++
 
@@ -884,7 +898,6 @@ const rowClick = (item: any, index: number) => {
     }
 }
 
-// emit change event for server side pagination
 const changeForServer = (changeType: string, isResetPage = false) => {
     if (props.isServerMode) {
         setDefaultCondition()
@@ -903,7 +916,6 @@ const changeForServer = (changeType: string, isResetPage = false) => {
     }
 }
 
-// set default conditions when values exists and condition empty
 const setDefaultCondition = () => {
     for (let i = 0; i < props.columns.length; i++) {
         let d = props.columns[i]
@@ -927,7 +939,6 @@ const setDefaultCondition = () => {
     }
 }
 
-// methods
 const reset = () => {
     selectAll(false)
     for (let i = 0; i < props.columns.length; i++) {
@@ -939,29 +950,32 @@ const reset = () => {
     currentSortDirection.value = oldSortDirection
 
     if (props.isServerMode) {
-        // for server side paginations
         if (currentPage.value === 1) {
             changeForServer('reset', true)
         } else {
-            currentPage.value = 1 // changeForServer method call when currentPage change
+            currentPage.value = 1
         }
     } else {
         currentPage.value = 1
         filterRows()
     }
 }
+
 const getSelectedRows = () => {
     const rows = filterItems.value.filter((d, i) =>
         selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i)
     )
     return rows
 }
+
 const getColumnFilters = () => {
     return props.columns
 }
+
 const clearSelectedRows = () => {
     selected.value = []
 }
+
 const selectRow = (index: number) => {
     if (!isRowSelected(index)) {
         const rows = filterItems.value.find((d, i) => i === index)
@@ -970,6 +984,7 @@ const selectRow = (index: number) => {
         )
     }
 }
+
 const unselectRow = (index: number) => {
     if (isRowSelected(index)) {
         const rows = filterItems.value.find((d, i) => i === index)
@@ -978,6 +993,7 @@ const unselectRow = (index: number) => {
         )
     }
 }
+
 const isRowSelected = (index: number) => {
     const rows = filterItems.value.find((d, i) => i === index)
 
@@ -989,7 +1005,6 @@ const isRowSelected = (index: number) => {
     return false
 }
 
-// Collapse all expanded rows
 const collapseAll = () => {
     expandedrows.value.forEach(row => {
         row.isExpanded = false
@@ -1006,10 +1021,14 @@ if (props.hasSubtable) {
 if (props.hasRightPanel) {
     extracolumnlength++
 }
-const dtableloadingkey = ref(0)
-const dtableloadingkeyInterval = setInterval(function () {
-    dtableloadingkey.value++
-}, 2200)
+
+// ============================================================================
+// FAZ I OPTIMIZATION 5: setInterval kaldırıldı - Gereksiz reactive update
+// ============================================================================
+// REMOVED: const dtableloadingkey = ref(0)
+// REMOVED: const dtableloadingkeyInterval = setInterval(function () {
+//     dtableloadingkey.value++
+// }, 2200)
 
 const topmenusize = ref(props.topmenusize)
 const topmenuel = ref(null)
@@ -1022,20 +1041,24 @@ const handleTopMenuResize = (event) => {
     const newSizePercent = event.panes[0].size
     topmenusize.value = newSizePercent
 
-    // Piksel değeri hesapla (DOM elementinin gerçek yüksekliği)
     nextTick(() => {
         const topMenuElement = topmenuel.value?.$el
         const pixelHeight = topMenuElement ? topMenuElement.offsetHeight : 0
-
-        // Hem piksel hem yüzde değerini gönder
         emit('currentTopMenuSize', pixelHeight)
     })
 }
 
+// ============================================================================
+// FAZ I OPTIMIZATION 6: topmenusize watch moved inside script setup
+// ============================================================================
+watch(() => topmenusize.value, (newSize) => {
+    emit('currentTopMenuSize', newSize)
+})
+
 onUnmounted(() => {
-    clearInterval(dtableloadingkeyInterval)
-    // Resize listener'ı temizle
+    // REMOVED: clearInterval(dtableloadingkeyInterval)
     window.removeEventListener('resize', handleResize);
+    cellValueCache.clear()
 })
 
 </script>
@@ -1044,7 +1067,6 @@ onUnmounted(() => {
         <splitpanes class="default-theme" :style="{ height: props.height }">
             <pane>
                 <div class="bh-flex bh-h-full">
-                    <!-- Custom left menu (no longer using splitpanes) -->
                     <div ref="leftmenuel" v-if="enableleftmenu" class="left-menu-container bh-relative" :style="{
                         width: currentLeftMenuWidth + 'px',
                         transition: 'width 0.3s ease',
@@ -1056,7 +1078,6 @@ onUnmounted(() => {
                             <span>##Left Menu Slot##</span>
                         </slot>
 
-                        <!-- Resize control button -->
                         <div
                             class="menu-resize-controls bh-absolute bh-right-0 bh-top-1/2 bh-transform -bh-translate-y-1/2 bh-z-10 bh-bg-gray-100 bh-rounded-l bh-shadow-md bh-select-none">
                             <button @click="toggleLeftMenu"
@@ -1071,7 +1092,6 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <!-- Main content area -->
                     <div class="bh-flex-1" style="overflow: auto; min-width: 0; width:100%">
                         <splitpanes class="default-theme" horizontal="horizontal" @resize="handleTopMenuResize"
                             push-other-panes v-if="enabletopmenu">
@@ -1083,7 +1103,6 @@ onUnmounted(() => {
                             </pane>
                             <pane
                                 :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
-                                <!-- Header Area Slot - Fixed height area above the table action header -->
                                 <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
                                     :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
                                     <slot name="tableHeaderArea">
@@ -1120,9 +1139,9 @@ onUnmounted(() => {
                                                 </thead>
                                                 <tbody>
                                                     <template v-for="(item, i) in filterItems"
-                                                        :key="item[uniqueKey] ? item[uniqueKey] : i">
+                                                        :key="rowKeys[i]">
                                                         <tr v-if="filterRowCount" :class="[
-                                                            typeof props.rowClass === 'function'
+                                                            isRowClassFunction
                                                                 ? rowClass(item)
                                                                 : props.rowClass,
                                                             props.selectRowOnClick
@@ -1136,8 +1155,7 @@ onUnmounted(() => {
                                                                         props.stickyFirstColumn
                                                                 }">
                                                                 <div class="bh-checkbox">
-                                                                    <input v-model="selected" type="checkbox" :value="item[uniqueKey] ? item[uniqueKey] : i
-                                                                        " @click.stop />
+                                                                    <input v-model="selected" type="checkbox" :value="rowKeys[i]" @click.stop />
                                                                     <div>
                                                                         <icon-check class="check" />
                                                                     </div>
@@ -1165,7 +1183,7 @@ onUnmounted(() => {
                                                             </td>
                                                             <template v-for="(col, j) in props.columns">
                                                                 <td v-if="!col.hide" :key="col.field" :class="[
-                                                                    typeof props.cellClass === 'function'
+                                                                    isCellClassFunction
                                                                         ? cellClass(item)
                                                                         : props.cellClass,
                                                                     j === 0 && props.stickyFirstColumn
@@ -1194,16 +1212,14 @@ onUnmounted(() => {
                                                                 ?.isExpanded && props.hasSubtable
                                                         ">
                                                             <tr :class="[
-                                                                typeof props.rowClass === 'function'
+                                                                isRowClassFunction
                                                                     ? rowClass(item)
                                                                     : props.rowClass,
                                                                 props.selectRowOnClick
                                                                     ? 'bh-cursor-pointer'
                                                                     : ''
                                                             ]" @click.prevent="rowClick(item, i)">
-                                                                <td :colspan="props.columns.length + extracolumnlength
-                                                                    ">
-
+                                                                <td :colspan="props.columns.length + extracolumnlength">
                                                                     <slot name="tsub" :rowData="item" :rowIndex="i"
                                                                         :filterItems="filterItems"></slot>
                                                                 </td>
@@ -1211,13 +1227,11 @@ onUnmounted(() => {
                                                         </template>
                                                     </template>
 
-                                                    <template v-if="
-                                                        !filterRowCount && currentLoader && skeletonloader
-                                                    ">
+                                                    <template v-if="!filterRowCount && currentLoader && skeletonloader">
                                                         <tr v-for="i in props.pageSize" :key="i"
                                                             class="!bh-bg-white bh-h-11 !bh-border-transparent">
-                                                            <td :colspan="props.columns.length + extracolumnlength
-                                                                " class="!bh-p-0 !bh-border-transparent">
+                                                            <td :colspan="props.columns.length + extracolumnlength"
+                                                                class="!bh-p-0 !bh-border-transparent">
                                                                 <div class="bh-skeleton-box bh-h-8"></div>
                                                             </td>
                                                         </tr>
@@ -1231,7 +1245,7 @@ onUnmounted(() => {
                                                                 :colspan="extracolumnlength"></td>
                                                             <template v-for="(col, j) in props.columns">
                                                                 <td v-if="!col.hide" :key="col.field" :class="[
-                                                                    typeof props.cellClass === 'function'
+                                                                    isCellClassFunction
                                                                         ? cellClass(item)
                                                                         : props.cellClass,
                                                                     j === 0 && props.stickyFirstColumn
@@ -1270,21 +1284,16 @@ onUnmounted(() => {
                                                 </tfoot>
                                             </table>
 
-                                            <div v-if="
-                                                currentLoader &&
-                                                enableloadinganimation
-                                            " class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
+                                            <div v-if="currentLoader && enableloadinganimation"
+                                                class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
                                                 :style="{
                                                     height: Number(props.height.replace('px', '')) - 175 + 'px'
                                                 }">
-                                                <slot name="loadercontent">
-
-                                                </slot>
+                                                <slot name="loadercontent"></slot>
                                             </div>
                                         </div>
                                         <div v-if="!filterRowCount && !currentLoader" class="nodatacontent" :style="{
-                                            height:
-                                                Number(props.height.replace('px', '')) - 175 + 'px'
+                                            height: Number(props.height.replace('px', '')) - 175 + 'px'
                                         }">
                                             <slot name="nodatacontent">
                                                 <span>{{ props.noDataContent }}</span>
@@ -1295,21 +1304,18 @@ onUnmounted(() => {
                             </pane>
                         </splitpanes>
 
-                        <!-- Fallback when enabletopmenu is false - Apply same CSS structure as splitpanes -->
                         <div v-if="!enabletopmenu" class="bh-w-full bh-h-full"
-                        :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
-                            <!-- Header Area Slot - Fixed height area above the table action header -->
+                            :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
                             <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
                                 :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
                                 <slot name="tableHeaderArea">
                                     <span>##Table Header Area Slot##</span>
                                 </slot>
                             </div>
-                            <slot name="tableactionheader">
-                            </slot>
+                            <slot name="tableactionheader"></slot>
                             <div :class="props.scrollbarstyle">
                                 <custom-scrollbar :style="{
-                                    height: props.stickyHeader ? 
+                                    height: props.stickyHeader ?
                                         (Number(props.height.replace('px', '')) - footerOffset) + 'px' :
                                         props.height
                                 }" :autoHide="props.scrollbarautohide" :fixedThumb="props.scrollbarfixedthumb"
@@ -1318,9 +1324,7 @@ onUnmounted(() => {
                                     <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }"
                                         :style="{ overflow: props.stickyHeader && 'inherit' }">
                                         <table :class="[props.skin]">
-                                            <thead :class="{
-                                                'bh-sticky bh-top-0 bh-z-10': props.stickyHeader
-                                            }">
+                                            <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
                                                 <column-header :all="props" :expandedrows="expandedrows"
                                                     :currentSortColumn="currentSortColumn"
                                                     :currentSortDirection="currentSortDirection"
@@ -1330,25 +1334,16 @@ onUnmounted(() => {
                                                     @toggleFilterMenu="toggleFilterMenu" />
                                             </thead>
                                             <tbody>
-                                                <template v-for="(item, i) in filterItems"
-                                                    :key="item[uniqueKey] ? item[uniqueKey] : i">
+                                                <template v-for="(item, i) in filterItems" :key="rowKeys[i]">
                                                     <tr v-if="filterRowCount" :class="[
-                                                        typeof props.rowClass === 'function'
-                                                            ? rowClass(item)
-                                                            : props.rowClass,
-                                                        props.selectRowOnClick
-                                                            ? 'bh-cursor-pointer'
-                                                            : ''
+                                                        isRowClassFunction ? rowClass(item) : props.rowClass,
+                                                        props.selectRowOnClick ? 'bh-cursor-pointer' : ''
                                                     ]" @click.prevent="rowClick(item, i)">
                                                         <td v-if="props.hasCheckbox"
                                                             :style="{ width: props.checkboxColumnWidth + ' !important', minWidth: props.checkboxColumnWidth + ' !important' }"
-                                                            :class="{
-                                                                'bh-sticky bh-left-0 bh-bg-blue-light':
-                                                                    props.stickyFirstColumn
-                                                            }">
+                                                            :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
                                                             <div class="bh-checkbox">
-                                                                <input v-model="selected" type="checkbox" :value="item[uniqueKey] ? item[uniqueKey] : i
-                                                                    " @click.stop />
+                                                                <input v-model="selected" type="checkbox" :value="rowKeys[i]" @click.stop />
                                                                 <div>
                                                                     <icon-check class="check" />
                                                                 </div>
@@ -1356,64 +1351,41 @@ onUnmounted(() => {
                                                         </td>
                                                         <td v-if="props.hasRightPanel"
                                                             :style="{ width: props.rightPanelColumnWidth + ' !important', minWidth: props.rightPanelColumnWidth + ' !important', padding: '0px !important' }"
-                                                            :class="{
-                                                                'bh-sticky bh-left-0 bh-bg-blue-light':
-                                                                    props.stickyFirstColumn
-                                                            }">
+                                                            :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
                                                             <ButtonRightPanel :item="item"
                                                                 @rightPanelClick="(rowData) => emit('rowRightPanelClick', rowData)">
                                                             </ButtonRightPanel>
                                                         </td>
                                                         <td v-if="props.hasSubtable"
                                                             :style="{ width: props.subtableColumnWidth + ' !important', minWidth: props.subtableColumnWidth + ' !important' }"
-                                                            :class="{
-                                                                'bh-sticky bh-left-0 bh-bg-blue-light':
-                                                                    props.stickyFirstColumn
-                                                            }">
+                                                            :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
                                                             <button-expand :item="{ ...item, _rowIndex: i }"
                                                                 :expandedrows="expandedrows">
                                                             </button-expand>
                                                         </td>
                                                         <template v-for="(col, j) in props.columns">
                                                             <td v-if="!col.hide" :key="col.field" :class="[
-                                                                typeof props.cellClass === 'function'
-                                                                    ? cellClass(item)
-                                                                    : props.cellClass,
-                                                                j === 0 && props.stickyFirstColumn
-                                                                    ? 'bh-sticky bh-left-0 bh-bg-blue-light'
-                                                                    : '',
-                                                                props.hasCheckbox &&
-                                                                    j === 0 &&
-                                                                    props.stickyFirstColumn
-                                                                    ? 'bh-left-[52px]'
-                                                                    : '',
+                                                                isCellClassFunction ? cellClass(item) : props.cellClass,
+                                                                j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                                                props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
                                                                 col.cellClass ? col.cellClass : ''
                                                             ]">
                                                                 <template v-if="slots[col.field]">
                                                                     <slot :name="col.field" :value="item"></slot>
                                                                 </template>
-                                                                <div v-else-if="col.cellRenderer"
-                                                                    v-html="col.cellRenderer(item)"></div>
+                                                                <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
                                                                 <template v-else>
                                                                     {{ cellValue(item, col.field) }}
                                                                 </template>
                                                             </td>
                                                         </template>
                                                     </tr>
-                                                    <template v-if="
-                                                        expandedrows.find(x => x.id == (item._rowIndex !== undefined ? item._rowIndex : (item.id || i)))
-                                                            ?.isExpanded && props.hasSubtable
-                                                    ">
+                                                    <template v-if="expandedrows.find(x => x.id == (item._rowIndex !== undefined ? item._rowIndex : (item.id || i)))?.isExpanded && props.hasSubtable">
                                                         <tr :class="[
-                                                            typeof props.rowClass === 'function'
-                                                                ? rowClass(item)
-                                                                : props.rowClass,
-                                                            props.selectRowOnClick
-                                                                ? 'bh-cursor-pointer'
-                                                                : ''
+                                                            isRowClassFunction ? rowClass(item) : props.rowClass,
+                                                            props.selectRowOnClick ? 'bh-cursor-pointer' : ''
                                                         ]" @click.prevent="rowClick(item, i)">
-                                                            <td :colspan="props.columns.length + extracolumnlength
-                                                                ">
+                                                            <td :colspan="props.columns.length + extracolumnlength">
                                                                 <div class="subtable-container" :style="{
                                                                     maxHeight: props.subtableMaxHeight,
                                                                     overflow: 'auto',
@@ -1429,13 +1401,11 @@ onUnmounted(() => {
                                                     </template>
                                                 </template>
 
-                                                <template v-if="
-                                                    !filterRowCount && currentLoader && skeletonloader
-                                                ">
+                                                <template v-if="!filterRowCount && currentLoader && skeletonloader">
                                                     <tr v-for="i in props.pageSize" :key="i"
                                                         class="!bh-bg-white bh-h-11 !bh-border-transparent">
-                                                        <td :colspan="props.columns.length + extracolumnlength
-                                                            " class="!bh-p-0 !bh-border-transparent">
+                                                        <td :colspan="props.columns.length + extracolumnlength"
+                                                            class="!bh-p-0 !bh-border-transparent">
                                                             <div class="bh-skeleton-box bh-h-8"></div>
                                                         </td>
                                                     </tr>
@@ -1445,30 +1415,16 @@ onUnmounted(() => {
                                                     <tr v-for="(item, i) in props.footerRows"
                                                         :key="item[uniqueKey] ? item[uniqueKey] : i"
                                                         class="sticky-table-footer">
-                                                        <td v-if="extracolumnlength > 0" :colspan="extracolumnlength">
-                                                        </td>
+                                                        <td v-if="extracolumnlength > 0" :colspan="extracolumnlength"></td>
                                                         <template v-for="(col, j) in props.columns">
                                                             <td v-if="!col.hide" :key="col.field" :class="[
-                                                                typeof props.cellClass === 'function'
-                                                                    ? cellClass(item)
-                                                                    : props.cellClass,
-                                                                j === 0 && props.stickyFirstColumn
-                                                                    ? 'bh-sticky bh-left-0 bh-bg-blue-light'
-                                                                    : '',
-                                                                props.hasCheckbox &&
-                                                                    j === 0 &&
-                                                                    props.stickyFirstColumn
-                                                                    ? 'bh-left-[52px]'
-                                                                    : '',
+                                                                isCellClassFunction ? cellClass(item) : props.cellClass,
+                                                                j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                                                props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
                                                                 col.cellClass ? col.cellClass : ''
                                                             ]">
-                                                                <template v-if="
-                                                                    item.cells.find(x => x.field == col.field)
-                                                                ">
-                                                                    {{
-                                                                        item.cells.find(x => x.field == col.field)
-                                                                            .text
-                                                                    }}
+                                                                <template v-if="item.cells.find(x => x.field == col.field)">
+                                                                    {{ item.cells.find(x => x.field == col.field).text }}
                                                                 </template>
                                                             </td>
                                                         </template>
@@ -1476,34 +1432,24 @@ onUnmounted(() => {
                                                 </template>
                                             </tbody>
 
-                                            <tfoot v-if="props.cloneHeaderInFooter" :class="{
-                                                'bh-sticky bh-bottom-0': props.stickyHeader
-                                            }">
+                                            <tfoot v-if="props.cloneHeaderInFooter"
+                                                :class="{ 'bh-sticky bh-bottom-0': props.stickyHeader }">
                                                 <column-header :all="props" :currentSortColumn="currentSortColumn"
                                                     :currentSortDirection="currentSortDirection"
-                                                    :isOpenFilter="isOpenFilter" :isFooter="true"
-                                                    :checkAll="selectedAll" @selectAll="selectAll"
-                                                    @sortChange="sortChange" @filterChange="filterChange"
-                                                    @toggleFilterMenu="toggleFilterMenu" />
+                                                    :isOpenFilter="isOpenFilter" :isFooter="true" :checkAll="selectedAll"
+                                                    @selectAll="selectAll" @sortChange="sortChange"
+                                                    @filterChange="filterChange" @toggleFilterMenu="toggleFilterMenu" />
                                             </tfoot>
                                         </table>
 
-                                        <div v-if="
-                                            currentLoader &&
-                                            enableloadinganimation
-                                        " class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
-                                            :style="{
-                                                height: Number(props.height.replace('px', '')) - 175 + 'px'
-                                            }">
-                                            <slot name="loadercontent">
-
-                                            </slot>
+                                        <div v-if="currentLoader && enableloadinganimation"
+                                            class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
+                                            :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
+                                            <slot name="loadercontent"></slot>
                                         </div>
                                     </div>
-                                    <div v-if="!filterRowCount && !currentLoader" class="nodatacontent" :style="{
-                                        height:
-                                            Number(props.height.replace('px', '')) - 175 + 'px'
-                                    }">
+                                    <div v-if="!filterRowCount && !currentLoader" class="nodatacontent"
+                                        :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
                                         <slot name="nodatacontent">
                                             <span>{{ props.noDataContent }}</span>
                                         </slot>
@@ -1516,10 +1462,8 @@ onUnmounted(() => {
             </pane>
         </splitpanes>
 
-        <div v-if="props.pagination && filterRowCount" class="bh-pagination" :class="{
-            'bh-pointer-events-none': currentLoader,
-            'sticky-footer': props.stickyFooter
-        }">
+        <div v-if="props.pagination && filterRowCount" class="bh-pagination"
+            :class="{ 'bh-pointer-events-none': currentLoader, 'sticky-footer': props.stickyFooter }">
             <div class="bh-flex bh-items-center bh-flex-wrap bh-flex-col sm:bh-flex-row bh-gap-4">
                 <slot name="footerpageinfo" v-if="enablefooterpagination" :paginationInfo="paginationInfo"
                     :filterRowCount="filterRowCount" :offset="offset" :limit="limit" :showPageSize="showPageSize"
@@ -1527,14 +1471,7 @@ onUnmounted(() => {
                     :setPageSize="setPageSize">
                     <div class="bh-pagination-info bh-flex bh-items-center">
                         <span class="bh-mr-2">
-                            {{
-                                stringFormat(
-                                    props.paginationInfo,
-                                    filterRowCount ? offset : 0,
-                                    limit,
-                                    filterRowCount
-                                )
-                            }}
+                            {{ stringFormat(props.paginationInfo, filterRowCount ? offset : 0, limit, filterRowCount) }}
                         </span>
                         <select v-if="props.showPageSize" v-model="currentPageSize" class="bh-pagesize">
                             <option v-for="option in props.pageSizeOptions" :value="option" :key="option">
@@ -1549,7 +1486,7 @@ onUnmounted(() => {
                     <div class="bh-pagination-number sm:bh-ml-auto bh-inline-flex bh-items-center bh-space-x-1">
                         <button v-if="props.showFirstPage" type="button" class="bh-page-item first-page"
                             :class="{ disabled: currentPage <= 1 }" @click="currentPage = 1">
-                            <span v-if="props.firstArrow" v-html="props.firstArrow"> </span>
+                            <span v-if="props.firstArrow" v-html="props.firstArrow"></span>
                             <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <g fill="currentColor" fill-rule="evenodd">
                                     <path
@@ -1559,10 +1496,9 @@ onUnmounted(() => {
                                 </g>
                             </svg>
                         </button>
-                        <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }"
-                            @click="previousPage">
-                            <span v-if="props.previousArrow" v-html="props.previousArrow">
-                            </span>
+                        <button type="button" class="bh-page-item previous-page"
+                            :class="{ disabled: currentPage <= 1 }" @click="previousPage">
+                            <span v-if="props.previousArrow" v-html="props.previousArrow"></span>
                             <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <path fill="currentColor" fill-rule="evenodd"
                                     d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
@@ -1570,17 +1506,16 @@ onUnmounted(() => {
                         </button>
 
                         <template v-if="props.showNumbers">
-                            <button v-for="page in paging" :key="page" type="button" class="bh-page-item" :class="{
-                                disabled: currentPage === page,
-                                'bh-active': page === currentPage
-                            }" @click="movePage(page)">
+                            <button v-for="page in paging" :key="page" type="button" class="bh-page-item"
+                                :class="{ disabled: currentPage === page, 'bh-active': page === currentPage }"
+                                @click="movePage(page)">
                                 {{ page }}
                             </button>
                         </template>
 
                         <button type="button" class="bh-page-item next-page"
                             :class="{ disabled: currentPage >= maxPage }" @click="nextPage">
-                            <span v-if="props.nextArrow" v-html="props.nextArrow"> </span>
+                            <span v-if="props.nextArrow" v-html="props.nextArrow"></span>
                             <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <path fill="currentColor" fill-rule="evenodd"
                                     d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8L4.646 2.354a.5.5 0 0 1 0-.708z" />
@@ -1589,7 +1524,7 @@ onUnmounted(() => {
 
                         <button v-if="props.showLastPage" type="button" class="bh-page-item last-page"
                             :class="{ disabled: currentPage >= maxPage }" @click="currentPage = maxPage">
-                            <span v-if="props.lastArrow" v-html="props.lastArrow"> </span>
+                            <span v-if="props.lastArrow" v-html="props.lastArrow"></span>
                             <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <g fill="currentColor" fill-rule="evenodd">
                                     <path
@@ -1607,11 +1542,9 @@ onUnmounted(() => {
 </template>
 
 <style>
-/* Custom left menu styles */
 .left-menu-container {
     position: relative;
     flex-shrink: 0 !important;
-    /* Prevent flex container from shrinking this element */
 }
 
 .menu-resize-controls {
@@ -1637,7 +1570,6 @@ onUnmounted(() => {
     user-select: none;
 }
 
-/* Fix sticky header z-index issue with subtables */
 .bh-datatable thead {
     z-index: 15 !important;
 }
@@ -1647,7 +1579,6 @@ onUnmounted(() => {
     z-index: 1;
 }
 
-/* Subtable rows should have lower z-index */
 .bh-datatable tbody tr:has(td[colspan]) {
     z-index: 0;
 }

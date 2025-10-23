@@ -4,7 +4,7 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { watch, ref, onMounted } from 'vue'
+import { watch, ref, onMounted, computed } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 
 import ButtonExpand from './button-expand.vue'
@@ -33,8 +33,25 @@ const emit = defineEmits([
   'toggleFilterMenu'
 ])
 
+// ============================================================================
+// FAZ III OPTIMIZATION: Field-specific watches instead of deep watch
+// ============================================================================
+
 // Local state for filter inputs to avoid props mutation
 const filterInputs = ref<Record<string, any>>({})
+
+// Create column Map for O(1) lookup
+const columnsMap = computed(() => {
+  const map = new Map()
+  if (props.all?.columns) {
+    props.all.columns.forEach((col: any) => {
+      if (col.field) {
+        map.set(col.field, col)
+      }
+    })
+  }
+  return map
+})
 
 // Initialize filter inputs from columns
 onMounted(() => {
@@ -42,32 +59,28 @@ onMounted(() => {
     props.all.columns.forEach((col: any) => {
       if (col.filter && col.field) {
         filterInputs.value[col.field] = col.value || ''
+        
+        // Create individual watch for each field
+        watchDebounced(
+          () => filterInputs.value[col.field],
+          (newValue) => {
+            const column = columnsMap.value.get(col.field)
+            if (column) {
+              // Trim only string values
+              if (column.type === 'string' || column.type === 'String') {
+                column.value = typeof newValue === 'string' ? newValue.trim() : newValue
+              } else {
+                column.value = newValue
+              }
+              emit('filterChange')
+            }
+          },
+          { debounce: 300 }
+        )
       }
     })
   }
 })
-
-// Watch filter inputs with debounce and update columns
-watchDebounced(
-  filterInputs,
-  (newValues) => {
-    if (props.all?.columns) {
-      Object.keys(newValues).forEach((field) => {
-        const col = props.all.columns.find((c: any) => c.field === field)
-        if (col) {
-          // Trim string values
-          if (col.type === 'string' || col.type === 'String') {
-            col.value = typeof newValues[field] === 'string' ? newValues[field].trim() : newValues[field]
-          } else {
-            col.value = newValues[field]
-          }
-        }
-      })
-      emit('filterChange')
-    }
-  },
-  { debounce: 300, deep: true }
-)
 
 const checkboxChange = () => {
   if (selectedAll.value) {
