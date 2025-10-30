@@ -4,7 +4,7 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { useElementSize } from '@vueuse/core'
+import { useElementSize, useDebounceFn, useThrottleFn } from '@vueuse/core'
 import CustomScrollbar from 'custom-vue-scrollbar'
 import { Splitpanes, Pane } from 'splitpanes'
 import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch, nextTick } from 'vue'
@@ -1032,33 +1032,55 @@ if (props.hasRightPanel) {
 
 const topmenusize = ref(props.topmenusize)
 const topmenuel = ref(null)
-const topmenuheight = useElementSize(topmenuel).height
+// Throttle useElementSize to reduce reactive updates during resize
+const { height: topmenuheight } = useElementSize(topmenuel, { box: 'border-box' }, { throttle: 100 })
 
 // Handler for top menu resize events
-const handleTopMenuResize = (event) => {
+const emitTopMenuSize = () => {
+    nextTick(() => {
+        let element = topmenuel.value
+        if (element && typeof element === 'object') {
+            element = element.$el || element
+        }
+        
+        if (element instanceof HTMLElement) {
+            const pixelHeight = element.offsetHeight || 0
+            emit('currentTopMenuSize', pixelHeight)
+        }
+    })
+}
+
+const debouncedEmitTopMenuSize = useDebounceFn(emitTopMenuSize, 50)
+
+const handleTopMenuResize = useThrottleFn((event) => {
     if (!event || !event.panes || !event.panes.length) return
 
     const newSizePercent = event.panes[0].size
     topmenusize.value = newSizePercent
-
-    nextTick(() => {
-        const topMenuElement = topmenuel.value?.$el
-        const pixelHeight = topMenuElement ? topMenuElement.offsetHeight : 0
-        emit('currentTopMenuSize', pixelHeight)
-    })
-}
+    debouncedEmitTopMenuSize()
+}, 16)
 
 // ============================================================================
-// FAZ I OPTIMIZATION 6: topmenusize watch moved inside script setup
+// FAZ I OPTIMIZATION 6: topmenusize watch - debounced to prevent excessive emits
 // ============================================================================
-watch(() => topmenusize.value, (newSize) => {
-    emit('currentTopMenuSize', newSize)
-})
+const watchEmitTopMenuSize = useDebounceFn(() => {
+    let element = topmenuel.value
+    if (element && typeof element === 'object') {
+        element = element.$el || element
+    }
+    
+    if (element instanceof HTMLElement) {
+        emit('currentTopMenuSize', element.offsetHeight || 0)
+    }
+}, 50)
+
+watch(() => topmenusize.value, watchEmitTopMenuSize)
 
 onUnmounted(() => {
     // REMOVED: clearInterval(dtableloadingkeyInterval)
     window.removeEventListener('resize', handleResize);
     cellValueCache.clear()
+    // VueUse composables auto-cleanup, no manual clearTimeout needed
 })
 
 </script>
