@@ -80,6 +80,7 @@ interface Props {
     // Left menu props
     leftmenuMinWidth?: number
     leftmenuDefaultWidth?: number
+    showResizeButton?: boolean // Show built-in resize button (hidden by default)
     topmenusize?: number
     topmenumax?: number
     topmenumin?: number
@@ -152,7 +153,8 @@ const props = withDefaults(defineProps<Props>(), {
     // Left menu prop defaults
     leftmenuMinWidth: 50,
     leftmenuDefaultWidth: 250,
-    initialLeftMenuState: undefined
+    initialLeftMenuState: undefined,
+    showResizeButton: false
 })
 
 // set default columns values
@@ -230,12 +232,22 @@ const uniqueKey = computed(() => {
     return col?.field || null
 })
 
-// Pre-compute unique keys for all rows
+// Optimization: Only compute when uniqueKey exists, otherwise use index directly
 const rowKeys = computed(() => {
-    return filterItems.value.map((item, index) => 
-        uniqueKey.value ? item[uniqueKey.value as never] : index
-    )
+    if (!uniqueKey.value) return null
+    return new Map(filterItems.value.map((item, index) => [index, item[uniqueKey.value as never]]))
 })
+
+// Helper function for template to get row key
+const getRowKey = (index: number) => {
+    return uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
+}
+
+// Helper function to check if row is expanded
+const isRowExpanded = (item: any, index: number) => {
+    const rowId = item._rowIndex !== undefined ? item._rowIndex : (item.id || index)
+    return expandedrows.value.get(rowId) === true
+}
 
 // ============================================================================
 // FAZ I OPTIMIZATION 3: typeof checks → computed boolean flags
@@ -484,7 +496,8 @@ const filteredRows = computed(() => {
     return rows
 })
 
-const expandedrows = ref<ExpandedRow[]>([])
+// Optimization: Use Map for O(1) lookup instead of array find O(n)
+const expandedrows = ref<Map<any, boolean>>(new Map())
 
 // Update filterRows to use computed filteredRows
 const filterRows = () => {
@@ -500,15 +513,10 @@ const filterRows = () => {
     }
 
     if (props.hasSubtable) {
-        result.forEach(function (value) {
-            if (value.isExpanded != undefined) {
-                const found = expandedrows.value.find(x => x.id == value.id)
-                if (!found) {
-                    expandedrows.value.push({
-                        id: value.id,
-                        isExpanded: value.isExpanded
-                    })
-                }
+        result.forEach(function (value, index) {
+            if (value.isExpanded !== undefined) {
+                const rowId = value._rowIndex !== undefined ? value._rowIndex : (value.id || index)
+                expandedrows.value.set(rowId, value.isExpanded)
             }
         })
     }
@@ -794,9 +802,10 @@ const checkboxChange = (value: any) => {
         filterItems.value.length &&
         value.length === filterItems.value.length
 
-    const rows = filterItems.value.filter((d, i) =>
-        selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i)
-    )
+    const rows = filterItems.value.filter((d, i) => {
+        const key = uniqueKey.value ? (rowKeys.value?.get(i) ?? i) : i
+        return selected.value.includes(key)
+    })
 
     emit('rowSelect', rows)
 }
@@ -805,7 +814,7 @@ watch(() => selected.value, checkboxChange)
 const selectAll = (checked: any) => {
     if (checked) {
         selected.value = filterItems.value.map((d, i) =>
-            uniqueKey.value ? d[uniqueKey.value as never] : i
+            uniqueKey.value ? (rowKeys.value?.get(i) ?? i) : i
         )
     } else {
         selected.value = []
@@ -962,9 +971,10 @@ const reset = () => {
 }
 
 const getSelectedRows = () => {
-    const rows = filterItems.value.filter((d, i) =>
-        selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i)
-    )
+    const rows = filterItems.value.filter((d, i) => {
+        const key = uniqueKey.value ? (rowKeys.value?.get(i) ?? i) : i
+        return selected.value.includes(key)
+    })
     return rows
 }
 
@@ -978,36 +988,28 @@ const clearSelectedRows = () => {
 
 const selectRow = (index: number) => {
     if (!isRowSelected(index)) {
-        const rows = filterItems.value.find((d, i) => i === index)
-        selected.value.push(
-            uniqueKey.value ? rows[uniqueKey.value as never] : index
-        )
+        const key = uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
+        selected.value.push(key)
     }
 }
 
 const unselectRow = (index: number) => {
     if (isRowSelected(index)) {
-        const rows = filterItems.value.find((d, i) => i === index)
-        selected.value = selected.value.filter(
-            d => d !== (uniqueKey.value ? rows[uniqueKey.value as never] : index)
-        )
+        const key = uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
+        selected.value = selected.value.filter(d => d !== key)
     }
 }
 
 const isRowSelected = (index: number) => {
-    const rows = filterItems.value.find((d, i) => i === index)
-
-    if (rows) {
-        return selected.value.includes(
-            uniqueKey.value ? rows[uniqueKey.value as never] : index
-        )
-    }
-    return false
+    if (index >= filterItems.value.length) return false
+    
+    const key = uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
+    return selected.value.includes(key)
 }
 
 const collapseAll = () => {
-    expandedrows.value.forEach(row => {
-        row.isExpanded = false
+    expandedrows.value.forEach((value, key) => {
+        expandedrows.value.set(key, false)
     })
 }
 
@@ -1101,6 +1103,7 @@ onUnmounted(() => {
                         </slot>
 
                         <div
+                            v-if="props.showResizeButton"
                             class="menu-resize-controls bh-absolute bh-right-0 bh-top-1/2 bh-transform -bh-translate-y-1/2 bh-z-10 bh-bg-gray-100 bh-rounded-l bh-shadow-md bh-select-none">
                             <button @click="toggleLeftMenu"
                                 class="bh-w-4 bh-h-10 bh-flex bh-justify-center bh-items-center bh-border-none bh-bg-transparent bh-cursor-pointer bh-outline-none">
@@ -1161,7 +1164,7 @@ onUnmounted(() => {
                                                 </thead>
                                                 <tbody>
                                                     <template v-for="(item, i) in filterItems"
-                                                        :key="rowKeys[i]">
+                                                        :key="getRowKey(i)">
                                                         <tr v-if="filterRowCount" :class="[
                                                             isRowClassFunction
                                                                 ? rowClass(item)
@@ -1177,7 +1180,7 @@ onUnmounted(() => {
                                                                         props.stickyFirstColumn
                                                                 }">
                                                                 <div class="bh-checkbox">
-                                                                    <input v-model="selected" type="checkbox" :value="rowKeys[i]" @click.stop />
+                                                                    <input v-model="selected" type="checkbox" :value="getRowKey(i)" @click.stop />
                                                                     <div>
                                                                         <icon-check class="check" />
                                                                     </div>
@@ -1229,10 +1232,7 @@ onUnmounted(() => {
                                                                 </td>
                                                             </template>
                                                         </tr>
-                                                        <template v-if="
-                                                            expandedrows.find(x => x.id == (item._rowIndex !== undefined ? item._rowIndex : (item.id || i)))
-                                                                ?.isExpanded && props.hasSubtable
-                                                        ">
+                                                        <template v-if="isRowExpanded(item, i) && props.hasSubtable">
                                                             <tr :class="[
                                                                 isRowClassFunction
                                                                     ? rowClass(item)
@@ -1356,7 +1356,7 @@ onUnmounted(() => {
                                                     @toggleFilterMenu="toggleFilterMenu" />
                                             </thead>
                                             <tbody>
-                                                <template v-for="(item, i) in filterItems" :key="rowKeys[i]">
+                                                <template v-for="(item, i) in filterItems" :key="getRowKey(i)">
                                                     <tr v-if="filterRowCount" :class="[
                                                         isRowClassFunction ? rowClass(item) : props.rowClass,
                                                         props.selectRowOnClick ? 'bh-cursor-pointer' : ''
@@ -1365,7 +1365,7 @@ onUnmounted(() => {
                                                             :style="{ width: props.checkboxColumnWidth + ' !important', minWidth: props.checkboxColumnWidth + ' !important' }"
                                                             :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
                                                             <div class="bh-checkbox">
-                                                                <input v-model="selected" type="checkbox" :value="rowKeys[i]" @click.stop />
+                                                                <input v-model="selected" type="checkbox" :value="getRowKey(i)" @click.stop />
                                                                 <div>
                                                                     <icon-check class="check" />
                                                                 </div>
@@ -1402,7 +1402,7 @@ onUnmounted(() => {
                                                             </td>
                                                         </template>
                                                     </tr>
-                                                    <template v-if="expandedrows.find(x => x.id == (item._rowIndex !== undefined ? item._rowIndex : (item.id || i)))?.isExpanded && props.hasSubtable">
+                                                    <template v-if="isRowExpanded(item, i) && props.hasSubtable">
                                                         <tr :class="[
                                                             isRowClassFunction ? rowClass(item) : props.rowClass,
                                                             props.selectRowOnClick ? 'bh-cursor-pointer' : ''
