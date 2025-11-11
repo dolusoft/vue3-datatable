@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
-      "Bash(npm run tailwind:build:*)"
+      "Bash(npm run tailwind:build:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:vueuse.org)"
     ],
     "deny": [],
     "ask": []

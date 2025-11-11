@@ -7,7 +7,6 @@ export default {
 import { useElementSize, useDebounceFn, useThrottleFn } from '@vueuse/core'
 import { Splitpanes, Pane } from 'splitpanes'
 import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch, nextTick } from 'vue'
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 import ButtonExpand from './button-expand.vue'
 import ButtonRightPanel from './button-rightpanel.vue'
@@ -15,7 +14,6 @@ import columnHeader from './column-header.vue'
 import iconCheck from './icon-check.vue'
 import type { ColumnDefinition } from '../model/column-model'
 import 'splitpanes/dist/splitpanes.css'
-import 'vue3-perfect-scrollbar/style.css'
 
 const slots = useSlots()
 
@@ -66,7 +64,6 @@ interface Props {
     stickyFirstColumn?: boolean
     cloneHeaderInFooter?: boolean
     selectRowOnClick?: boolean
-    scrollbarOptions?: any
     enableleftmenu?: boolean
     enabletopmenu?: boolean
     enableHeaderArea?: boolean // Enables the tableHeaderArea slot
@@ -135,7 +132,6 @@ const props = withDefaults(defineProps<Props>(), {
     stickyFirstColumn: false,
     cloneHeaderInFooter: false,
     selectRowOnClick: false,
-    scrollbarOptions: () => ({}),
     enableHeaderArea: false,
     headerAreaHeight: '80px',
     footerOffset: 0,
@@ -245,19 +241,6 @@ const isRowExpanded = (item: any, index: number) => {
 // ============================================================================
 const isRowClassFunction = computed(() => typeof props.rowClass === 'function')
 const isCellClassFunction = computed(() => typeof props.cellClass === 'function')
-
-// ============================================================================
-// Perfect Scrollbar Options
-// ============================================================================
-const perfectScrollbarOptions = computed(() => ({
-    wheelSpeed: 1,
-    wheelPropagation: true,  // Mouse wheel'i aktif et
-    swipeEasing: true,
-    minScrollbarLength: 20,
-    suppressScrollX: false,   // Yatay scroll'u engelleme
-    suppressScrollY: false,   // Dikey scroll'u engelleme
-    ...props.scrollbarOptions
-}))
 
 // ============================================================================
 // FAZ III OPTIMIZATION: Intl.Collator instance cache
@@ -1141,15 +1124,14 @@ onUnmounted(() => {
                                     <span>##Table Action Header Slot##</span>
                                 </slot>
 
-                                <PerfectScrollbar
-                                    :options="perfectScrollbarOptions"
+                                <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }"
                                     :style="{
+                                        overflow: 'auto',
                                         height: props.stickyHeader ?
                                             (Number(props.height.replace('px', '')) -
                                             (props.footerOffset + (topmenuheight || 0))) + 'px' :
                                             'auto'
                                     }">
-                                    <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }">
                                         <table :class="[props.skin]">
                                             <thead :class="{
                                                 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader
@@ -1313,15 +1295,15 @@ onUnmounted(() => {
                                             }">
                                             <slot name="loadercontent"></slot>
                                         </div>
-                                    </div>
-                                    <div v-if="!filterRowCount && !currentLoader" class="nodatacontent" :style="{
-                                        height: Number(props.height.replace('px', '')) - 175 + 'px'
-                                    }">
-                                        <slot name="nodatacontent">
-                                            <span>{{ props.noDataContent }}</span>
-                                        </slot>
-                                    </div>
-                                </PerfectScrollbar>
+
+                                        <div v-if="!filterRowCount && !currentLoader" class="nodatacontent" :style="{
+                                            height: Number(props.height.replace('px', '')) - 175 + 'px'
+                                        }">
+                                            <slot name="nodatacontent">
+                                                <span>{{ props.noDataContent }}</span>
+                                            </slot>
+                                        </div>
+                                </div>
                             </pane>
                         </splitpanes>
 
@@ -1334,14 +1316,13 @@ onUnmounted(() => {
                                 </slot>
                             </div>
                             <slot name="tableactionheader"></slot>
-                            <PerfectScrollbar
-                                :options="perfectScrollbarOptions"
+                            <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }"
                                 :style="{
+                                    overflow: 'auto',
                                     height: props.stickyHeader ?
                                         (Number(props.height.replace('px', '')) - props.footerOffset) + 'px' :
                                         'auto'
                                 }">
-                                <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }">
                                     <table :class="[props.skin]">
                                         <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
                                             <column-header :all="props" :expandedrows="expandedrows"
@@ -1468,14 +1449,14 @@ onUnmounted(() => {
                                         :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
                                         <slot name="loadercontent"></slot>
                                     </div>
-                                </div>
-                                <div v-if="!filterRowCount && !currentLoader" class="nodatacontent"
-                                    :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
-                                    <slot name="nodatacontent">
-                                        <span>{{ props.noDataContent }}</span>
-                                    </slot>
-                                </div>
-                            </PerfectScrollbar>
+
+                                    <div v-if="!filterRowCount && !currentLoader" class="nodatacontent"
+                                        :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
+                                        <slot name="nodatacontent">
+                                            <span>{{ props.noDataContent }}</span>
+                                        </slot>
+                                    </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1562,17 +1543,6 @@ onUnmounted(() => {
 </template>
 
 <style>
-/* Perfect Scrollbar z-index fix */
-.ps__rail-x,
-.ps__rail-y {
-    z-index: 9998 !important;
-}
-
-.ps__thumb-x,
-.ps__thumb-y {
-    z-index: 9999 !important;
-}
-
 .left-menu-container {
     position: relative;
     flex-shrink: 0 !important;
