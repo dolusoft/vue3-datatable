@@ -11,7 +11,18 @@
         box-sizing: border-box;
     }
     .bh-table-responsive {
-        @apply bh-overflow-auto bh-w-full bh-relative bh-rounded;
+        @apply bh-w-full bh-relative bh-rounded;
+    }
+
+    /* Perfect Scrollbar z-index fix */
+    .ps__rail-x,
+    .ps__rail-y {
+        z-index: 9998 !important;
+    }
+
+    .ps__thumb-x,
+    .ps__thumb-y {
+        z-index: 9999 !important;
     }
     .bh-table-responsive table {
         @apply bh-w-full bh-max-w-full !bh-border-collapse;

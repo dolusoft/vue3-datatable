@@ -1141,16 +1141,15 @@ onUnmounted(() => {
                                     <span>##Table Action Header Slot##</span>
                                 </slot>
 
-                                <PerfectScrollbar :options="perfectScrollbarOptions">
-
-                                    <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }"
-                                        :style="{
-                                            height: props.stickyHeader ?
-                                                (Number(props.height.replace('px', '')) -
-                                                (props.footerOffset + (topmenuheight || 0))) + 'px' :
-                                                'auto',
-                                            overflow: props.stickyHeader ? 'auto' : 'inherit'
-                                        }">
+                                <PerfectScrollbar
+                                    :options="perfectScrollbarOptions"
+                                    :style="{
+                                        height: props.stickyHeader ?
+                                            (Number(props.height.replace('px', '')) -
+                                            (props.footerOffset + (topmenuheight || 0))) + 'px' :
+                                            'auto'
+                                    }">
+                                    <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }">
                                         <table :class="[props.skin]">
                                             <thead :class="{
                                                 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader
@@ -1335,13 +1334,14 @@ onUnmounted(() => {
                                 </slot>
                             </div>
                             <slot name="tableactionheader"></slot>
-                            <PerfectScrollbar :options="perfectScrollbarOptions">
-                                <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }" :style="{
+                            <PerfectScrollbar
+                                :options="perfectScrollbarOptions"
+                                :style="{
                                     height: props.stickyHeader ?
                                         (Number(props.height.replace('px', '')) - props.footerOffset) + 'px' :
-                                        'auto',
-                                    overflow: props.stickyHeader ? 'auto' : 'inherit'
+                                        'auto'
                                 }">
+                                <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }">
                                     <table :class="[props.skin]">
                                         <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
                                             <column-header :all="props" :expandedrows="expandedrows"
@@ -1562,6 +1562,17 @@ onUnmounted(() => {
 </template>
 
 <style>
+/* Perfect Scrollbar z-index fix */
+.ps__rail-x,
+.ps__rail-y {
+    z-index: 9998 !important;
+}
+
+.ps__thumb-x,
+.ps__thumb-y {
+    z-index: 9999 !important;
+}
+
 .left-menu-container {
     position: relative;
     flex-shrink: 0 !important;
