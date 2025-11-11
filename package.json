@@ -62,12 +62,12 @@
     "@iconify/vue": "^4.1.2",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@vueuse/core": "^10.11.0",
-    "custom-vue-scrollbar": "^0.0.8",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-vue": "^9.27.0",
     "splitpanes": "4.0.3",
     "vue": "^3.4.35",
-    "vue-typewriter-effect": "^1.0.1"
+    "vue-typewriter-effect": "^1.0.1",
+    "vue3-perfect-scrollbar": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.14",

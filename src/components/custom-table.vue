@@ -5,19 +5,17 @@ export default {
 </script>
 <script setup lang="ts">
 import { useElementSize, useDebounceFn, useThrottleFn } from '@vueuse/core'
-import CustomScrollbar from 'custom-vue-scrollbar'
 import { Splitpanes, Pane } from 'splitpanes'
 import { computed, onMounted, onUnmounted, type Ref, ref, useSlots, watch, nextTick } from 'vue'
-
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 import ButtonExpand from './button-expand.vue'
 import ButtonRightPanel from './button-rightpanel.vue'
 import columnHeader from './column-header.vue'
 import iconCheck from './icon-check.vue'
 import type { ColumnDefinition } from '../model/column-model'
-import { type ExpandedRow } from '../model/helper'
-import 'custom-vue-scrollbar/dist/style.css'
 import 'splitpanes/dist/splitpanes.css'
+import 'vue3-perfect-scrollbar/style.css'
 
 const slots = useSlots()
 
@@ -68,11 +66,7 @@ interface Props {
     stickyFirstColumn?: boolean
     cloneHeaderInFooter?: boolean
     selectRowOnClick?: boolean
-    scrollbarstyle?: any
-    scrollbarautohide?: boolean
-    scrollbarfixedthumb?: boolean
-    scrollbarautoexpand?: boolean
-    scrollbardirection?: string
+    scrollbarOptions?: any
     enableleftmenu?: boolean
     enabletopmenu?: boolean
     enableHeaderArea?: boolean // Enables the tableHeaderArea slot
@@ -141,10 +135,7 @@ const props = withDefaults(defineProps<Props>(), {
     stickyFirstColumn: false,
     cloneHeaderInFooter: false,
     selectRowOnClick: false,
-    scrollbarautohide: true,
-    scrollbarfixedthumb: false,
-    scrollbarautoexpand: false,
-    scrollbardirection: 'both',
+    scrollbarOptions: () => ({}),
     enableHeaderArea: false,
     headerAreaHeight: '80px',
     footerOffset: 0,
@@ -206,16 +197,16 @@ const cellValueCache = new Map<string, any>()
 
 const cellValue = (item: any, field: string | undefined) => {
     if (!field) return undefined
-    
+
     const cacheKey = `${item.id || JSON.stringify(item)}-${field}`
-    
+
     if (cellValueCache.has(cacheKey)) {
         return cellValueCache.get(cacheKey)
     }
-    
+
     const value = field.split('.').reduce((obj, key) => obj?.[key], item)
     cellValueCache.set(cacheKey, value)
-    
+
     return value
 }
 
@@ -256,20 +247,33 @@ const isRowClassFunction = computed(() => typeof props.rowClass === 'function')
 const isCellClassFunction = computed(() => typeof props.cellClass === 'function')
 
 // ============================================================================
+// Perfect Scrollbar Options
+// ============================================================================
+const perfectScrollbarOptions = computed(() => ({
+    wheelSpeed: 1,
+    wheelPropagation: true,  // Mouse wheel'i aktif et
+    swipeEasing: true,
+    minScrollbarLength: 20,
+    suppressScrollX: false,   // Yatay scroll'u engelleme
+    suppressScrollY: false,   // Dikey scroll'u engelleme
+    ...props.scrollbarOptions
+}))
+
+// ============================================================================
 // FAZ III OPTIMIZATION: Intl.Collator instance cache
 // ============================================================================
 const collatorCache = new Map<string, Intl.Collator>()
 
 const getCollator = (isNumeric: boolean) => {
     const key = isNumeric ? 'numeric' : 'string'
-    
+
     if (!collatorCache.has(key)) {
         collatorCache.set(key, new Intl.Collator(undefined, {
             numeric: isNumeric,
             sensitivity: 'base'
         }))
     }
-    
+
     return collatorCache.get(key)!
 }
 
@@ -1002,7 +1006,7 @@ const unselectRow = (index: number) => {
 
 const isRowSelected = (index: number) => {
     if (index >= filterItems.value.length) return false
-    
+
     const key = uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
     return selected.value.includes(key)
 }
@@ -1044,7 +1048,7 @@ const emitTopMenuSize = () => {
         if (element && typeof element === 'object') {
             element = element.$el || element
         }
-        
+
         if (element instanceof HTMLElement) {
             const pixelHeight = element.offsetHeight || 0
             emit('currentTopMenuSize', pixelHeight)
@@ -1070,7 +1074,7 @@ const watchEmitTopMenuSize = useDebounceFn(() => {
     if (element && typeof element === 'object') {
         element = element.$el || element
     }
-    
+
     if (element instanceof HTMLElement) {
         emit('currentTopMenuSize', element.offsetHeight || 0)
     }
@@ -1084,9 +1088,9 @@ onUnmounted(() => {
     cellValueCache.clear()
     // VueUse composables auto-cleanup, no manual clearTimeout needed
 })
-
 </script>
 <template>
+
     <div class="bh-datatable bh-antialiased bh-relative bh-text-black bh-text-sm bh-font-normal">
         <splitpanes class="default-theme" :style="{ height: props.height }">
             <pane>
@@ -1102,8 +1106,7 @@ onUnmounted(() => {
                             <span>##Left Menu Slot##</span>
                         </slot>
 
-                        <div
-                            v-if="props.showResizeButton"
+                        <div v-if="props.showResizeButton"
                             class="menu-resize-controls bh-absolute bh-right-0 bh-top-1/2 bh-transform -bh-translate-y-1/2 bh-z-10 bh-bg-gray-100 bh-rounded-l bh-shadow-md bh-select-none">
                             <button @click="toggleLeftMenu"
                                 class="bh-w-4 bh-h-10 bh-flex bh-justify-center bh-items-center bh-border-none bh-bg-transparent bh-cursor-pointer bh-outline-none">
@@ -1137,216 +1140,21 @@ onUnmounted(() => {
                                 <slot name="tableactionheader">
                                     <span>##Table Action Header Slot##</span>
                                 </slot>
-                                <div :class="props.scrollbarstyle">
-                                    <custom-scrollbar :style="{
-                                        height:
-                                            props.stickyHeader &&
-                                            Number(props.height.replace('px', '')) -
-                                            (footerOffset + topmenuheight) +
-                                            'px'
-                                    }" :autoHide="props.scrollbarautohide" :fixedThumb="props.scrollbarfixedthumb"
-                                        :autoExpand="props.scrollbarautoexpand" :direction="props.scrollbardirection"
-                                        throttleType="none">
-                                        <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }"
-                                            :style="{ overflow: props.stickyHeader && 'inherit' }">
-                                            <table :class="[props.skin]">
-                                                <thead :class="{
-                                                    'bh-sticky bh-top-0 bh-z-10': props.stickyHeader
-                                                }">
-                                                    <column-header :all="props" :expandedrows="expandedrows"
-                                                        :currentSortColumn="currentSortColumn"
-                                                        :currentSortDirection="currentSortDirection"
-                                                        :isOpenFilter="isOpenFilter" :checkAll="selectedAll"
-                                                        :columnFilterLang="props.columnFilterLang"
-                                                        @selectAll="selectAll" @sortChange="sortChange"
-                                                        @filterChange="filterChange"
-                                                        @toggleFilterMenu="toggleFilterMenu" />
-                                                </thead>
-                                                <tbody>
-                                                    <template v-for="(item, i) in filterItems"
-                                                        :key="getRowKey(i)">
-                                                        <tr v-if="filterRowCount" :class="[
-                                                            isRowClassFunction
-                                                                ? rowClass(item)
-                                                                : props.rowClass,
-                                                            props.selectRowOnClick
-                                                                ? 'bh-cursor-pointer'
-                                                                : ''
-                                                        ]" @click.prevent="rowClick(item, i)">
-                                                            <td v-if="props.hasCheckbox"
-                                                                :style="{ width: props.checkboxColumnWidth + ' !important', minWidth: props.checkboxColumnWidth + ' !important' }"
-                                                                :class="{
-                                                                    'bh-sticky bh-left-0 bh-bg-blue-light':
-                                                                        props.stickyFirstColumn
-                                                                }">
-                                                                <div class="bh-checkbox">
-                                                                    <input v-model="selected" type="checkbox" :value="getRowKey(i)" @click.stop />
-                                                                    <div>
-                                                                        <icon-check class="check" />
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td v-if="props.hasRightPanel"
-                                                                :style="{ width: props.rightPanelColumnWidth + ' !important', minWidth: props.rightPanelColumnWidth + ' !important', padding: '0px !important' }"
-                                                                :class="{
-                                                                    'bh-sticky bh-left-0 bh-bg-blue-light':
-                                                                        props.stickyFirstColumn
-                                                                }">
-                                                                <ButtonRightPanel :item="item"
-                                                                    @rightPanelClick="(rowData) => emit('rowRightPanelClick', rowData)">
-                                                                </ButtonRightPanel>
-                                                            </td>
-                                                            <td v-if="props.hasSubtable"
-                                                                :style="{ width: props.subtableColumnWidth + ' !important', minWidth: props.subtableColumnWidth + ' !important' }"
-                                                                :class="{
-                                                                    'bh-sticky bh-left-0 bh-bg-blue-light':
-                                                                        props.stickyFirstColumn
-                                                                }">
-                                                                <button-expand :item="{ ...item, _rowIndex: i }"
-                                                                    :expandedrows="expandedrows">
-                                                                </button-expand>
-                                                            </td>
-                                                            <template v-for="(col, j) in props.columns">
-                                                                <td v-if="!col.hide" :key="col.field" :class="[
-                                                                    isCellClassFunction
-                                                                        ? cellClass(item)
-                                                                        : props.cellClass,
-                                                                    j === 0 && props.stickyFirstColumn
-                                                                        ? 'bh-sticky bh-left-0 bh-bg-blue-light'
-                                                                        : '',
-                                                                    props.hasCheckbox &&
-                                                                        j === 0 &&
-                                                                        props.stickyFirstColumn
-                                                                        ? 'bh-left-[52px]'
-                                                                        : '',
-                                                                    col.cellClass ? col.cellClass : ''
-                                                                ]">
-                                                                    <template v-if="slots[col.field]">
-                                                                        <slot :name="col.field" :value="item"></slot>
-                                                                    </template>
-                                                                    <div v-else-if="col.cellRenderer"
-                                                                        v-html="col.cellRenderer(item)"></div>
-                                                                    <template v-else>
-                                                                        {{ cellValue(item, col.field) }}
-                                                                    </template>
-                                                                </td>
-                                                            </template>
-                                                        </tr>
-                                                        <template v-if="isRowExpanded(item, i) && props.hasSubtable">
-                                                            <tr :class="[
-                                                                isRowClassFunction
-                                                                    ? rowClass(item)
-                                                                    : props.rowClass,
-                                                                props.selectRowOnClick
-                                                                    ? 'bh-cursor-pointer'
-                                                                    : ''
-                                                            ]" @click.prevent="rowClick(item, i)">
-                                                                <td :colspan="props.columns.length + extracolumnlength">
-                                                                    <slot name="tsub" :rowData="item" :rowIndex="i"
-                                                                        :filterItems="filterItems"></slot>
-                                                                </td>
-                                                            </tr>
-                                                        </template>
-                                                    </template>
 
-                                                    <template v-if="!filterRowCount && currentLoader && skeletonloader">
-                                                        <tr v-for="i in props.pageSize" :key="i"
-                                                            class="!bh-bg-white bh-h-11 !bh-border-transparent">
-                                                            <td :colspan="props.columns.length + extracolumnlength"
-                                                                class="!bh-p-0 !bh-border-transparent">
-                                                                <div class="bh-skeleton-box bh-h-8"></div>
-                                                            </td>
-                                                        </tr>
-                                                    </template>
+                                <PerfectScrollbar :options="perfectScrollbarOptions">
 
-                                                    <template v-if="filterRowCount">
-                                                        <tr v-for="(item, i) in props.footerRows"
-                                                            :key="item[uniqueKey] ? item[uniqueKey] : i"
-                                                            class="sticky-table-footer">
-                                                            <td v-if="extracolumnlength > 0"
-                                                                :colspan="extracolumnlength"></td>
-                                                            <template v-for="(col, j) in props.columns">
-                                                                <td v-if="!col.hide" :key="col.field" :class="[
-                                                                    isCellClassFunction
-                                                                        ? cellClass(item)
-                                                                        : props.cellClass,
-                                                                    j === 0 && props.stickyFirstColumn
-                                                                        ? 'bh-sticky bh-left-0 bh-bg-blue-light'
-                                                                        : '',
-                                                                    props.hasCheckbox &&
-                                                                        j === 0 &&
-                                                                        props.stickyFirstColumn
-                                                                        ? 'bh-left-[52px]'
-                                                                        : '',
-                                                                    col.cellClass ? col.cellClass : ''
-                                                                ]">
-                                                                    <template v-if="
-                                                                        item.cells.find(x => x.field == col.field)
-                                                                    ">
-                                                                        {{
-                                                                            item.cells.find(x => x.field == col.field)
-                                                                                .text
-                                                                        }}
-                                                                    </template>
-                                                                </td>
-                                                            </template>
-                                                        </tr>
-                                                    </template>
-                                                </tbody>
-
-                                                <tfoot v-if="props.cloneHeaderInFooter" :class="{
-                                                    'bh-sticky bh-bottom-0': props.stickyHeader
-                                                }">
-                                                    <column-header :all="props" :currentSortColumn="currentSortColumn"
-                                                        :currentSortDirection="currentSortDirection"
-                                                        :isOpenFilter="isOpenFilter" :isFooter="true"
-                                                        :checkAll="selectedAll" @selectAll="selectAll"
-                                                        @sortChange="sortChange" @filterChange="filterChange"
-                                                        @toggleFilterMenu="toggleFilterMenu" />
-                                                </tfoot>
-                                            </table>
-
-                                            <div v-if="currentLoader && enableloadinganimation"
-                                                class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
-                                                :style="{
-                                                    height: Number(props.height.replace('px', '')) - 175 + 'px'
-                                                }">
-                                                <slot name="loadercontent"></slot>
-                                            </div>
-                                        </div>
-                                        <div v-if="!filterRowCount && !currentLoader" class="nodatacontent" :style="{
-                                            height: Number(props.height.replace('px', '')) - 175 + 'px'
-                                        }">
-                                            <slot name="nodatacontent">
-                                                <span>{{ props.noDataContent }}</span>
-                                            </slot>
-                                        </div>
-                                    </custom-scrollbar>
-                                </div>
-                            </pane>
-                        </splitpanes>
-
-                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full"
-                            :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
-                            <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
-                                :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
-                                <slot name="tableHeaderArea">
-                                    <span>##Table Header Area Slot##</span>
-                                </slot>
-                            </div>
-                            <slot name="tableactionheader"></slot>
-                            <div :class="props.scrollbarstyle">
-                                <custom-scrollbar :style="{
-                                    height: props.stickyHeader ?
-                                        (Number(props.height.replace('px', '')) - footerOffset) + 'px' :
-                                        props.height
-                                }" :autoHide="props.scrollbarautohide" :fixedThumb="props.scrollbarfixedthumb"
-                                    :autoExpand="props.scrollbarautoexpand" :direction="props.scrollbardirection"
-                                    throttleType="none">
                                     <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }"
-                                        :style="{ overflow: props.stickyHeader && 'inherit' }">
+                                        :style="{
+                                            height: props.stickyHeader ?
+                                                (Number(props.height.replace('px', '')) -
+                                                (props.footerOffset + (topmenuheight || 0))) + 'px' :
+                                                'auto',
+                                            overflow: props.stickyHeader ? 'auto' : 'inherit'
+                                        }">
                                         <table :class="[props.skin]">
-                                            <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
+                                            <thead :class="{
+                                                'bh-sticky bh-top-0 bh-z-10': props.stickyHeader
+                                            }">
                                                 <column-header :all="props" :expandedrows="expandedrows"
                                                     :currentSortColumn="currentSortColumn"
                                                     :currentSortDirection="currentSortDirection"
@@ -1358,14 +1166,22 @@ onUnmounted(() => {
                                             <tbody>
                                                 <template v-for="(item, i) in filterItems" :key="getRowKey(i)">
                                                     <tr v-if="filterRowCount" :class="[
-                                                        isRowClassFunction ? rowClass(item) : props.rowClass,
-                                                        props.selectRowOnClick ? 'bh-cursor-pointer' : ''
+                                                        isRowClassFunction
+                                                            ? rowClass(item)
+                                                            : props.rowClass,
+                                                        props.selectRowOnClick
+                                                            ? 'bh-cursor-pointer'
+                                                            : ''
                                                     ]" @click.prevent="rowClick(item, i)">
                                                         <td v-if="props.hasCheckbox"
                                                             :style="{ width: props.checkboxColumnWidth + ' !important', minWidth: props.checkboxColumnWidth + ' !important' }"
-                                                            :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
+                                                            :class="{
+                                                                'bh-sticky bh-left-0 bh-bg-blue-light':
+                                                                    props.stickyFirstColumn
+                                                            }">
                                                             <div class="bh-checkbox">
-                                                                <input v-model="selected" type="checkbox" :value="getRowKey(i)" @click.stop />
+                                                                <input v-model="selected" type="checkbox"
+                                                                    :value="getRowKey(i)" @click.stop />
                                                                 <div>
                                                                     <icon-check class="check" />
                                                                 </div>
@@ -1373,29 +1189,44 @@ onUnmounted(() => {
                                                         </td>
                                                         <td v-if="props.hasRightPanel"
                                                             :style="{ width: props.rightPanelColumnWidth + ' !important', minWidth: props.rightPanelColumnWidth + ' !important', padding: '0px !important' }"
-                                                            :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
+                                                            :class="{
+                                                                'bh-sticky bh-left-0 bh-bg-blue-light':
+                                                                    props.stickyFirstColumn
+                                                            }">
                                                             <ButtonRightPanel :item="item"
                                                                 @rightPanelClick="(rowData) => emit('rowRightPanelClick', rowData)">
                                                             </ButtonRightPanel>
                                                         </td>
                                                         <td v-if="props.hasSubtable"
                                                             :style="{ width: props.subtableColumnWidth + ' !important', minWidth: props.subtableColumnWidth + ' !important' }"
-                                                            :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
+                                                            :class="{
+                                                                'bh-sticky bh-left-0 bh-bg-blue-light':
+                                                                    props.stickyFirstColumn
+                                                            }">
                                                             <button-expand :item="{ ...item, _rowIndex: i }"
                                                                 :expandedrows="expandedrows">
                                                             </button-expand>
                                                         </td>
                                                         <template v-for="(col, j) in props.columns">
                                                             <td v-if="!col.hide" :key="col.field" :class="[
-                                                                isCellClassFunction ? cellClass(item) : props.cellClass,
-                                                                j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
-                                                                props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                                                isCellClassFunction
+                                                                    ? cellClass(item)
+                                                                    : props.cellClass,
+                                                                j === 0 && props.stickyFirstColumn
+                                                                    ? 'bh-sticky bh-left-0 bh-bg-blue-light'
+                                                                    : '',
+                                                                props.hasCheckbox &&
+                                                                    j === 0 &&
+                                                                    props.stickyFirstColumn
+                                                                    ? 'bh-left-[52px]'
+                                                                    : '',
                                                                 col.cellClass ? col.cellClass : ''
                                                             ]">
                                                                 <template v-if="slots[col.field]">
                                                                     <slot :name="col.field" :value="item"></slot>
                                                                 </template>
-                                                                <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
+                                                                <div v-else-if="col.cellRenderer"
+                                                                    v-html="col.cellRenderer(item)"></div>
                                                                 <template v-else>
                                                                     {{ cellValue(item, col.field) }}
                                                                 </template>
@@ -1404,20 +1235,16 @@ onUnmounted(() => {
                                                     </tr>
                                                     <template v-if="isRowExpanded(item, i) && props.hasSubtable">
                                                         <tr :class="[
-                                                            isRowClassFunction ? rowClass(item) : props.rowClass,
-                                                            props.selectRowOnClick ? 'bh-cursor-pointer' : ''
+                                                            isRowClassFunction
+                                                                ? rowClass(item)
+                                                                : props.rowClass,
+                                                            props.selectRowOnClick
+                                                                ? 'bh-cursor-pointer'
+                                                                : ''
                                                         ]" @click.prevent="rowClick(item, i)">
                                                             <td :colspan="props.columns.length + extracolumnlength">
-                                                                <div class="subtable-container" :style="{
-                                                                    maxHeight: props.subtableMaxHeight,
-                                                                    overflow: 'auto',
-                                                                    padding: '10px',
-                                                                    background: 'var(--white)',
-                                                                    border: '1px solid var(--fade-grey)'
-                                                                }">
-                                                                    <slot name="tsub" :rowData="item" :rowIndex="i"
-                                                                        :filterItems="filterItems"></slot>
-                                                                </div>
+                                                                <slot name="tsub" :rowData="item" :rowIndex="i"
+                                                                    :filterItems="filterItems"></slot>
                                                             </td>
                                                         </tr>
                                                     </template>
@@ -1437,16 +1264,30 @@ onUnmounted(() => {
                                                     <tr v-for="(item, i) in props.footerRows"
                                                         :key="item[uniqueKey] ? item[uniqueKey] : i"
                                                         class="sticky-table-footer">
-                                                        <td v-if="extracolumnlength > 0" :colspan="extracolumnlength"></td>
+                                                        <td v-if="extracolumnlength > 0" :colspan="extracolumnlength">
+                                                        </td>
                                                         <template v-for="(col, j) in props.columns">
                                                             <td v-if="!col.hide" :key="col.field" :class="[
-                                                                isCellClassFunction ? cellClass(item) : props.cellClass,
-                                                                j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
-                                                                props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                                                isCellClassFunction
+                                                                    ? cellClass(item)
+                                                                    : props.cellClass,
+                                                                j === 0 && props.stickyFirstColumn
+                                                                    ? 'bh-sticky bh-left-0 bh-bg-blue-light'
+                                                                    : '',
+                                                                props.hasCheckbox &&
+                                                                    j === 0 &&
+                                                                    props.stickyFirstColumn
+                                                                    ? 'bh-left-[52px]'
+                                                                    : '',
                                                                 col.cellClass ? col.cellClass : ''
                                                             ]">
-                                                                <template v-if="item.cells.find(x => x.field == col.field)">
-                                                                    {{ item.cells.find(x => x.field == col.field).text }}
+                                                                <template v-if="
+                                                                    item.cells.find(x => x.field == col.field)
+                                                                ">
+                                                                    {{
+                                                                        item.cells.find(x => x.field == col.field)
+                                                                            .text
+                                                                    }}
                                                                 </template>
                                                             </td>
                                                         </template>
@@ -1454,30 +1295,187 @@ onUnmounted(() => {
                                                 </template>
                                             </tbody>
 
-                                            <tfoot v-if="props.cloneHeaderInFooter"
-                                                :class="{ 'bh-sticky bh-bottom-0': props.stickyHeader }">
+                                            <tfoot v-if="props.cloneHeaderInFooter" :class="{
+                                                'bh-sticky bh-bottom-0': props.stickyHeader
+                                            }">
                                                 <column-header :all="props" :currentSortColumn="currentSortColumn"
                                                     :currentSortDirection="currentSortDirection"
-                                                    :isOpenFilter="isOpenFilter" :isFooter="true" :checkAll="selectedAll"
-                                                    @selectAll="selectAll" @sortChange="sortChange"
-                                                    @filterChange="filterChange" @toggleFilterMenu="toggleFilterMenu" />
+                                                    :isOpenFilter="isOpenFilter" :isFooter="true"
+                                                    :checkAll="selectedAll" @selectAll="selectAll"
+                                                    @sortChange="sortChange" @filterChange="filterChange"
+                                                    @toggleFilterMenu="toggleFilterMenu" />
                                             </tfoot>
                                         </table>
 
                                         <div v-if="currentLoader && enableloadinganimation"
                                             class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
-                                            :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
+                                            :style="{
+                                                height: Number(props.height.replace('px', '')) - 175 + 'px'
+                                            }">
                                             <slot name="loadercontent"></slot>
                                         </div>
                                     </div>
-                                    <div v-if="!filterRowCount && !currentLoader" class="nodatacontent"
-                                        :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
+                                    <div v-if="!filterRowCount && !currentLoader" class="nodatacontent" :style="{
+                                        height: Number(props.height.replace('px', '')) - 175 + 'px'
+                                    }">
                                         <slot name="nodatacontent">
                                             <span>{{ props.noDataContent }}</span>
                                         </slot>
                                     </div>
-                                </custom-scrollbar>
+                                </PerfectScrollbar>
+                            </pane>
+                        </splitpanes>
+
+                        <div v-if="!enabletopmenu" class="bh-w-full bh-h-full"
+                            :style="{ 'padding-right': tableRightOffset + 'px', 'padding-left': tableLeftOffset + 'px' }">
+                            <div v-if="enableHeaderArea" class="bh-w-full bh-overflow-auto"
+                                :style="{ height: headerAreaHeight, 'margin-bottom': '10px' }">
+                                <slot name="tableHeaderArea">
+                                    <span>##Table Header Area Slot##</span>
+                                </slot>
                             </div>
+                            <slot name="tableactionheader"></slot>
+                            <PerfectScrollbar :options="perfectScrollbarOptions">
+                                <div class="bh-table-responsive" :class="{ 'bh-min-h-[100px]': currentLoader }" :style="{
+                                    height: props.stickyHeader ?
+                                        (Number(props.height.replace('px', '')) - props.footerOffset) + 'px' :
+                                        'auto',
+                                    overflow: props.stickyHeader ? 'auto' : 'inherit'
+                                }">
+                                    <table :class="[props.skin]">
+                                        <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
+                                            <column-header :all="props" :expandedrows="expandedrows"
+                                                :currentSortColumn="currentSortColumn"
+                                                :currentSortDirection="currentSortDirection"
+                                                :isOpenFilter="isOpenFilter" :checkAll="selectedAll"
+                                                :columnFilterLang="props.columnFilterLang" @selectAll="selectAll"
+                                                @sortChange="sortChange" @filterChange="filterChange"
+                                                @toggleFilterMenu="toggleFilterMenu" />
+                                        </thead>
+                                        <tbody>
+                                            <template v-for="(item, i) in filterItems" :key="getRowKey(i)">
+                                                <tr v-if="filterRowCount" :class="[
+                                                    isRowClassFunction ? rowClass(item) : props.rowClass,
+                                                    props.selectRowOnClick ? 'bh-cursor-pointer' : ''
+                                                ]" @click.prevent="rowClick(item, i)">
+                                                    <td v-if="props.hasCheckbox"
+                                                        :style="{ width: props.checkboxColumnWidth + ' !important', minWidth: props.checkboxColumnWidth + ' !important' }"
+                                                        :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
+                                                        <div class="bh-checkbox">
+                                                            <input v-model="selected" type="checkbox"
+                                                                :value="getRowKey(i)" @click.stop />
+                                                            <div>
+                                                                <icon-check class="check" />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td v-if="props.hasRightPanel"
+                                                        :style="{ width: props.rightPanelColumnWidth + ' !important', minWidth: props.rightPanelColumnWidth + ' !important', padding: '0px !important' }"
+                                                        :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
+                                                        <ButtonRightPanel :item="item"
+                                                            @rightPanelClick="(rowData) => emit('rowRightPanelClick', rowData)">
+                                                        </ButtonRightPanel>
+                                                    </td>
+                                                    <td v-if="props.hasSubtable"
+                                                        :style="{ width: props.subtableColumnWidth + ' !important', minWidth: props.subtableColumnWidth + ' !important' }"
+                                                        :class="{ 'bh-sticky bh-left-0 bh-bg-blue-light': props.stickyFirstColumn }">
+                                                        <button-expand :item="{ ...item, _rowIndex: i }"
+                                                            :expandedrows="expandedrows">
+                                                        </button-expand>
+                                                    </td>
+                                                    <template v-for="(col, j) in props.columns">
+                                                        <td v-if="!col.hide" :key="col.field" :class="[
+                                                            isCellClassFunction ? cellClass(item) : props.cellClass,
+                                                            j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                                            props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                                            col.cellClass ? col.cellClass : ''
+                                                        ]">
+                                                            <template v-if="slots[col.field]">
+                                                                <slot :name="col.field" :value="item"></slot>
+                                                            </template>
+                                                            <div v-else-if="col.cellRenderer"
+                                                                v-html="col.cellRenderer(item)"></div>
+                                                            <template v-else>
+                                                                {{ cellValue(item, col.field) }}
+                                                            </template>
+                                                        </td>
+                                                    </template>
+                                                </tr>
+                                                <template v-if="isRowExpanded(item, i) && props.hasSubtable">
+                                                    <tr :class="[
+                                                        isRowClassFunction ? rowClass(item) : props.rowClass,
+                                                        props.selectRowOnClick ? 'bh-cursor-pointer' : ''
+                                                    ]" @click.prevent="rowClick(item, i)">
+                                                        <td :colspan="props.columns.length + extracolumnlength">
+                                                            <div class="subtable-container" :style="{
+                                                                maxHeight: props.subtableMaxHeight,
+                                                                overflow: 'auto',
+                                                                padding: '10px',
+                                                                background: 'var(--white)',
+                                                                border: '1px solid var(--fade-grey)'
+                                                            }">
+                                                                <slot name="tsub" :rowData="item" :rowIndex="i"
+                                                                    :filterItems="filterItems"></slot>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </template>
+
+                                            <template v-if="!filterRowCount && currentLoader && skeletonloader">
+                                                <tr v-for="i in props.pageSize" :key="i"
+                                                    class="!bh-bg-white bh-h-11 !bh-border-transparent">
+                                                    <td :colspan="props.columns.length + extracolumnlength"
+                                                        class="!bh-p-0 !bh-border-transparent">
+                                                        <div class="bh-skeleton-box bh-h-8"></div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+
+                                            <template v-if="filterRowCount">
+                                                <tr v-for="(item, i) in props.footerRows"
+                                                    :key="item[uniqueKey] ? item[uniqueKey] : i"
+                                                    class="sticky-table-footer">
+                                                    <td v-if="extracolumnlength > 0" :colspan="extracolumnlength"></td>
+                                                    <template v-for="(col, j) in props.columns">
+                                                        <td v-if="!col.hide" :key="col.field" :class="[
+                                                            isCellClassFunction ? cellClass(item) : props.cellClass,
+                                                            j === 0 && props.stickyFirstColumn ? 'bh-sticky bh-left-0 bh-bg-blue-light' : '',
+                                                            props.hasCheckbox && j === 0 && props.stickyFirstColumn ? 'bh-left-[52px]' : '',
+                                                            col.cellClass ? col.cellClass : ''
+                                                        ]">
+                                                            <template v-if="item.cells.find(x => x.field == col.field)">
+                                                                {{item.cells.find(x => x.field == col.field).text}}
+                                                            </template>
+                                                        </td>
+                                                    </template>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+
+                                        <tfoot v-if="props.cloneHeaderInFooter"
+                                            :class="{ 'bh-sticky bh-bottom-0': props.stickyHeader }">
+                                            <column-header :all="props" :currentSortColumn="currentSortColumn"
+                                                :currentSortDirection="currentSortDirection"
+                                                :isOpenFilter="isOpenFilter" :isFooter="true" :checkAll="selectedAll"
+                                                @selectAll="selectAll" @sortChange="sortChange"
+                                                @filterChange="filterChange" @toggleFilterMenu="toggleFilterMenu" />
+                                        </tfoot>
+                                    </table>
+
+                                    <div v-if="currentLoader && enableloadinganimation"
+                                        class="bh-absolute bh-inset-0 bh-bg-blue-light/50 bh-grid bh-place-content-center dt-center-loading"
+                                        :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
+                                        <slot name="loadercontent"></slot>
+                                    </div>
+                                </div>
+                                <div v-if="!filterRowCount && !currentLoader" class="nodatacontent"
+                                    :style="{ height: Number(props.height.replace('px', '')) - 175 + 'px' }">
+                                    <slot name="nodatacontent">
+                                        <span>{{ props.noDataContent }}</span>
+                                    </slot>
+                                </div>
+                            </PerfectScrollbar>
                         </div>
                     </div>
                 </div>
@@ -1518,8 +1516,8 @@ onUnmounted(() => {
                                 </g>
                             </svg>
                         </button>
-                        <button type="button" class="bh-page-item previous-page"
-                            :class="{ disabled: currentPage <= 1 }" @click="previousPage">
+                        <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }"
+                            @click="previousPage">
                             <span v-if="props.previousArrow" v-html="props.previousArrow"></span>
                             <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <path fill="currentColor" fill-rule="evenodd"

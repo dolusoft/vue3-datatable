@@ -114,6 +114,13 @@ const getUsers = async () => {
       :search="params.search"
       :hasCheckbox="true"
       :columnFilter="false"
+      :stickyHeader="true"
+      height="600px"
+      :scrollbarOptions="{
+        wheelSpeed: 1,
+        wheelPropagation: false,
+        minScrollbarLength: 20
+      }"
       @change="changeServer"
     >
     </vue3-datatable>

@@ -17,9 +17,6 @@ importers:
       '@vueuse/core':
         specifier: ^10.11.0
         version: 10.11.0(vue@3.4.35(typescript@5.5.4))
-      custom-vue-scrollbar:
-        specifier: ^0.0.8
-        version: 0.0.8(lodash-es@4.17.21)(vue@3.4.35(typescript@5.5.4))
       eslint-plugin-import:
         specifier: ^2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)
@@ -35,6 +32,9 @@ importers:
       vue-typewriter-effect:
         specifier: ^1.0.1
         version: 1.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue@3.4.35(typescript@5.5.4))
+      vue3-perfect-scrollbar:
+        specifier: ^2.0.0
+        version: 2.0.0(vue@3.4.35(typescript@5.5.4))
     devDependencies:
       '@types/node':
         specifier: ^20.14.14
@@ -682,12 +682,6 @@ packages:
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
-  custom-vue-scrollbar@0.0.8:
-    resolution: {integrity: sha512-JcO0B+02Kf9wXSL9SaxXVvuToaY+lvJAtmrwNfSLS3x6xx5+mO24r5/dGkNK8av0VlSDzviypYUXTjEZbwgGHA==}
-    peerDependencies:
-      lodash-es: ^4.17.21
-      vue: ^3.2.13
-
   data-view-buffer@1.0.1:
     resolution: {integrity: sha512-0lht7OugA5x3iJLOWFhWK/5ehONdprk0ISXqVFn/NFrDu+cuc8iADFrGQz5BnRK7LLU3JmkbXSxaqX+/mXYtUA==}
     engines: {node: '>= 0.4'}
@@ -1193,9 +1187,6 @@ packages:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
 
-  lodash-es@4.17.21:
-    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
-
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
 
@@ -1356,6 +1347,9 @@ packages:
   path-type@4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
+
+  perfect-scrollbar@1.5.6:
+    resolution: {integrity: sha512-rixgxw3SxyJbCaSpo1n35A/fwI1r2rdwMKOTCg/AcG+xOEyZcE8UHVjpZMFCVImzsFoCZeJTT+M/rdEIQYO2nw==}
 
   performance-now@2.1.0:
     resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
@@ -1772,6 +1766,11 @@ packages:
     resolution: {integrity: sha512-Z154Ax79N66btsstF9X3yOY7cc+B8H5fJpcRxuJhcPQd5ii/yKAgwSXbRaT1lClnqwTcmzs1RG1ULqZKhC8UvQ==}
     peerDependencies:
       vue: ^3.2.45
+
+  vue3-perfect-scrollbar@2.0.0:
+    resolution: {integrity: sha512-nSWVcRyViCgt0Pe3RhU3w/BllLcFSrEzYOGlRBjSyhVmiZlERHHziffW+9P8L0IMEWouC5t+uYrgNJGSAElqMA==}
+    peerDependencies:
+      vue: ^3.0.0
 
   vue@3.4.35:
     resolution: {integrity: sha512-+fl/GLmI4GPileHftVlCdB7fUL4aziPcqTudpTGXCT8s+iZWuOCeNEB5haX6Uz2IpRrbEXOgIFbe+XciCuGbNQ==}
@@ -2419,11 +2418,6 @@ snapshots:
 
   csstype@3.1.3: {}
 
-  custom-vue-scrollbar@0.0.8(lodash-es@4.17.21)(vue@3.4.35(typescript@5.5.4)):
-    dependencies:
-      lodash-es: 4.17.21
-      vue: 3.4.35(typescript@5.5.4)
-
   data-view-buffer@1.0.1:
     dependencies:
       call-bind: 1.0.7
@@ -3031,8 +3025,6 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
-  lodash-es@4.17.21: {}
-
   lodash.merge@4.6.2: {}
 
   lodash@4.17.21: {}
@@ -3176,6 +3168,8 @@ snapshots:
       minipass: 7.1.2
 
   path-type@4.0.0: {}
+
+  perfect-scrollbar@1.5.6: {}
 
   performance-now@2.1.0: {}
 
@@ -3629,6 +3623,11 @@ snapshots:
     transitivePeerDependencies:
       - react
       - react-dom
+
+  vue3-perfect-scrollbar@2.0.0(vue@3.4.35(typescript@5.5.4)):
+    dependencies:
+      perfect-scrollbar: 1.5.6
+      vue: 3.4.35(typescript@5.5.4)
 
   vue@3.4.35(typescript@5.5.4):
     dependencies:
