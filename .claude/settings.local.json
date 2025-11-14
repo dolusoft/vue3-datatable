@@ -5,7 +5,10 @@
       "Bash(npm run dev:*)",
       "Bash(npm run tailwind:build:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:vueuse.org)"
+      "WebFetch(domain:vueuse.org)",
+      "WebSearch",
+      "WebFetch(domain:devtools.vuejs.org)",
+      "WebFetch(domain:devtools-v6.vuejs.org)"
     ],
     "deny": [],
     "ask": []
