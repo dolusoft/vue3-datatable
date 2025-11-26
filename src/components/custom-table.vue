@@ -78,6 +78,7 @@ interface Props {
     skeletonloader?: boolean
     enableloadinganimation?: boolean
     enablefooterpagination?: boolean
+    alwaysShowPagination?: boolean
     footerOffset?: number,
     tableRightOffset?: number
     tableLeftOffset?: number
@@ -141,7 +142,8 @@ const props = withDefaults(defineProps<Props>(), {
     leftmenuMinWidth: 50,
     leftmenuDefaultWidth: 250,
     initialLeftMenuState: undefined,
-    showResizeButton: false
+    showResizeButton: false,
+    alwaysShowPagination: false
 })
 
 // set default columns values
@@ -1463,7 +1465,7 @@ onUnmounted(() => {
             </pane>
         </splitpanes>
 
-        <div v-if="props.pagination && filterRowCount" class="bh-pagination"
+        <div v-if="props.pagination && (filterRowCount || props.alwaysShowPagination)" class="bh-pagination"
             :class="{ 'bh-pointer-events-none': currentLoader, 'sticky-footer': props.stickyFooter }">
             <div class="bh-flex bh-items-center bh-flex-wrap bh-flex-col sm:bh-flex-row bh-gap-4">
                 <slot name="footerpageinfo" v-if="enablefooterpagination" :paginationInfo="paginationInfo"
