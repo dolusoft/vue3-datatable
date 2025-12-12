@@ -63,6 +63,17 @@ onMounted(() => {
       if (col.filter && col.field) {
         filterInputs.value[col.field] = col.value || ''
 
+        // Set default condition if not already set (for useNewColumnFilter)
+        if (props.all.useNewColumnFilter && (!col.condition || col.condition === '')) {
+          const type = col.type?.toLowerCase() || 'string'
+          const conditions = FILTER_CONDITIONS[type] || FILTER_CONDITIONS.string
+          // Get first non-empty condition (skip "No Filter" which has value '')
+          const defaultCondition = conditions.find((c: any) => c.value !== '')
+          if (defaultCondition) {
+            col.condition = defaultCondition.value
+          }
+        }
+
         // Create individual watch for each field
         watchDebounced(
           () => filterInputs.value[col.field],
