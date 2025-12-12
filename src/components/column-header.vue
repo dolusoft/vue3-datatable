@@ -421,7 +421,7 @@ const getInputPlaceholder = (col: any) => {
               "
               @conditionChange="
                 (field, condition) => {
-                  const column = columnsMap.get(field)
+                  const column = columnsMap.value.get(field)
                   if (column) {
                     column.condition = condition
                     columnConditions.value[field] = condition
