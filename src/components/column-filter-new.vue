@@ -1,14 +1,8 @@
 <template>
   <div
     ref="dropdownRef"
-    class="bh-filter-dropdown-container bh-absolute bh-z-[100] bh-bg-white dark:bh-bg-gray-800 bh-shadow-lg bh-rounded bh-border bh-border-solid bh-border-gray-300 dark:bh-border-gray-600"
-    :class="{
-      'bh-right-0': horizontalPosition === 'right',
-      'bh-left-0': horizontalPosition === 'left',
-      'bh-left-1/2 -bh-translate-x-1/2': horizontalPosition === 'center',
-      'bh-top-full bh-mt-1': verticalPosition === 'bottom',
-      'bh-bottom-full bh-mb-1': verticalPosition === 'top'
-    }"
+    class="bh-filter-dropdown-container bh-fixed bh-z-[100] bh-bg-white dark:bh-bg-gray-800 bh-shadow-lg bh-rounded bh-border bh-border-solid bh-border-gray-300 dark:bh-border-gray-600"
+    :style="dropdownStyle"
   >
     <div class="bh-p-2 bh-min-w-[200px]">
       <!-- Filter Condition -->
@@ -113,41 +107,59 @@ const selectRef = ref<HTMLSelectElement | null>(null)
 const selectedCondition = ref(props.column.condition || '')
 const isSelectOpen = ref(false)
 
-// Dynamic positioning
-const horizontalPosition = ref<'left' | 'right' | 'center'>('right')
-const verticalPosition = ref<'top' | 'bottom'>('bottom')
+// Dynamic positioning with fixed position
+const dropdownStyle = ref<Record<string, string>>({})
 
 const calculatePosition = () => {
   const dropdown = dropdownRef.value
   if (!dropdown) return
   
+  // Find the filter button (sibling of dropdown)
   const button = dropdown.parentElement?.querySelector('.bh-filter-button') as HTMLElement
   if (!button) return
   
   const buttonRect = button.getBoundingClientRect()
-  const dropdownWidth = 200 // min-w-[200px]
-  const dropdownHeight = 280 // Approximate height
+  const dropdownWidth = 200
+  const dropdownHeight = dropdown.offsetHeight || 280
   const padding = 10
   
-  // Horizontal positioning
-  // bh-right-0 = align to parent's right edge, expand LEFT
-  // bh-left-0 = align to parent's left edge, expand RIGHT
+  // Calculate available space in viewport
   const spaceRight = window.innerWidth - buttonRect.right
   const spaceLeft = buttonRect.left
+  const spaceBottom = window.innerHeight - buttonRect.bottom
   
-  if (spaceLeft >= dropdownWidth + padding) {
-    // Enough space on left, so align right and expand left
-    horizontalPosition.value = 'right'
-  } else if (spaceRight >= dropdownWidth + padding) {
-    // Enough space on right, so align left and expand right
-    horizontalPosition.value = 'left'
+  let left: number | null = null
+  let right: number | null = null
+  let top: number | null = null
+  let bottom: number | null = null
+  
+  // Horizontal positioning
+  if (spaceRight >= dropdownWidth + padding) {
+    // Align dropdown's left edge with button's left edge
+    left = buttonRect.left
+  } else if (spaceLeft >= dropdownWidth + padding) {
+    // Align dropdown's right edge with button's right edge
+    right = window.innerWidth - buttonRect.right
   } else {
-    horizontalPosition.value = 'center'
+    // Center or clamp to viewport
+    left = Math.max(padding, Math.min(buttonRect.left, window.innerWidth - dropdownWidth - padding))
   }
   
   // Vertical positioning
-  const spaceBottom = window.innerHeight - buttonRect.bottom
-  verticalPosition.value = spaceBottom >= dropdownHeight + padding ? 'bottom' : 'top'
+  if (spaceBottom >= dropdownHeight + padding) {
+    top = buttonRect.bottom + 4
+  } else {
+    bottom = window.innerHeight - buttonRect.top + 4
+  }
+  
+  // Build style object
+  const style: Record<string, string> = {}
+  if (left !== null) style.left = `${left}px`
+  if (right !== null) style.right = `${right}px`
+  if (top !== null) style.top = `${top}px`
+  if (bottom !== null) style.bottom = `${bottom}px`
+  
+  dropdownStyle.value = style
 }
 
 // Get available conditions based on column type
