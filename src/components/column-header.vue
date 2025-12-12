@@ -57,14 +57,12 @@ const columnsMap = computed(() => {
 })
 
 // Initialize filter inputs from columns
-onMounted(() => {
+const initializeColumns = () => {
   if (props.all?.columns) {
     props.all.columns.forEach((col: any) => {
       if (col.filter && col.field) {
-        filterInputs.value[col.field] = col.value || ''
-
         // Set default condition if not already set (for useNewColumnFilter)
-        if (props.all.useNewColumnFilter && (!col.condition || col.condition === '')) {
+        if (props.all.useNewColumnFilter && props.all.showFloatingFilterLabel && (!col.condition || col.condition === '')) {
           const type = col.type?.toLowerCase() || 'string'
           const conditions = FILTER_CONDITIONS[type] || FILTER_CONDITIONS.string
           // Get first non-empty condition (skip "No Filter" which has value '')
@@ -73,6 +71,27 @@ onMounted(() => {
             col.condition = defaultCondition.value
           }
         }
+      }
+    })
+  }
+}
+
+// Watch for columns changes and initialize
+watch(
+  () => props.all?.columns,
+  () => {
+    initializeColumns()
+  },
+  { immediate: true, deep: true }
+)
+
+onMounted(() => {
+  initializeColumns()
+  
+  if (props.all?.columns) {
+    props.all.columns.forEach((col: any) => {
+      if (col.filter && col.field) {
+        filterInputs.value[col.field] = col.value || ''
 
         // Create individual watch for each field
         watchDebounced(
