@@ -383,11 +383,7 @@ const getInputPlaceholder = (col: any) => {
               :class="{
                 '!bh-bg-primary/10 !bh-border-primary': hasConditionSet(col),
                 'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasConditionSet(col),
-                'bh-filter-button--with-label':
-                  col.condition &&
-                  col.condition !== '' &&
-                  props.all.useNewColumnFilter &&
-                  props.all.showFloatingFilterLabel
+                'bh-filter-button--with-label': props.all.showFloatingFilterLabel
               }"
             >
               <icon-filter

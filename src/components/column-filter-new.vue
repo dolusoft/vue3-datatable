@@ -121,11 +121,15 @@ const getTranslatedLabel = (cond: any) => {
 }
 
 // Handle condition change
-const handleConditionChange = () => {
+const handleConditionChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  const newValue = target.value
+  
   isSelectOpen.value = false
-  props.column.condition = selectedCondition.value
+  selectedCondition.value = newValue
+  props.column.condition = newValue
 
-  if (selectedCondition.value === '') {
+  if (newValue === '') {
     props.column.value = ''
   }
 
