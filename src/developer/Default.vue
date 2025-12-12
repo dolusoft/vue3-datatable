@@ -64,15 +64,12 @@ const getUsers = async () => {
   try {
     loading.value = true
 
-    const response = await fetch(
-      'http://localhost:8080/datatable/api/user',
-      {
-        method: 'POST',
-        headers: new Headers({ 'content-type': 'application/json' }),
-        body: JSON.stringify(params),
-        signal: signal // Assign the signal to the fetch request
-      }
-    )
+    const response = await fetch('http://localhost:8080/datatable/api/user', {
+      method: 'POST',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      body: JSON.stringify(params),
+      signal: signal // Assign the signal to the fetch request
+    })
 
     const data = await response.json()
 
@@ -116,6 +113,7 @@ const getUsers = async () => {
       :columnFilter="false"
       :stickyHeader="true"
       height="600px"
+      :useNewColumnFilter="true"
       :scrollbarOptions="{
         wheelSpeed: 1,
         wheelPropagation: false,

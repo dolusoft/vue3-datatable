@@ -131,6 +131,7 @@ function handleRightPanelClick(rowData: any) {
       :stickyHeader="true"
       :height="'800px'"
       skin="bh-table-striped bh-table-hover bh-table-bordered"
+      :useNewColumnFilter="true"
       @change="changeServer"
       @rowRightPanelClick="handleRightPanelClick"
     >

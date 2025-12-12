@@ -9,9 +9,11 @@ import { watchDebounced } from '@vueuse/core'
 
 import ButtonExpand from './button-expand.vue'
 import columnFilter from './column-filter.vue'
+import columnFilterNew from './column-filter-new.vue'
 import iconCheck from './icon-check.vue'
 import iconDash from './icon-dash.vue'
 import iconFilter from './icon-filter.vue'
+import { FILTER_CONDITIONS } from '../model/filter-conditions'
 
 const selectedAll: any = ref(null)
 
@@ -30,7 +32,8 @@ const emit = defineEmits([
   'selectAll',
   'sortChange',
   'filterChange',
-  'toggleFilterMenu'
+  'toggleFilterMenu',
+  'clearColumnFilter'
 ])
 
 // ============================================================================
@@ -59,16 +62,17 @@ onMounted(() => {
     props.all.columns.forEach((col: any) => {
       if (col.filter && col.field) {
         filterInputs.value[col.field] = col.value || ''
-        
+
         // Create individual watch for each field
         watchDebounced(
           () => filterInputs.value[col.field],
-          (newValue) => {
+          newValue => {
             const column = columnsMap.value.get(col.field)
             if (column) {
               // Trim only string values
               if (column.type === 'string' || column.type === 'String') {
-                column.value = typeof newValue === 'string' ? newValue.trim() : newValue
+                column.value =
+                  typeof newValue === 'string' ? newValue.trim() : newValue
               } else {
                 column.value = newValue
               }
@@ -97,13 +101,44 @@ const hasActiveFilter = (col: any) => {
   const inputValue = filterInputs.value[col.field]
   return inputValue !== '' && inputValue !== null && inputValue !== undefined
 }
+
+// Get condition label (MUI X style)
+const getConditionLabel = (col: any) => {
+  if (!col.condition || col.condition === '') return ''
+
+  const type = col.type?.toLowerCase() || 'string'
+  const conditions = FILTER_CONDITIONS[type] || FILTER_CONDITIONS.string
+  const found = conditions.find((c: any) => c.value === col.condition)
+
+  if (found) {
+    // Check for translation
+    if (props.columnFilterLang && props.columnFilterLang[col.condition]) {
+      return props.columnFilterLang[col.condition]
+    }
+    return found.label
+  }
+
+  return col.condition
+}
+
+// Get input placeholder based on condition
+const getInputPlaceholder = (col: any) => {
+  if (!col.condition || col.condition === '') {
+    return 'Filter...'
+  }
+  const label = getConditionLabel(col).toLowerCase()
+  return `Enter ${label}...`
+}
 </script>
 <template>
   <tr key="hdrrow">
     <th
       v-if="props.all.hasCheckbox"
       :key="'chkall'"
-      :style="{ width: props.all.checkboxColumnWidth + ' !important', minWidth: props.all.checkboxColumnWidth + ' !important' }"
+      :style="{
+        width: props.all.checkboxColumnWidth + ' !important',
+        minWidth: props.all.checkboxColumnWidth + ' !important'
+      }"
       :class="{
         'bh-sticky bh-bg-blue-light bh-z-[1]':
           props.all.stickyHeader || props.all.stickyFirstColumn,
@@ -124,19 +159,27 @@ const hasActiveFilter = (col: any) => {
       </div>
     </th>
     <th
-    v-if="props.all.hasRightPanel"
-    :style="{ width: props.all.rightPanelColumnWidth + ' !important', minWidth: props.all.rightPanelColumnWidth + ' !important' }"
-    :class="{
-    'bh-sticky bh-bg-blue-light bh-z-[1]':
-    props.all.stickyHeader || props.all.stickyFirstColumn,
-    'bh-top-0': props.all.stickyHeader,
-    'bh-left-0': props.all.stickyFirstColumn
-    }"
+      v-if="props.all.hasRightPanel"
+      :style="{
+        width: props.all.rightPanelColumnWidth + ' !important',
+        minWidth: props.all.rightPanelColumnWidth + ' !important'
+      }"
+      :class="{
+        'bh-sticky bh-bg-blue-light bh-z-[1]':
+          props.all.stickyHeader || props.all.stickyFirstColumn,
+        'bh-top-0': props.all.stickyHeader,
+        'bh-left-0': props.all.stickyFirstColumn
+      }"
     >
       <!-- Right Panel Button Column -->
     </th>
     <template v-if="props.all.hasSubtable">
-      <th :style="{ width: props.all.subtableColumnWidth + ' !important', minWidth: props.all.subtableColumnWidth + ' !important' }">
+      <th
+        :style="{
+          width: props.all.subtableColumnWidth + ' !important',
+          minWidth: props.all.subtableColumnWidth + ' !important'
+        }"
+      >
         <template v-if="props.all.expandall">
           <button-expand
             :expandedrows="props.expandedrows"
@@ -208,54 +251,112 @@ const hasActiveFilter = (col: any) => {
 
         <template v-if="props.all.columnFilter && !props.isFooter">
           <div v-if="col.filter" class="bh-filter bh-relative">
-            <input
-              v-if="col.type === 'string' || col.type==='String'"
-              v-model="filterInputs[col.field]"
-              type="text"
-              class="bh-form-control"
-            />
-            <input
-              v-if="col.type === 'number' || col.type === 'integer' || col.type=== 'Integer'"
-              v-model.number="filterInputs[col.field]"
-              type="number"
-              class="bh-form-control"
-            />
-            <input
-              v-else-if="col.type === 'date' || col.type=== 'DateTime'"
-              v-model="filterInputs[col.field]"
-              type="date"
-              class="bh-form-control"
-            />
-            <select
-              v-else-if="col.type === 'bool'"
-              v-model="filterInputs[col.field]"
-              class="bh-form-control"
-              @click="props.isOpenFilter"
-            >
-              <option :value="undefined">All</option>
-              <option :value="true">True</option>
-              <option :value="false">False</option>
-            </select>
+            <!-- Input wrapper with floating label -->
+            <div class="bh-filter-input-wrapper">
+              <!-- MUI X Style: Floating Label on Border -->
+              <label
+                v-if="
+                  col.condition &&
+                  col.condition !== '' &&
+                  props.all.useNewColumnFilter
+                "
+                class="bh-floating-label"
+                :class="{
+                  'bh-floating-label--active': hasActiveFilter(col)
+                }"
+              >
+                {{ getConditionLabel(col) }}
+              </label>
+
+              <input
+                v-if="col.type === 'string' || col.type === 'String'"
+                v-model="filterInputs[col.field]"
+                type="text"
+                class="bh-form-control"
+                :class="{
+                  'bh-form-control--with-label':
+                    col.condition &&
+                    col.condition !== '' &&
+                    props.all.useNewColumnFilter
+                }"
+                :placeholder="
+                  props.all.useNewColumnFilter
+                    ? getInputPlaceholder(col)
+                    : 'Filter...'
+                "
+              />
+              <input
+                v-if="
+                  col.type === 'number' ||
+                  col.type === 'integer' ||
+                  col.type === 'Integer'
+                "
+                v-model.number="filterInputs[col.field]"
+                type="number"
+                class="bh-form-control"
+                :class="{
+                  'bh-form-control--with-label':
+                    col.condition &&
+                    col.condition !== '' &&
+                    props.all.useNewColumnFilter
+                }"
+                :placeholder="
+                  props.all.useNewColumnFilter
+                    ? getInputPlaceholder(col)
+                    : 'Filter...'
+                "
+              />
+              <input
+                v-else-if="col.type === 'date' || col.type === 'DateTime'"
+                v-model="filterInputs[col.field]"
+                type="date"
+                class="bh-form-control"
+                :class="{
+                  'bh-form-control--with-label':
+                    col.condition &&
+                    col.condition !== '' &&
+                    props.all.useNewColumnFilter
+                }"
+              />
+              <select
+                v-else-if="col.type === 'bool'"
+                v-model="filterInputs[col.field]"
+                class="bh-form-control"
+                @click="props.isOpenFilter"
+              >
+                <option :value="undefined">All</option>
+                <option :value="true">True</option>
+                <option :value="false">False</option>
+              </select>
+            </div>
 
             <button
               v-if="col.type !== 'bool'"
               type="button"
+              class="bh-filter-button"
               @click.stop="emit('toggleFilterMenu', col)"
               :class="{
                 '!bh-bg-primary/10 !bh-border-primary': hasActiveFilter(col),
-                'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasActiveFilter(col)
+                'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasActiveFilter(col),
+                'bh-filter-button--with-label':
+                  col.condition &&
+                  col.condition !== '' &&
+                  props.all.useNewColumnFilter
               }"
             >
-              <icon-filter 
-                class="bh-w-4" 
+              <icon-filter
+                class="bh-w-4"
                 :class="{
                   'bh-text-primary': hasActiveFilter(col),
-                  'bh-text-black/70 dark:bh-text-gray-300': !hasActiveFilter(col)
+                  'bh-text-black/70 dark:bh-text-gray-300':
+                    !hasActiveFilter(col)
                 }"
               />
             </button>
 
+            <!-- OLD: Original column filter (default) -->
             <column-filter
+              v-if="!props.all.useNewColumnFilter"
               v-show="props.isOpenFilter === col.field"
               :column="col"
               :type="col.type"
@@ -263,9 +364,113 @@ const hasActiveFilter = (col: any) => {
               @close="emit('toggleFilterMenu', null)"
               @filterChange="emit('filterChange')"
             />
+            <!-- NEW: DataTables-style column filter -->
+            <column-filter-new
+              v-if="props.all.useNewColumnFilter"
+              v-show="props.isOpenFilter === col.field"
+              :column="col"
+              :columnFilterLang="props.columnFilterLang"
+              :currentSortColumn="props.currentSortColumn"
+              :currentSortDirection="props.currentSortDirection"
+              @close="emit('toggleFilterMenu', null)"
+              @filterChange="emit('filterChange')"
+              @sortChange="
+                (field, direction) => emit('sortChange', field, direction)
+              "
+              @clearFilter="
+                col => {
+                  filterInputs[col.field] = ''
+                  col.value = ''
+                  // Reset sort if this column is currently sorted
+                  if (props.currentSortColumn === col.field) {
+                    emit('sortChange', props.all.sortColumn || col.field, 'asc')
+                  }
+                  emit('filterChange')
+                }
+              "
+            />
           </div>
         </template>
       </th>
     </template>
   </tr>
 </template>
+
+<style scoped>
+/* MUI X Style: Floating Label */
+.bh-filter-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+/* Wrapper gets border when label is present */
+.bh-filter-input-wrapper:has(.bh-floating-label) {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.bh-filter-input-wrapper:has(.bh-floating-label) .bh-form-control {
+  border: none !important;
+  background: transparent !important;
+}
+
+.bh-floating-label {
+  position: absolute;
+  top: -7px;
+  left: 8px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  color: #6b7280;
+  background-color: white;
+  z-index: 10;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: calc(100% - 40px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s ease;
+}
+
+.bh-floating-label--active {
+  color: var(--primary, #3b82f6);
+}
+
+/* Active state - highlight border */
+.bh-filter-input-wrapper:has(.bh-floating-label--active) {
+  border-color: var(--primary, #3b82f6);
+}
+
+/* Dark mode support */
+:deep(.dark) .bh-filter-input-wrapper:has(.bh-floating-label),
+.dark .bh-filter-input-wrapper:has(.bh-floating-label) {
+  border-color: #4b5563;
+  background-color: #1f2937;
+}
+
+:deep(.dark) .bh-floating-label,
+.dark .bh-floating-label {
+  background-color: #1f2937;
+  color: #9ca3af;
+  border-radius: 5px / 2px;
+}
+
+:deep(.dark) .bh-floating-label--active,
+.dark .bh-floating-label--active {
+  color: var(--primary, #60a5fa);
+}
+
+/* Input with label - add top padding for visual balance */
+.bh-form-control--with-label {
+  padding-top: 4px;
+}
+
+/* Filter button when input has floating label */
+.bh-filter-button--with-label {
+  height: 22px !important;
+  width: 26px !important;
+  margin-left: -4px;
+}
+</style>

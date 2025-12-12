@@ -64,15 +64,12 @@ const getUsers = async () => {
   try {
     loading.value = true
 
-    const response = await fetch(
-      'http://localhost:8080/datatable/api/user',
-      {
-        method: 'POST',
-        headers: new Headers({ 'content-type': 'application/json' }),
-        body: JSON.stringify(params),
-        signal: signal // Assign the signal to the fetch request
-      }
-    )
+    const response = await fetch('http://localhost:8080/datatable/api/user', {
+      method: 'POST',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      body: JSON.stringify(params),
+      signal: signal // Assign the signal to the fetch request
+    })
 
     const data = await response.json()
 
@@ -102,7 +99,7 @@ const headerHeight = ref('120px')
 <template>
   <div class="bh-p-10 dark">
     <h2 class="bh-text-2xl bh-font-bold bh-mb-4">Table Header Area Test</h2>
-    
+
     <vue3-datatable
       ref="datatable"
       :loading="loading"
@@ -123,43 +120,71 @@ const headerHeight = ref('120px')
       :height="'800px'"
       :enableHeaderArea="true"
       :headerAreaHeight="headerHeight"
+      :useNewColumnFilter="true"
       skin="bh-table-striped bh-table-hover bh-table-bordered"
       @change="changeServer"
     >
       <!-- Header Area Slot -->
       <template #tableHeaderArea>
-        <div class="bh-bg-blue-50 bh-p-4 bh-rounded-lg bh-shadow bh-h-full bh-w-full">
+        <div
+          class="bh-bg-blue-50 bh-p-4 bh-rounded-lg bh-shadow bh-h-full bh-w-full"
+        >
           <div class="bh-flex bh-flex-wrap bh-justify-between bh-items-center">
             <div class="bh-flex bh-flex-col">
-              <h3 class="bh-text-xl bh-font-semibold bh-text-gray-800">Kullanıcı İstatistikleri</h3>
-              <p class="bh-text-sm bh-text-gray-600">Son güncelleme: {{ headerStats.lastUpdated }}</p>
+              <h3 class="bh-text-xl bh-font-semibold bh-text-gray-800">
+                Kullanıcı İstatistikleri
+              </h3>
+              <p class="bh-text-sm bh-text-gray-600">
+                Son güncelleme: {{ headerStats.lastUpdated }}
+              </p>
             </div>
-            
+
             <div class="bh-flex bh-gap-4 bh-mt-2 sm:bh-mt-0">
-              <div class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200">
+              <div
+                class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200"
+              >
                 <div class="bh-font-semibold bh-text-gray-700">Toplam</div>
-                <div class="bh-text-2xl bh-font-bold bh-text-blue-600">{{ headerStats.totalUsers }}</div>
+                <div class="bh-text-2xl bh-font-bold bh-text-blue-600">
+                  {{ headerStats.totalUsers }}
+                </div>
               </div>
-              
-              <div class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200">
+
+              <div
+                class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200"
+              >
                 <div class="bh-font-semibold bh-text-gray-700">Aktif</div>
-                <div class="bh-text-2xl bh-font-bold bh-text-green-600">{{ headerStats.activeUsers }}</div>
+                <div class="bh-text-2xl bh-font-bold bh-text-green-600">
+                  {{ headerStats.activeUsers }}
+                </div>
               </div>
-              
-              <div class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200">
+
+              <div
+                class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200"
+              >
                 <div class="bh-font-semibold bh-text-gray-700">Pasif</div>
-                <div class="bh-text-2xl bh-font-bold bh-text-red-600">{{ headerStats.inactiveUsers }}</div>
+                <div class="bh-text-2xl bh-font-bold bh-text-red-600">
+                  {{ headerStats.inactiveUsers }}
+                </div>
               </div>
-              
-              <div class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200">
-                <div class="bh-font-semibold bh-text-gray-700">Ortalama Yaş</div>
-                <div class="bh-text-2xl bh-font-bold bh-text-purple-600">{{ headerStats.averageAge }}</div>
+
+              <div
+                class="bh-bg-white bh-p-3 bh-rounded bh-shadow-sm bh-border bh-border-gray-200"
+              >
+                <div class="bh-font-semibold bh-text-gray-700">
+                  Ortalama Yaş
+                </div>
+                <div class="bh-text-2xl bh-font-bold bh-text-purple-600">
+                  {{ headerStats.averageAge }}
+                </div>
               </div>
             </div>
           </div>
-          
+
           <div class="bh-mt-2 bh-flex bh-justify-end">
-            <select v-model="headerHeight" class="bh-bg-white bh-border bh-border-gray-300 bh-rounded bh-px-2 bh-py-1 bh-text-sm">
+            <select
+              v-model="headerHeight"
+              class="bh-bg-white bh-border bh-border-gray-300 bh-rounded bh-px-2 bh-py-1 bh-text-sm"
+            >
               <option value="80px">Küçük (80px)</option>
               <option value="120px">Orta (120px)</option>
               <option value="180px">Büyük (180px)</option>
@@ -167,7 +192,7 @@ const headerHeight = ref('120px')
           </div>
         </div>
       </template>
-      
+
       <!-- Table Action Header Slot -->
       <template #tableactionheader>
         <div class="bh-flex bh-items-center bh-justify-between bh-mb-4">
@@ -178,17 +203,19 @@ const headerHeight = ref('120px')
               placeholder="Ara..."
               class="bh-border bh-border-solid bh-bg-white bh-p-2 bh-outline-0 bh-border-gray-200 focus:bh-border-gray-200 bh-rounded"
             />
-            <button 
-              type="button" 
-              class="bh-bg-blue-600 bh-text-white bh-px-4 bh-py-2 bh-rounded hover:bh-bg-blue-700" 
+            <button
+              type="button"
+              class="bh-bg-blue-600 bh-text-white bh-px-4 bh-py-2 bh-rounded hover:bh-bg-blue-700"
               @click="resetFunc()"
             >
               Sıfırla
             </button>
           </div>
-          
+
           <div>
-            <button class="bh-bg-green-600 bh-text-white bh-px-4 bh-py-2 bh-rounded hover:bh-bg-green-700">
+            <button
+              class="bh-bg-green-600 bh-text-white bh-px-4 bh-py-2 bh-rounded hover:bh-bg-green-700"
+            >
               Yeni Kullanıcı
             </button>
           </div>

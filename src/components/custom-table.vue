@@ -47,6 +47,7 @@ interface Props {
     sortDirection?: string
     columnFilter?: boolean
     columnFilterLang?: Record<string, string> | null
+    useNewColumnFilter?: boolean // Enable new DataTables-style filter with MUI X labels
     pagination?: boolean
     showNumbers?: boolean
     showNumbersCount?: number
@@ -116,6 +117,7 @@ const props = withDefaults(defineProps<Props>(), {
     sortDirection: 'asc',
     columnFilter: false,
     columnFilterLang: null,
+    useNewColumnFilter: false,
     pagination: true,
     showNumbers: true,
     showNumbersCount: 5,
@@ -763,13 +765,19 @@ const changePageSize = () => {
 }
 watch(() => currentPageSize.value, changePageSize)
 
-const sortChange = (field: string) => {
-    let direction = 'asc'
-    if (field == currentSortColumn.value) {
-        if (currentSortDirection.value === 'asc') {
-            direction = 'desc'
+const sortChange = (field: string, specifiedDirection?: string) => {
+    // Use specified direction or auto-toggle
+    let direction = specifiedDirection || 'asc'
+    
+    if (!specifiedDirection) {
+        // Auto-toggle only when direction not explicitly provided (header click)
+        if (field == currentSortColumn.value) {
+            if (currentSortDirection.value === 'asc') {
+                direction = 'desc'
+            }
         }
     }
+    
     let offset = (currentPage.value - 1) * <number>currentPageSize.value
     let limit = currentPageSize.value
     currentSortColumn.value = field
@@ -824,6 +832,13 @@ const filterChange = () => {
         filterRows()
         emit('filterChange', props.columns)
     }
+}
+
+// Clear single column filter
+const clearColumnFilter = (col: ColumnDefinition) => {
+    // Column value and condition already reset by column-filter-new
+    // Just trigger filter update
+    filterChange()
 }
 
 const changeSearch = () => {
@@ -1144,7 +1159,8 @@ onUnmounted(() => {
                                                     :isOpenFilter="isOpenFilter" :checkAll="selectedAll"
                                                     :columnFilterLang="props.columnFilterLang" @selectAll="selectAll"
                                                     @sortChange="sortChange" @filterChange="filterChange"
-                                                    @toggleFilterMenu="toggleFilterMenu" />
+                                                    @toggleFilterMenu="toggleFilterMenu"
+                                                    @clearColumnFilter="clearColumnFilter" />
                                             </thead>
                                             <tbody>
                                                 <template v-for="(item, i) in filterItems" :key="getRowKey(i)">
@@ -1333,7 +1349,8 @@ onUnmounted(() => {
                                                 :isOpenFilter="isOpenFilter" :checkAll="selectedAll"
                                                 :columnFilterLang="props.columnFilterLang" @selectAll="selectAll"
                                                 @sortChange="sortChange" @filterChange="filterChange"
-                                                @toggleFilterMenu="toggleFilterMenu" />
+                                                @toggleFilterMenu="toggleFilterMenu"
+                                                @clearColumnFilter="clearColumnFilter" />
                                         </thead>
                                         <tbody>
                                             <template v-for="(item, i) in filterItems" :key="getRowKey(i)">

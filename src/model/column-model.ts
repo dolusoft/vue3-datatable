@@ -17,3 +17,9 @@ export interface ColumnDefinition {
   headerClass?: string
   cellClass?: string
 }
+
+export interface FilterCondition {
+  value: string
+  label: string
+  icon?: string
+}
