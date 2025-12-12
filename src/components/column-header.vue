@@ -251,8 +251,57 @@ const getInputPlaceholder = (col: any) => {
 
         <template v-if="props.all.columnFilter && !props.isFooter">
           <div v-if="col.filter" class="bh-filter bh-relative">
-            <!-- Input wrapper with floating label -->
-            <div class="bh-filter-input-wrapper">
+            <!-- OLD STYLE: No wrapper, direct inputs (when showFloatingFilterLabel is false) -->
+            <template v-if="!props.all.showFloatingFilterLabel">
+              <input
+                v-if="col.type === 'string' || col.type === 'String'"
+                v-model="filterInputs[col.field]"
+                type="text"
+                class="bh-form-control"
+                :placeholder="
+                  props.all.useNewColumnFilter
+                    ? getInputPlaceholder(col)
+                    : 'Filter...'
+                "
+              />
+              <input
+                v-if="
+                  col.type === 'number' ||
+                  col.type === 'integer' ||
+                  col.type === 'Integer'
+                "
+                v-model.number="filterInputs[col.field]"
+                type="number"
+                class="bh-form-control"
+                :placeholder="
+                  props.all.useNewColumnFilter
+                    ? getInputPlaceholder(col)
+                    : 'Filter...'
+                "
+              />
+              <input
+                v-else-if="col.type === 'date' || col.type === 'DateTime'"
+                v-model="filterInputs[col.field]"
+                type="date"
+                class="bh-form-control"
+              />
+              <select
+                v-else-if="col.type === 'bool'"
+                v-model="filterInputs[col.field]"
+                class="bh-form-control"
+                @click="props.isOpenFilter"
+              >
+                <option :value="undefined">All</option>
+                <option :value="true">True</option>
+                <option :value="false">False</option>
+              </select>
+            </template>
+
+            <!-- NEW STYLE: Wrapper with floating label (when showFloatingFilterLabel is true) -->
+            <div 
+              v-if="props.all.showFloatingFilterLabel"
+              class="bh-filter-input-wrapper"
+            >
               <!-- MUI X Style: Floating Label on Border -->
               <label
                 v-if="
@@ -341,7 +390,8 @@ const getInputPlaceholder = (col: any) => {
                 'bh-filter-button--with-label':
                   col.condition &&
                   col.condition !== '' &&
-                  props.all.useNewColumnFilter
+                  props.all.useNewColumnFilter &&
+                  props.all.showFloatingFilterLabel
               }"
             >
               <icon-filter
@@ -397,7 +447,7 @@ const getInputPlaceholder = (col: any) => {
 </template>
 
 <style scoped>
-/* MUI X Style: Floating Label */
+/* MUI X Style: Floating Label Wrapper */
 .bh-filter-input-wrapper {
   position: relative;
   flex: 1;

@@ -163,6 +163,7 @@ function handleTopMenuResize(height) {
       :enableloadinganimation="false"
       skin="bh-table-striped bh-table-hover bh-table-bordered"
       :useNewColumnFilter="true"
+      :showFloatingFilterLabel="true"
       @change="changeServer"
     >
       <!-- Sol menü için içerik -->

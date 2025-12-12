@@ -48,6 +48,7 @@ interface Props {
     columnFilter?: boolean
     columnFilterLang?: Record<string, string> | null
     useNewColumnFilter?: boolean // Enable new DataTables-style filter with MUI X labels
+    showFloatingFilterLabel?: boolean // Show floating label on filter input border (requires useNewColumnFilter)
     pagination?: boolean
     showNumbers?: boolean
     showNumbersCount?: number
@@ -118,6 +119,7 @@ const props = withDefaults(defineProps<Props>(), {
     columnFilter: false,
     columnFilterLang: null,
     useNewColumnFilter: false,
+    showFloatingFilterLabel: false,
     pagination: true,
     showNumbers: true,
     showNumbersCount: 5,

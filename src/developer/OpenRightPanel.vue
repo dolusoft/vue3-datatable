@@ -64,15 +64,12 @@ const getUsers = async () => {
   try {
     loading.value = true
 
-    const response = await fetch(
-      'http://localhost:8080/datatable/api/user',
-      {
-        method: 'POST',
-        headers: new Headers({ 'content-type': 'application/json' }),
-        body: JSON.stringify(params),
-        signal: signal // Assign the signal to the fetch request
-      }
-    )
+    const response = await fetch('http://localhost:8080/datatable/api/user', {
+      method: 'POST',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      body: JSON.stringify(params),
+      signal: signal // Assign the signal to the fetch request
+    })
 
     const data = await response.json()
 
@@ -91,7 +88,6 @@ function handleRightPanelClick(rowData: any) {
   console.log('Sağ panel açılıyor, veri:', rowData)
   alert('Sağ panel için satır verisi: ' + JSON.stringify(rowData))
 }
-
 </script>
 <template>
   <div class="bh-p-10">
@@ -132,6 +128,7 @@ function handleRightPanelClick(rowData: any) {
       :height="'800px'"
       skin="bh-table-striped bh-table-hover bh-table-bordered"
       :useNewColumnFilter="true"
+      :showFloatingFilterLabel="false"
       @change="changeServer"
       @rowRightPanelClick="handleRightPanelClick"
     >
