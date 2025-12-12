@@ -153,11 +153,7 @@ const getConditionLabel = (col: any) => {
 
 // Get input placeholder based on condition
 const getInputPlaceholder = (col: any) => {
-  if (!col.condition || col.condition === '') {
-    return 'Filter...'
-  }
-  const label = getConditionLabel(col).toLowerCase()
-  return `Enter ${label}...`
+  return ''
 }
 </script>
 <template>
@@ -288,11 +284,6 @@ const getInputPlaceholder = (col: any) => {
                 v-model="filterInputs[col.field]"
                 type="text"
                 class="bh-form-control"
-                :placeholder="
-                  props.all.useNewColumnFilter
-                    ? getInputPlaceholder(col)
-                    : 'Filter...'
-                "
               />
               <input
                 v-if="
@@ -303,11 +294,6 @@ const getInputPlaceholder = (col: any) => {
                 v-model.number="filterInputs[col.field]"
                 type="number"
                 class="bh-form-control"
-                :placeholder="
-                  props.all.useNewColumnFilter
-                    ? getInputPlaceholder(col)
-                    : 'Filter...'
-                "
               />
               <input
                 v-else-if="col.type === 'date' || col.type === 'DateTime'"
@@ -358,11 +344,6 @@ const getInputPlaceholder = (col: any) => {
                     col.condition !== '' &&
                     props.all.useNewColumnFilter
                 }"
-                :placeholder="
-                  props.all.useNewColumnFilter
-                    ? getInputPlaceholder(col)
-                    : 'Filter...'
-                "
               />
               <input
                 v-if="
@@ -379,11 +360,6 @@ const getInputPlaceholder = (col: any) => {
                     col.condition !== '' &&
                     props.all.useNewColumnFilter
                 }"
-                :placeholder="
-                  props.all.useNewColumnFilter
-                    ? getInputPlaceholder(col)
-                    : 'Filter...'
-                "
               />
               <input
                 v-else-if="col.type === 'date' || col.type === 'DateTime'"
