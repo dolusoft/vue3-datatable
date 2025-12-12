@@ -155,6 +155,28 @@ const getConditionLabel = (col: any) => {
 const getInputPlaceholder = (col: any) => {
   return ''
 }
+
+// Handle condition change from dropdown
+const handleConditionChange = (field: string, condition: string) => {
+  const column = columnsMap.value.get(field)
+  if (column) {
+    column.condition = condition
+    columnConditions.value[field] = condition
+  }
+}
+
+// Handle clear filter from dropdown
+const handleClearFilter = (col: any) => {
+  filterInputs.value[col.field] = ''
+  col.value = ''
+  col.condition = ''
+  columnConditions.value[col.field] = ''
+  // Reset sort if this column is currently sorted
+  if (props.currentSortColumn === col.field) {
+    emit('sortChange', props.all.sortColumn || col.field, 'asc')
+  }
+  emit('filterChange')
+}
 </script>
 <template>
   <tr key="hdrrow">
@@ -419,28 +441,8 @@ const getInputPlaceholder = (col: any) => {
               @sortChange="
                 (field, direction) => emit('sortChange', field, direction)
               "
-              @conditionChange="
-                (field, condition) => {
-                  const column = columnsMap.value.get(field)
-                  if (column) {
-                    column.condition = condition
-                    columnConditions.value[field] = condition
-                  }
-                }
-              "
-              @clearFilter="
-                col => {
-                  filterInputs[col.field] = ''
-                  col.value = ''
-                  col.condition = ''
-                  columnConditions.value[col.field] = ''
-                  // Reset sort if this column is currently sorted
-                  if (props.currentSortColumn === col.field) {
-                    emit('sortChange', props.all.sortColumn || col.field, 'asc')
-                  }
-                  emit('filterChange')
-                }
-              "
+              @conditionChange="handleConditionChange"
+              @clearFilter="handleClearFilter"
             />
           </div>
         </template>
