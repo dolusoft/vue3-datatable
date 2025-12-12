@@ -58,22 +58,7 @@ const columnsMap = computed(() => {
 
 // Initialize filter inputs from columns
 const initializeColumns = () => {
-  if (props.all?.columns) {
-    props.all.columns.forEach((col: any) => {
-      if (col.filter && col.field) {
-        // Set default condition if not already set (for useNewColumnFilter)
-        if (props.all.useNewColumnFilter && props.all.showFloatingFilterLabel && (!col.condition || col.condition === '')) {
-          const type = col.type?.toLowerCase() || 'string'
-          const conditions = FILTER_CONDITIONS[type] || FILTER_CONDITIONS.string
-          // Get first non-empty condition (skip "No Filter" which has value '')
-          const defaultCondition = conditions.find((c: any) => c.value !== '')
-          if (defaultCondition) {
-            col.condition = defaultCondition.value
-          }
-        }
-      }
-    })
-  }
+  // No default condition assignment - label will only show when user selects a condition
 }
 
 // Watch for columns changes and initialize
@@ -130,6 +115,11 @@ const hasActiveFilter = (col: any) => {
   if (!col.field) return false
   const inputValue = filterInputs.value[col.field]
   return inputValue !== '' && inputValue !== null && inputValue !== undefined
+}
+
+// Check if column has a condition set (not empty/No Filter)
+const hasConditionSet = (col: any) => {
+  return col.condition && col.condition !== ''
 }
 
 // Get condition label (MUI X style)
@@ -391,8 +381,8 @@ const getInputPlaceholder = (col: any) => {
               class="bh-filter-button"
               @click.stop="emit('toggleFilterMenu', col)"
               :class="{
-                '!bh-bg-primary/10 !bh-border-primary': hasActiveFilter(col),
-                'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasActiveFilter(col),
+                '!bh-bg-primary/10 !bh-border-primary': hasConditionSet(col),
+                'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasConditionSet(col),
                 'bh-filter-button--with-label':
                   col.condition &&
                   col.condition !== '' &&
@@ -403,9 +393,9 @@ const getInputPlaceholder = (col: any) => {
               <icon-filter
                 class="bh-w-4"
                 :class="{
-                  'bh-text-primary': hasActiveFilter(col),
+                  'bh-text-primary': hasConditionSet(col),
                   'bh-text-black/70 dark:bh-text-gray-300':
-                    !hasActiveFilter(col)
+                    !hasConditionSet(col)
                 }"
               />
             </button>
