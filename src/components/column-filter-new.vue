@@ -1,7 +1,14 @@
 <template>
   <div
     ref="dropdownRef"
-    class="bh-filter-dropdown-container bh-absolute bh-z-[100] bh-bg-white dark:bh-bg-gray-800 bh-shadow-lg bh-rounded bh-top-full bh-right-0 bh-mt-1 bh-border bh-border-solid bh-border-gray-300 dark:bh-border-gray-600"
+    class="bh-filter-dropdown-container bh-absolute bh-z-[100] bh-bg-white dark:bh-bg-gray-800 bh-shadow-lg bh-rounded bh-border bh-border-solid bh-border-gray-300 dark:bh-border-gray-600"
+    :class="{
+      'bh-right-0': horizontalPosition === 'right',
+      'bh-left-0': horizontalPosition === 'left',
+      'bh-left-1/2 -bh-translate-x-1/2': horizontalPosition === 'center',
+      'bh-top-full bh-mt-1': verticalPosition === 'bottom',
+      'bh-bottom-full bh-mb-1': verticalPosition === 'top'
+    }"
   >
     <div class="bh-p-2 bh-min-w-[200px]">
       <!-- Filter Condition -->
@@ -101,10 +108,47 @@ const props = defineProps([
 ])
 const emit = defineEmits(['close', 'filterChange', 'sortChange', 'clearFilter', 'conditionChange'])
 
-const dropdownRef = ref(null)
+const dropdownRef = ref<HTMLElement | null>(null)
 const selectRef = ref<HTMLSelectElement | null>(null)
 const selectedCondition = ref(props.column.condition || '')
 const isSelectOpen = ref(false)
+
+// Dynamic positioning
+const horizontalPosition = ref<'left' | 'right' | 'center'>('right')
+const verticalPosition = ref<'top' | 'bottom'>('bottom')
+
+const calculatePosition = () => {
+  const dropdown = dropdownRef.value
+  if (!dropdown) return
+  
+  const button = dropdown.parentElement?.querySelector('.bh-filter-button') as HTMLElement
+  if (!button) return
+  
+  const buttonRect = button.getBoundingClientRect()
+  const dropdownWidth = 200 // min-w-[200px]
+  const dropdownHeight = 280 // Approximate height
+  const padding = 10
+  
+  // Horizontal positioning
+  // bh-right-0 = align to parent's right edge, expand LEFT
+  // bh-left-0 = align to parent's left edge, expand RIGHT
+  const spaceRight = window.innerWidth - buttonRect.right
+  const spaceLeft = buttonRect.left
+  
+  if (spaceLeft >= dropdownWidth + padding) {
+    // Enough space on left, so align right and expand left
+    horizontalPosition.value = 'right'
+  } else if (spaceRight >= dropdownWidth + padding) {
+    // Enough space on right, so align left and expand right
+    horizontalPosition.value = 'left'
+  } else {
+    horizontalPosition.value = 'center'
+  }
+  
+  // Vertical positioning
+  const spaceBottom = window.innerHeight - buttonRect.bottom
+  verticalPosition.value = spaceBottom >= dropdownHeight + padding ? 'bottom' : 'top'
+}
 
 // Get available conditions based on column type
 const availableConditions = computed(() => {
@@ -205,6 +249,7 @@ const handleEscape = (event: KeyboardEvent) => {
 // Setup and cleanup
 onMounted(() => {
   nextTick(() => {
+    calculatePosition()
     selectRef.value?.focus()
     document.addEventListener('click', handleGlobalClick, true)
     document.addEventListener('keydown', handleEscape)
