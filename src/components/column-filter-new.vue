@@ -1,8 +1,7 @@
 <template>
   <div
     ref="dropdownRef"
-    class="bh-filter-dropdown-container bh-fixed bh-z-[100] bh-bg-white dark:bh-bg-gray-800 bh-shadow-lg bh-rounded bh-border bh-border-solid bh-border-gray-300 dark:bh-border-gray-600"
-    :style="dropdownStyle"
+    class="bh-filter-dropdown-container bh-absolute bh-z-[100] bh-bg-white dark:bh-bg-gray-800 bh-shadow-lg bh-rounded bh-top-full bh-right-0 bh-mt-1 bh-border bh-border-solid bh-border-gray-300 dark:bh-border-gray-600"
   >
     <div class="bh-p-2 bh-min-w-[200px]">
       <!-- Filter Condition -->
@@ -102,65 +101,10 @@ const props = defineProps([
 ])
 const emit = defineEmits(['close', 'filterChange', 'sortChange', 'clearFilter', 'conditionChange'])
 
-const dropdownRef = ref<HTMLElement | null>(null)
+const dropdownRef = ref(null)
 const selectRef = ref<HTMLSelectElement | null>(null)
 const selectedCondition = ref(props.column.condition || '')
 const isSelectOpen = ref(false)
-
-// Dynamic positioning with fixed position
-const dropdownStyle = ref<Record<string, string>>({})
-
-const calculatePosition = () => {
-  const dropdown = dropdownRef.value
-  if (!dropdown) return
-  
-  // Find the filter button (sibling of dropdown)
-  const button = dropdown.parentElement?.querySelector('.bh-filter-button') as HTMLElement
-  if (!button) return
-  
-  const buttonRect = button.getBoundingClientRect()
-  const dropdownWidth = 200
-  const dropdownHeight = dropdown.offsetHeight || 280
-  const padding = 10
-  
-  // Calculate available space in viewport
-  const spaceRight = window.innerWidth - buttonRect.right
-  const spaceLeft = buttonRect.left
-  const spaceBottom = window.innerHeight - buttonRect.bottom
-  
-  let left: number | null = null
-  let right: number | null = null
-  let top: number | null = null
-  let bottom: number | null = null
-  
-  // Horizontal positioning
-  if (spaceRight >= dropdownWidth + padding) {
-    // Align dropdown's left edge with button's left edge
-    left = buttonRect.left
-  } else if (spaceLeft >= dropdownWidth + padding) {
-    // Align dropdown's right edge with button's right edge
-    right = window.innerWidth - buttonRect.right
-  } else {
-    // Center or clamp to viewport
-    left = Math.max(padding, Math.min(buttonRect.left, window.innerWidth - dropdownWidth - padding))
-  }
-  
-  // Vertical positioning
-  if (spaceBottom >= dropdownHeight + padding) {
-    top = buttonRect.bottom + 4
-  } else {
-    bottom = window.innerHeight - buttonRect.top + 4
-  }
-  
-  // Build style object
-  const style: Record<string, string> = {}
-  if (left !== null) style.left = `${left}px`
-  if (right !== null) style.right = `${right}px`
-  if (top !== null) style.top = `${top}px`
-  if (bottom !== null) style.bottom = `${bottom}px`
-  
-  dropdownStyle.value = style
-}
 
 // Get available conditions based on column type
 const availableConditions = computed(() => {
@@ -261,7 +205,6 @@ const handleEscape = (event: KeyboardEvent) => {
 // Setup and cleanup
 onMounted(() => {
   nextTick(() => {
-    calculatePosition()
     selectRef.value?.focus()
     document.addEventListener('click', handleGlobalClick, true)
     document.addEventListener('keydown', handleEscape)
