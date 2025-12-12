@@ -43,6 +43,9 @@ const emit = defineEmits([
 // Local state for filter inputs to avoid props mutation
 const filterInputs = ref<Record<string, any>>({})
 
+// Local state for column conditions (for reactivity)
+const columnConditions = ref<Record<string, string>>({})
+
 // Create column Map for O(1) lookup
 const columnsMap = computed(() => {
   const map = new Map()
@@ -119,26 +122,33 @@ const hasActiveFilter = (col: any) => {
 
 // Check if column has a condition set (not empty/No Filter)
 const hasConditionSet = (col: any) => {
-  return col.condition && col.condition !== ''
+  const condition = columnConditions.value[col.field] ?? col.condition
+  return condition && condition !== ''
+}
+
+// Get condition for column (from local state or column)
+const getColumnCondition = (col: any) => {
+  return columnConditions.value[col.field] ?? col.condition ?? ''
 }
 
 // Get condition label (MUI X style)
 const getConditionLabel = (col: any) => {
-  if (!col.condition || col.condition === '') return ''
+  const condition = getColumnCondition(col)
+  if (!condition || condition === '') return ''
 
   const type = col.type?.toLowerCase() || 'string'
   const conditions = FILTER_CONDITIONS[type] || FILTER_CONDITIONS.string
-  const found = conditions.find((c: any) => c.value === col.condition)
+  const found = conditions.find((c: any) => c.value === condition)
 
   if (found) {
     // Check for translation
-    if (props.columnFilterLang && props.columnFilterLang[col.condition]) {
-      return props.columnFilterLang[col.condition]
+    if (props.columnFilterLang && props.columnFilterLang[condition]) {
+      return props.columnFilterLang[condition]
     }
     return found.label
   }
 
-  return col.condition
+  return condition
 }
 
 // Get input placeholder based on condition
@@ -310,11 +320,7 @@ const getInputPlaceholder = (col: any) => {
             >
               <!-- MUI X Style: Floating Label on Border -->
               <label
-                v-if="
-                  col.condition &&
-                  col.condition !== '' &&
-                  props.all.useNewColumnFilter
-                "
+                v-if="hasConditionSet(col) && props.all.useNewColumnFilter"
                 class="bh-floating-label"
                 :class="{
                   'bh-floating-label--active': hasActiveFilter(col)
@@ -330,9 +336,7 @@ const getInputPlaceholder = (col: any) => {
                 class="bh-form-control"
                 :class="{
                   'bh-form-control--with-label':
-                    col.condition &&
-                    col.condition !== '' &&
-                    props.all.useNewColumnFilter
+                    hasConditionSet(col) && props.all.useNewColumnFilter
                 }"
               />
               <input
@@ -346,9 +350,7 @@ const getInputPlaceholder = (col: any) => {
                 class="bh-form-control"
                 :class="{
                   'bh-form-control--with-label':
-                    col.condition &&
-                    col.condition !== '' &&
-                    props.all.useNewColumnFilter
+                    hasConditionSet(col) && props.all.useNewColumnFilter
                 }"
               />
               <input
@@ -358,9 +360,7 @@ const getInputPlaceholder = (col: any) => {
                 class="bh-form-control"
                 :class="{
                   'bh-form-control--with-label':
-                    col.condition &&
-                    col.condition !== '' &&
-                    props.all.useNewColumnFilter
+                    hasConditionSet(col) && props.all.useNewColumnFilter
                 }"
               />
               <select
@@ -419,10 +419,21 @@ const getInputPlaceholder = (col: any) => {
               @sortChange="
                 (field, direction) => emit('sortChange', field, direction)
               "
+              @conditionChange="
+                (field, condition) => {
+                  const column = columnsMap.get(field)
+                  if (column) {
+                    column.condition = condition
+                    columnConditions.value[field] = condition
+                  }
+                }
+              "
               @clearFilter="
                 col => {
                   filterInputs[col.field] = ''
                   col.value = ''
+                  col.condition = ''
+                  columnConditions.value[col.field] = ''
                   // Reset sort if this column is currently sorted
                   if (props.currentSortColumn === col.field) {
                     emit('sortChange', props.all.sortColumn || col.field, 'asc')

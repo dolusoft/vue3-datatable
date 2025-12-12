@@ -99,7 +99,7 @@ const props = defineProps([
   'currentSortColumn',
   'currentSortDirection'
 ])
-const emit = defineEmits(['close', 'filterChange', 'sortChange', 'clearFilter'])
+const emit = defineEmits(['close', 'filterChange', 'sortChange', 'clearFilter', 'conditionChange'])
 
 const dropdownRef = ref(null)
 const selectRef = ref<HTMLSelectElement | null>(null)
@@ -127,14 +127,15 @@ const handleConditionChange = (event: Event) => {
   
   isSelectOpen.value = false
   selectedCondition.value = newValue
-  props.column.condition = newValue
+  
+  // Emit condition change to parent for reactivity
+  emit('conditionChange', props.column.field, newValue)
 
   if (newValue === '') {
     props.column.value = ''
   }
 
   emit('filterChange', props.column)
-  // Dropdown stays open
 }
 
 // Check if current column is sorted in given direction
