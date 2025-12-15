@@ -73,6 +73,15 @@ watch(
   { immediate: true, deep: true }
 )
 
+// DEBUG: Watch filterInputs to verify v-model binding
+watch(
+  filterInputs,
+  (newVal) => {
+    console.log('🟡 [FILTER-INPUTS-CHANGED]', JSON.parse(JSON.stringify(newVal)))
+  },
+  { deep: true }
+)
+
 onMounted(() => {
   console.log('🔍 [COLUMN-HEADER] onMounted', {
     hasColumns: !!props.all?.columns,
@@ -100,9 +109,12 @@ onMounted(() => {
             console.log('🔴 [DEBOUNCE-FIRED]', {
               field: col.field,
               newValue,
+              columnFromMap: column,
+              columnValueBefore: column?.value,
               propsColumnValue: props.all.columns.find(
                 c => c.field === col.field
-              )?.value
+              )?.value,
+              isSameRef: column === props.all.columns.find(c => c.field === col.field)
             })
             if (column) {
               // Trim only string values
