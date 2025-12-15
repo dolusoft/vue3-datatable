@@ -74,11 +74,21 @@ watch(
 )
 
 onMounted(() => {
+  console.log('🔍 [COLUMN-HEADER] onMounted', {
+    hasColumns: !!props.all?.columns,
+    columnsCount: props.all?.columns?.length,
+    columns: props.all?.columns?.map(c => ({
+      field: c.field,
+      filter: c.filter,
+      value: c.value
+    }))
+  })
   initializeColumns()
 
   if (props.all?.columns) {
     props.all.columns.forEach((col: any) => {
       if (col.filter && col.field) {
+        console.log('🔍 [WATCH-SETUP] Setting up watch for:', col.field)
         filterInputs.value[col.field] = col.value || ''
 
         // Create individual watch for each field
@@ -86,19 +96,43 @@ onMounted(() => {
           () => filterInputs.value[col.field],
           newValue => {
             const column = columnsMap.value.get(col.field)
+
+            console.log('🔴 [DEBOUNCE-FIRED]', {
+              field: col.field,
+              newValue,
+              columnRef: columnsMap.value.get(col.field),
+              columnValueBefore: columnsMap.value.get(col.field)?.value
+            })
             if (column) {
               // Trim only string values
               if (column.type === 'string' || column.type === 'String') {
                 column.value =
                   typeof newValue === 'string' ? newValue.trim() : newValue
+                console.log('🔍 [AFTER-SET]', {
+                  afterValue: column.value,
+                  propsValue: props.all.columns.find(c => c.field === col.field)
+                    ?.value
+                })
               } else {
                 column.value = newValue
+                console.log('🔍 [AFTER-SET]', {
+                  afterValue: column.value,
+                  propsValue: props.all.columns.find(c => c.field === col.field)
+                    ?.value
+                })
               }
               emit('filterChange')
+              console.log('🔴 [AFTER-MUTATION]', {
+                columnValueAfter: columnsMap.value.get(col.field)?.value
+              })
             }
           },
           { debounce: 300 }
         )
+      } else {
+        console.warn('⚠️ [WATCH-SKIP] Skipped:', col.field, {
+          filter: col.filter
+        })
       }
     })
   }
@@ -162,6 +196,7 @@ const handleConditionChange = (field: string, condition: string) => {
   if (column) {
     column.condition = condition
     columnConditions.value[field] = condition
+    emit('filterChange')
   }
 }
 
