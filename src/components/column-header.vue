@@ -68,7 +68,6 @@ const setupColumnWatches = () => {
   
   props.all.columns.forEach((col: any) => {
     if (col.filter && col.field && !watchedFields.value.has(col.field)) {
-      console.log('🔵 [WATCH-SETUP] Setting up watch for:', col.field)
       
       // Initialize filterInputs value
       if (filterInputs.value[col.field] === undefined) {
@@ -83,14 +82,7 @@ const setupColumnWatches = () => {
         () => filterInputs.value[col.field],
         newValue => {
           const column = columnsMap.value.get(col.field)
-          
-          console.log('🔴 [DEBOUNCE-FIRED]', {
-            field: col.field,
-            newValue,
-            columnFromMap: !!column,
-            columnValueBefore: column?.value
-          })
-          
+
           if (column) {
             // Trim only string values
             if (column.type === 'string' || column.type === 'String') {
@@ -98,12 +90,7 @@ const setupColumnWatches = () => {
             } else {
               column.value = newValue
             }
-            
-            console.log('🟢 [AFTER-MUTATION]', {
-              field: col.field,
-              columnValueAfter: column.value
-            })
-            
+    
             emit('filterChange')
           }
         },
@@ -123,28 +110,15 @@ watch(
   () => props.all?.columns,
   (newColumns) => {
     if (newColumns && newColumns.length > 0) {
-      console.log('🟡 [COLUMNS-CHANGED] Setting up watches for', newColumns.length, 'columns')
       setupColumnWatches()
     }
   },
   { immediate: true, deep: true }
 )
 
-// DEBUG: Watch filterInputs to verify v-model binding
-watch(
-  filterInputs,
-  (newVal) => {
-    console.log('🟡 [FILTER-INPUTS-CHANGED]', JSON.parse(JSON.stringify(newVal)))
-  },
-  { deep: true }
-)
 
 onMounted(() => {
-  console.log('🔍 [COLUMN-HEADER] onMounted', {
-    hasColumns: !!props.all?.columns,
-    columnsCount: props.all?.columns?.length
-  })
-  
+ 
   // Setup watches on mount as well (in case columns are already available)
   setupColumnWatches()
 })
