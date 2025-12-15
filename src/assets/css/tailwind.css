@@ -93,7 +93,8 @@
     .bh-table-responsive table th .bh-filter > select {
         @apply bh-rounded;
     }
-    .bh-table-responsive table th .bh-filter > button {
+    .bh-table-responsive table th .bh-filter > button,
+    .bh-table-responsive table th .bh-filter .v-popper  button {
         @apply bh-shrink-0 bh-w-[30px] bh-h-[30px] bh-cursor-pointer bh-grid bh-place-content-center bh-border bh-border-solid bh-border-[#e0e6ed] dark:bh-border-gray-600 bh-rounded-r bh-text-black/70 dark:bh-text-gray-300 bh-bg-[#e0e6ed] dark:bh-bg-gray-700 hover:bh-text-black/90 dark:hover:bh-text-white;
         -webkit-appearance: button;
         background-image: none;

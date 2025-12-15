@@ -75,7 +75,7 @@ watch(
 
 onMounted(() => {
   initializeColumns()
-  
+
   if (props.all?.columns) {
     props.all.columns.forEach((col: any) => {
       if (col.filter && col.field) {
@@ -336,7 +336,7 @@ const handleClearFilter = (col: any) => {
             </template>
 
             <!-- NEW STYLE: Wrapper with floating label (when showFloatingFilterLabel is true) -->
-            <div 
+            <div
               v-if="props.all.showFloatingFilterLabel"
               class="bh-filter-input-wrapper"
             >
@@ -398,14 +398,15 @@ const handleClearFilter = (col: any) => {
             </div>
 
             <button
-              v-if="col.type !== 'bool'"
+              v-if="col.type !== 'bool' && !props.all.useNewColumnFilter"
               type="button"
               class="bh-filter-button"
               @click.stop="emit('toggleFilterMenu', col)"
               :class="{
                 '!bh-bg-primary/10 !bh-border-primary': hasConditionSet(col),
                 'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasConditionSet(col),
-                'bh-filter-button--with-label': props.all.showFloatingFilterLabel
+                'bh-filter-button--with-label':
+                  props.all.showFloatingFilterLabel
               }"
             >
               <icon-filter
@@ -429,7 +430,7 @@ const handleClearFilter = (col: any) => {
               @filterChange="emit('filterChange')"
             />
             <!-- NEW: DataTables-style column filter -->
-            <column-filter-new
+            <!-- <column-filter-new
               v-if="props.all.useNewColumnFilter"
               v-show="props.isOpenFilter === col.field"
               :column="col"
@@ -443,12 +444,60 @@ const handleClearFilter = (col: any) => {
               "
               @conditionChange="handleConditionChange"
               @clearFilter="handleClearFilter"
-            />
+            /> -->
+
+            <VDropdown
+              v-if="props.all.useNewColumnFilter"
+              :shown="props.isOpenFilter === col.field"
+              :triggers="[]"
+              :auto-hide="true"
+              placement="bottom-start"
+              :distance="4"
+              @apply-hide="emit('toggleFilterMenu', null)"
+            >
+              <!-- Reference (trigger) -->
+              <button
+                v-if="col.type !== 'bool'"
+                type="button"
+                class="bh-filter-button"
+                @click.stop="emit('toggleFilterMenu', col)"
+                :class="{
+                  '!bh-bg-primary/10 !bh-border-primary': hasConditionSet(col),
+                  'bh-bg-[#e0e6ed] dark:bh-bg-gray-700': !hasConditionSet(col),
+                  'bh-filter-button--with-label':
+                    props.all.showFloatingFilterLabel
+                }"
+              >
+                <icon-filter
+                  class="bh-w-4"
+                  :class="{
+                    'bh-text-primary': hasConditionSet(col),
+                    'bh-text-black/70 dark:bh-text-gray-300':
+                      !hasConditionSet(col)
+                  }"
+                />
+              </button>
+
+              <!-- Popper content -->
+              <template #popper>
+                <column-filter-new
+                  :column="col"
+                  :columnFilterLang="props.columnFilterLang"
+                  :currentSortColumn="props.currentSortColumn"
+                  :currentSortDirection="props.currentSortDirection"
+                  @close="emit('toggleFilterMenu', null)"
+                  @filterChange="emit('filterChange')"
+                  @sortChange="
+                    (field, direction) => emit('sortChange', field, direction)
+                  "
+                  @conditionChange="handleConditionChange"
+                  @clearFilter="handleClearFilter"
+                />
+              </template>
+            </VDropdown>
           </div>
         </template>
       </th>
     </template>
   </tr>
 </template>
-
-

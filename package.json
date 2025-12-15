@@ -64,6 +64,7 @@
     "@vueuse/core": "^10.11.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-vue": "^9.27.0",
+    "floating-vue": "^5.2.2",
     "splitpanes": "4.0.3",
     "vue": "^3.4.35",
     "vue-typewriter-effect": "^1.0.1",

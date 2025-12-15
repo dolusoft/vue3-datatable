@@ -1,9 +1,6 @@
 <template>
-  <div
-    ref="dropdownRef"
-    class="bh-filter-dropdown-container bh-absolute bh-z-[100] bh-bg-white dark:bh-bg-gray-800 bh-shadow-lg bh-rounded bh-top-full bh-right-0 bh-mt-1 bh-border bh-border-solid bh-border-gray-300 dark:bh-border-gray-600"
-  >
-    <div class="bh-p-2 bh-min-w-[200px]">
+  <div ref="dropdownRef" class="bh-filter-dropdown-content bh-min-w-[220px]">
+    <div class="bh-p-2">
       <!-- Filter Condition -->
       <div class="bh-mb-2">
         <label
@@ -99,7 +96,13 @@ const props = defineProps([
   'currentSortColumn',
   'currentSortDirection'
 ])
-const emit = defineEmits(['close', 'filterChange', 'sortChange', 'clearFilter', 'conditionChange'])
+const emit = defineEmits([
+  'close',
+  'filterChange',
+  'sortChange',
+  'clearFilter',
+  'conditionChange'
+])
 
 const dropdownRef = ref(null)
 const selectRef = ref<HTMLSelectElement | null>(null)
@@ -124,10 +127,10 @@ const getTranslatedLabel = (cond: any) => {
 const handleConditionChange = (event: Event) => {
   const target = event.target as HTMLSelectElement
   const newValue = target.value
-  
+
   isSelectOpen.value = false
   selectedCondition.value = newValue
-  
+
   // Emit condition change to parent for reactivity
   emit('conditionChange', props.column.field, newValue)
 
@@ -159,60 +162,60 @@ const handleClearFilter = () => {
   props.column.condition = type === 'string' ? 'Contains' : 'Equal'
   props.column.value = ''
   selectedCondition.value = props.column.condition
-  
+
   emit('clearFilter', props.column)
   emit('close')
 }
 
-// Global click handler
-const handleGlobalClick = (event: MouseEvent) => {
-  const target = event.target as HTMLElement
+// // Global click handler
+// const handleGlobalClick = (event: MouseEvent) => {
+//   const target = event.target as HTMLElement
 
-  // Don't close if select is open (native select options are outside dropdown)
-  if (isSelectOpen.value) {
-    return
-  }
+//   // Don't close if select is open (native select options are outside dropdown)
+//   if (isSelectOpen.value) {
+//     return
+//   }
 
-  // Don't close if clicking on SELECT or OPTION elements
-  if (target.tagName === 'SELECT' || target.tagName === 'OPTION') {
-    return
-  }
+//   // Don't close if clicking on SELECT or OPTION elements
+//   if (target.tagName === 'SELECT' || target.tagName === 'OPTION') {
+//     return
+//   }
 
-  // Don't close if clicking inside dropdown
-  if (
-    dropdownRef.value &&
-    (dropdownRef.value as HTMLElement).contains(target)
-  ) {
-    return
-  }
+//   // Don't close if clicking inside dropdown
+//   if (
+//     dropdownRef.value &&
+//     (dropdownRef.value as HTMLElement).contains(target)
+//   ) {
+//     return
+//   }
 
-  // Don't close if clicking filter button (let toggle handle it)
-  if (target.closest('.bh-filter-button')) {
-    return
-  }
+//   // Don't close if clicking filter button (let toggle handle it)
+//   if (target.closest('.bh-filter-button')) {
+//     return
+//   }
 
-  // Close dropdown
-  emit('close')
-}
+//   // Close dropdown
+//   emit('close')
+// }
 
-// Handle escape key
-const handleEscape = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') {
-    emit('close')
-  }
-}
+// // Handle escape key
+// const handleEscape = (event: KeyboardEvent) => {
+//   if (event.key === 'Escape') {
+//     emit('close')
+//   }
+// }
 
-// Setup and cleanup
-onMounted(() => {
-  nextTick(() => {
-    selectRef.value?.focus()
-    document.addEventListener('click', handleGlobalClick, true)
-    document.addEventListener('keydown', handleEscape)
-  })
-})
+// // Setup and cleanup
+// onMounted(() => {
+//   nextTick(() => {
+//     selectRef.value?.focus()
+//     document.addEventListener('click', handleGlobalClick, true)
+//     document.addEventListener('keydown', handleEscape)
+//   })
+// })
 
-onUnmounted(() => {
-  document.removeEventListener('click', handleGlobalClick, true)
-  document.removeEventListener('keydown', handleEscape)
-})
+// onUnmounted(() => {
+//   document.removeEventListener('click', handleGlobalClick, true)
+//   document.removeEventListener('keydown', handleEscape)
+// })
 </script>
