@@ -100,8 +100,9 @@ onMounted(() => {
             console.log('🔴 [DEBOUNCE-FIRED]', {
               field: col.field,
               newValue,
-              columnRef: columnsMap.value.get(col.field),
-              columnValueBefore: columnsMap.value.get(col.field)?.value
+              propsColumnValue: props.all.columns.find(
+                c => c.field === col.field
+              )?.value
             })
             if (column) {
               // Trim only string values
