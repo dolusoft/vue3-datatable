@@ -259,7 +259,7 @@ const handleClearFilter = (col: any) => {
     </template>
     <template v-for="(col, j) in props.all.columns">
       <th
-        v-if="!col.hide"
+        v-if="!col.hide && !col.dataOnly"
         :key="col.field"
         class="bh-select-none bh-z-[1]"
         :class="[

@@ -9,6 +9,7 @@ export interface ColumnDefinition {
   minWidth?: string | undefined
   maxWidth?: string | undefined
   hide?: boolean
+  dataOnly?: boolean // hide from UI but include in data/query
   filter?: boolean // column filter
   search?: boolean // global search
   sort?: boolean

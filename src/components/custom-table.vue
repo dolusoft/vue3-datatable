@@ -165,6 +165,7 @@ for (const item of props.columns || []) {
   item.type = type
   item.isUnique = item.isUnique !== undefined ? item.isUnique : false
   item.hide = item.hide !== undefined ? item.hide : false
+  item.dataOnly = item.dataOnly !== undefined ? item.dataOnly : false
   item.filter = item.filter !== undefined ? item.filter : true
   item.search = item.search !== undefined ? item.search : true
   item.sort = item.sort !== undefined ? item.sort : true
@@ -1342,7 +1343,7 @@ onUnmounted(() => {
                           </td>
                           <template v-for="(col, j) in props.columns">
                             <td
-                              v-if="!col.hide"
+                              v-if="!col.hide && !col.dataOnly"
                               :key="col.field"
                               :class="[
                                 isCellClassFunction
@@ -1431,7 +1432,7 @@ onUnmounted(() => {
                           ></td>
                           <template v-for="(col, j) in props.columns">
                             <td
-                              v-if="!col.hide"
+                              v-if="!col.hide && !col.dataOnly"
                               :key="col.field"
                               :class="[
                                 isCellClassFunction
@@ -1639,7 +1640,7 @@ onUnmounted(() => {
                         </td>
                         <template v-for="(col, j) in props.columns">
                           <td
-                            v-if="!col.hide"
+                            v-if="!col.hide && !col.dataOnly"
                             :key="col.field"
                             :class="[
                               isCellClassFunction
@@ -1735,7 +1736,7 @@ onUnmounted(() => {
                         ></td>
                         <template v-for="(col, j) in props.columns">
                           <td
-                            v-if="!col.hide"
+                            v-if="!col.hide && !col.dataOnly"
                             :key="col.field"
                             :class="[
                               isCellClassFunction
