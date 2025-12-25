@@ -158,8 +158,33 @@ const handleClearAllFilters = () => {
     columnConditions.value[key] = ''
   })
 
+  // Clear column conditions in props.all.columns
+  if (props.all?.columns) {
+    props.all.columns.forEach((col: any) => {
+      if (col.filter) {
+        col.value = ''
+        col.condition = ''
+      }
+    })
+  }
+
   emit('clearAllFilters')
 }
+
+// Local computed for active filter detection
+const hasAnyActiveFilterLocal = computed(() => {
+  // Check filterInputs
+  const hasInputValue = Object.values(filterInputs.value).some(
+    val => val !== '' && val !== null && val !== undefined
+  )
+
+  // Check columnConditions (user-selected conditions)
+  const hasConditionValue = Object.values(columnConditions.value).some(
+    val => val !== '' && val !== null && val !== undefined
+  )
+
+  return hasInputValue || hasConditionValue
+})
 
 // Initialize filter inputs from columns
 const initializeColumns = () => {
@@ -304,9 +329,9 @@ const handleClearFilter = (col: any) => {
             type="button"
             class="bh-clear-all-button"
             :class="{
-              'bh-clear-all-button--active': props.hasAnyActiveFilter
+              'bh-clear-all-button--active': hasAnyActiveFilterLocal
             }"
-            :disabled="!props.hasAnyActiveFilter"
+            :disabled="!hasAnyActiveFilterLocal"
             @click.stop="handleClearAllFilters"
             title="Clear all filters"
           >
@@ -355,9 +380,9 @@ const handleClearFilter = (col: any) => {
             type="button"
             class="bh-clear-all-button"
             :class="{
-              'bh-clear-all-button--active': props.hasAnyActiveFilter
+              'bh-clear-all-button--active': hasAnyActiveFilterLocal
             }"
-            :disabled="!props.hasAnyActiveFilter"
+            :disabled="!hasAnyActiveFilterLocal"
             @click.stop="handleClearAllFilters"
             title="Clear all filters"
           >
@@ -406,9 +431,9 @@ const handleClearFilter = (col: any) => {
               type="button"
               class="bh-clear-all-button"
               :class="{
-                'bh-clear-all-button--active': props.hasAnyActiveFilter
+                'bh-clear-all-button--active': hasAnyActiveFilterLocal
               }"
-              :disabled="!props.hasAnyActiveFilter"
+              :disabled="!hasAnyActiveFilterLocal"
               @click.stop="handleClearAllFilters"
               title="Clear all filters"
             >
