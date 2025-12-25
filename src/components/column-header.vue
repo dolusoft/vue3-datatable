@@ -26,7 +26,9 @@ const props = defineProps([
   'isFooter',
   'checkAll',
   'columnFilterLang',
-  'hasFilterDatetimeSlot'
+  'hasFilterDatetimeSlot',
+  'showClearAllButton',
+  'hasAnyActiveFilter'
 ])
 
 const emit = defineEmits([
@@ -35,8 +37,17 @@ const emit = defineEmits([
   'filterChange',
   'toggleFilterMenu',
   'clearColumnFilter',
-  'filterDatetimeUpdate'
+  'filterDatetimeUpdate',
+  'clearAllFilters'
 ])
+
+// Determine where to show clear button (first available column)
+const clearButtonLocation = computed(() => {
+  if (props.all.hasCheckbox) return 'checkbox'
+  if (props.all.hasRightPanel) return 'rightpanel'
+  if (props.all.hasSubtable) return 'subtable'
+  return 'none'
+})
 
 // ============================================================================
 // FAZ III OPTIMIZATION: Field-specific watches instead of deep watch
@@ -67,33 +78,34 @@ const columnsMap = computed(() => {
 // Setup watches for columns - can be called multiple times safely
 const setupColumnWatches = () => {
   if (!props.all?.columns) return
-  
+
   // console.log('🔵 [SETUP-WATCHES] Starting setup for', props.all.columns.length, 'columns')
-  
+
   props.all.columns.forEach((col: any) => {
     if (col.filter && col.field && !watchedFields.value.has(col.field)) {
-      // console.log('🔵 [WATCH-INIT]', col.field, { 
-      //   initialValue: col.value, 
-      //   initialCondition: col.condition 
+      // console.log('🔵 [WATCH-INIT]', col.field, {
+      //   initialValue: col.value,
+      //   initialCondition: col.condition
       // })
-      
+
       // Initialize filterInputs value
       if (filterInputs.value[col.field] === undefined) {
         filterInputs.value[col.field] = col.value || ''
       }
-      
+
       // Mark as watched
       watchedFields.value.add(col.field)
-      
+
       // Create individual watch for each field
       watchDebounced(
         () => filterInputs.value[col.field],
         newValue => {
           const column = columnsMap.value.get(col.field)
-          
+
           // Get condition from local state first, then column
-          const currentCondition = columnConditions.value[col.field] || column?.condition
-          
+          const currentCondition =
+            columnConditions.value[col.field] || column?.condition
+
           // console.log('🔴 [DEBOUNCE-FIRED]', {
           //   field: col.field,
           //   newValue,
@@ -105,11 +117,12 @@ const setupColumnWatches = () => {
           if (column) {
             // Trim only string values
             if (column.type === 'string' || column.type === 'String') {
-              column.value = typeof newValue === 'string' ? newValue.trim() : newValue
+              column.value =
+                typeof newValue === 'string' ? newValue.trim() : newValue
             } else {
               column.value = newValue
             }
-            
+
             // Use condition from local state, or set default if not set
             if (currentCondition) {
               column.condition = currentCondition
@@ -119,13 +132,13 @@ const setupColumnWatches = () => {
               columnConditions.value[col.field] = column.condition
               // console.log('🟡 [DEFAULT-CONDITION-SET]', col.field, column.condition)
             }
-            
+
             // console.log('🟢 [AFTER-MUTATION]', {
             //   field: col.field,
             //   valueAfter: column.value,
             //   conditionAfter: column.condition
             // })
-    
+
             emit('filterChange')
           }
         },
@@ -133,6 +146,19 @@ const setupColumnWatches = () => {
       )
     }
   })
+}
+
+// Handle clear all filters
+const handleClearAllFilters = () => {
+  // Clear local state
+  Object.keys(filterInputs.value).forEach(key => {
+    filterInputs.value[key] = ''
+  })
+  Object.keys(columnConditions.value).forEach(key => {
+    columnConditions.value[key] = ''
+  })
+
+  emit('clearAllFilters')
 }
 
 // Initialize filter inputs from columns
@@ -143,7 +169,7 @@ const initializeColumns = () => {
 // Watch for columns changes and setup watches
 watch(
   () => props.all?.columns,
-  (newColumns) => {
+  newColumns => {
     if (newColumns && newColumns.length > 0) {
       setupColumnWatches()
     }
@@ -151,9 +177,7 @@ watch(
   { immediate: true, deep: true }
 )
 
-
 onMounted(() => {
- 
   // Setup watches on mount as well (in case columns are already available)
   setupColumnWatches()
 })
@@ -217,10 +241,10 @@ const handleConditionChange = (field: string, condition: string) => {
   if (column) {
     column.condition = condition
     columnConditions.value[field] = condition
-    // console.log('🟠 [CONDITION-UPDATED]', { 
-    //   field, 
+    // console.log('🟠 [CONDITION-UPDATED]', {
+    //   field,
     //   newCondition: column.condition,
-    //   columnValue: column.value 
+    //   columnValue: column.value
     // })
     emit('filterChange')
   }
@@ -266,6 +290,42 @@ const handleClearFilter = (col: any) => {
           <icon-dash class="intermediate" />
         </div>
       </div>
+      <!-- Clear All Filters Button -->
+      <template
+        v-if="
+          props.all.columnFilter &&
+          !props.isFooter &&
+          clearButtonLocation === 'checkbox'
+        "
+      >
+        <div class="bh-filter bh-flex bh-justify-center">
+          <button
+            v-if="props.showClearAllButton"
+            type="button"
+            class="bh-clear-all-button"
+            :class="{
+              'bh-clear-all-button--active': props.hasAnyActiveFilter
+            }"
+            :disabled="!props.hasAnyActiveFilter"
+            @click.stop="handleClearAllFilters"
+            title="Clear all filters"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </template>
     </th>
     <th
       v-if="props.all.hasRightPanel"
@@ -281,6 +341,42 @@ const handleClearFilter = (col: any) => {
       }"
     >
       <!-- Right Panel Button Column -->
+      <!-- Clear All Filters Button -->
+      <template
+        v-if="
+          props.all.columnFilter &&
+          !props.isFooter &&
+          clearButtonLocation === 'rightpanel'
+        "
+      >
+        <div class="bh-filter bh-flex bh-justify-center">
+          <button
+            v-if="props.showClearAllButton"
+            type="button"
+            class="bh-clear-all-button"
+            :class="{
+              'bh-clear-all-button--active': props.hasAnyActiveFilter
+            }"
+            :disabled="!props.hasAnyActiveFilter"
+            @click.stop="handleClearAllFilters"
+            title="Clear all filters"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </template>
     </th>
     <template v-if="props.all.hasSubtable">
       <th
@@ -295,6 +391,42 @@ const handleClearFilter = (col: any) => {
             :expandall="props.all.expandall"
           >
           </button-expand>
+        </template>
+        <!-- Clear All Filters Button -->
+        <template
+          v-if="
+            props.all.columnFilter &&
+            !props.isFooter &&
+            clearButtonLocation === 'subtable'
+          "
+        >
+          <div class="bh-filter bh-flex bh-justify-center">
+            <button
+              v-if="props.showClearAllButton"
+              type="button"
+              class="bh-clear-all-button"
+              :class="{
+                'bh-clear-all-button--active': props.hasAnyActiveFilter
+              }"
+              :disabled="!props.hasAnyActiveFilter"
+              @click.stop="handleClearAllFilters"
+              title="Clear all filters"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </template>
       </th>
     </template>
@@ -378,7 +510,9 @@ const handleClearFilter = (col: any) => {
                 type="number"
                 class="bh-form-control"
               />
-              <template v-else-if="col.type === 'date' || col.type === 'DateTime'">
+              <template
+                v-else-if="col.type === 'date' || col.type === 'DateTime'"
+              >
                 <slot
                   v-if="props.hasFilterDatetimeSlot"
                   name="filter-datetime"
@@ -448,7 +582,9 @@ const handleClearFilter = (col: any) => {
                     hasConditionSet(col) && props.all.useNewColumnFilter
                 }"
               />
-              <template v-else-if="col.type === 'date' || col.type === 'DateTime'">
+              <template
+                v-else-if="col.type === 'date' || col.type === 'DateTime'"
+              >
                 <slot
                   v-if="props.hasFilterDatetimeSlot"
                   name="filter-datetime"
@@ -458,7 +594,9 @@ const handleClearFilter = (col: any) => {
                     filterInputs[col.field] = val
                     emit('filterDatetimeUpdate', col.field, val)
                   }"
-                  :hasLabel="hasConditionSet(col) && props.all.useNewColumnFilter"
+                  :hasLabel="
+                    hasConditionSet(col) && props.all.useNewColumnFilter
+                  "
                 />
                 <input
                   v-else

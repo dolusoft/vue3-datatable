@@ -164,6 +164,7 @@ function handleTopMenuResize(height) {
       skin="bh-table-striped bh-table-hover bh-table-bordered"
       :useNewColumnFilter="true"
       :showFloatingFilterLabel="true"
+      :showClearAllButton="true"
       @change="changeServer"
     >
       <!-- Sol menü için içerik -->

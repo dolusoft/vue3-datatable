@@ -78,6 +78,7 @@ interface Props {
   stickyFirstColumn?: boolean
   cloneHeaderInFooter?: boolean
   selectRowOnClick?: boolean
+  showClearAllButton?: boolean
   enableleftmenu?: boolean
   enabletopmenu?: boolean
   enableHeaderArea?: boolean // Enables the tableHeaderArea slot
@@ -149,6 +150,7 @@ const props = withDefaults(defineProps<Props>(), {
   stickyFirstColumn: false,
   cloneHeaderInFooter: false,
   selectRowOnClick: false,
+  showClearAllButton: false,
   enableHeaderArea: false,
   headerAreaHeight: '80px',
   footerOffset: 0,
@@ -240,6 +242,14 @@ watch(
 const uniqueKey = computed(() => {
   const col = props.columns.find(d => d.isUnique)
   return col?.field || null
+})
+
+// Check if any column has active filter
+const hasAnyActiveFilter = computed(() => {
+  if (!props.columns) return false
+  return props.columns.some((col: any) => {
+    return col.value !== undefined && col.value !== null && col.value !== ''
+  })
 })
 
 // Optimization: Only compute when uniqueKey exists, otherwise use index directly
@@ -615,7 +625,8 @@ const emit = defineEmits([
   'rowDBClick',
   'currentTopMenuSize',
   'currentLeftMenuSize',
-  'rowRightPanelClick'
+  'rowRightPanelClick',
+  'clearAllFilters'
 ])
 
 defineExpose({
@@ -652,6 +663,9 @@ defineExpose({
       ? props.leftmenuMinWidth
       : props.leftmenuDefaultWidth
     updateLeftMenuStyle()
+  },
+  clearAllFilters() {
+    clearAllFilters()
   }
 })
 
@@ -857,7 +871,6 @@ const selectAll = (checked: any) => {
 }
 
 const filterChange = () => {
-
   selectAll(false)
 
   if (props.isServerMode) {
@@ -951,7 +964,7 @@ const rowClick = (item: any, index: number) => {
 }
 
 const changeForServer = (changeType: string, isResetPage = false) => {
-  // console.log('🔵 [CHANGE-FOR-SERVER] Props columns detail:', 
+  // console.log('🔵 [CHANGE-FOR-SERVER] Props columns detail:',
   //   props.columns.map(c => ({ field: c.field, value: c.value, condition: c.condition }))
   // )
 
@@ -968,8 +981,8 @@ const changeForServer = (changeType: string, isResetPage = false) => {
       column_filters: props.columns,
       change_type: changeType
     }
-    
-    // console.log('🔵 [EMITTING-CHANGE] Final column_filters:', 
+
+    // console.log('🔵 [EMITTING-CHANGE] Final column_filters:',
     //   res.column_filters.map(c => ({ field: c.field, value: c.value, condition: c.condition }))
     // )
     emit('change', res)
@@ -1062,6 +1075,23 @@ const collapseAll = () => {
   expandedrows.value.forEach((value, key) => {
     expandedrows.value.set(key, false)
   })
+}
+
+const clearAllFilters = () => {
+  // Clear all column values and conditions
+  for (const col of props.columns) {
+    if (col.filter) {
+      col.value = ''
+      col.condition =
+        col.type?.toLowerCase() === 'string' ? 'Contains' : 'Equal'
+    }
+  }
+
+  // Trigger filter change
+  filterChange()
+
+  // Emit for parent notification
+  emit('clearAllFilters')
 }
 
 let extracolumnlength = 0
@@ -1267,13 +1297,19 @@ onUnmounted(() => {
                         :checkAll="selectedAll"
                         :columnFilterLang="props.columnFilterLang"
                         :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
+                        :showClearAllButton="props.showClearAllButton"
+                        :hasAnyActiveFilter="hasAnyActiveFilter"
                         @selectAll="selectAll"
                         @sortChange="sortChange"
                         @filterChange="filterChange"
                         @toggleFilterMenu="toggleFilterMenu"
                         @clearColumnFilter="clearColumnFilter"
+                        @clearAllFilters="clearAllFilters"
                       >
-                        <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                        <template
+                          v-if="hasFilterDatetimeSlot"
+                          #filter-datetime="slotProps"
+                        >
                           <slot name="filter-datetime" v-bind="slotProps" />
                         </template>
                       </column-header>
@@ -1495,12 +1531,18 @@ onUnmounted(() => {
                         :isFooter="true"
                         :checkAll="selectedAll"
                         :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
+                        :showClearAllButton="props.showClearAllButton"
+                        :hasAnyActiveFilter="hasAnyActiveFilter"
                         @selectAll="selectAll"
                         @sortChange="sortChange"
                         @filterChange="filterChange"
                         @toggleFilterMenu="toggleFilterMenu"
+                        @clearAllFilters="clearAllFilters"
                       >
-                        <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                        <template
+                          v-if="hasFilterDatetimeSlot"
+                          #filter-datetime="slotProps"
+                        >
                           <slot name="filter-datetime" v-bind="slotProps" />
                         </template>
                       </column-header>
@@ -1579,13 +1621,19 @@ onUnmounted(() => {
                       :checkAll="selectedAll"
                       :columnFilterLang="props.columnFilterLang"
                       :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
+                      :showClearAllButton="props.showClearAllButton"
+                      :hasAnyActiveFilter="hasAnyActiveFilter"
                       @selectAll="selectAll"
                       @sortChange="sortChange"
                       @filterChange="filterChange"
                       @toggleFilterMenu="toggleFilterMenu"
                       @clearColumnFilter="clearColumnFilter"
+                      @clearAllFilters="clearAllFilters"
                     >
-                      <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                      <template
+                        v-if="hasFilterDatetimeSlot"
+                        #filter-datetime="slotProps"
+                      >
                         <slot name="filter-datetime" v-bind="slotProps" />
                       </template>
                     </column-header>
@@ -1804,12 +1852,18 @@ onUnmounted(() => {
                       :isFooter="true"
                       :checkAll="selectedAll"
                       :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
+                      :showClearAllButton="props.showClearAllButton"
+                      :hasAnyActiveFilter="hasAnyActiveFilter"
                       @selectAll="selectAll"
                       @sortChange="sortChange"
                       @filterChange="filterChange"
                       @toggleFilterMenu="toggleFilterMenu"
+                      @clearAllFilters="clearAllFilters"
                     >
-                      <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                      <template
+                        v-if="hasFilterDatetimeSlot"
+                        #filter-datetime="slotProps"
+                      >
                         <slot name="filter-datetime" v-bind="slotProps" />
                       </template>
                     </column-header>
@@ -2067,5 +2121,48 @@ onUnmounted(() => {
 
 .bh-datatable tbody tr:has(td[colspan]) {
   z-index: 0;
+}
+/* Clear All Filters Button */
+.bh-clear-all-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e0e6ed;
+  border-radius: 4px;
+  background: #e0e6ed;
+  color: rgba(0, 0, 0, 0.4);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.bh-clear-all-button:disabled {
+  opacity: 0.5;
+}
+
+.bh-clear-all-button--active {
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+  border-color: var(--primary, #3b82f6);
+  color: var(--primary, #3b82f6);
+  cursor: pointer;
+}
+
+.bh-clear-all-button--active:hover {
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+}
+
+/* Dark mode */
+.dark .bh-clear-all-button {
+  background: #374151;
+  border-color: #4b5563;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .bh-clear-all-button--active {
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.2);
+  border-color: var(--primary, #3b82f6);
+  color: var(--primary, #3b82f6);
 }
 </style>
