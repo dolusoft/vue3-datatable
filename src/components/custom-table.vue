@@ -245,12 +245,13 @@ const uniqueKey = computed(() => {
 })
 
 // Check if any column has active filter
-const hasAnyActiveFilter = computed(() => {
-  if (!props.columns) return false
-  return props.columns.some((col: any) => {
+const hasAnyActiveFilter = ref(false)
+
+const updateHasAnyActiveFilter = () => {
+  hasAnyActiveFilter.value = props.columns.some((col: any) => {
     return col.value !== undefined && col.value !== null && col.value !== ''
   })
-})
+}
 
 // Optimization: Only compute when uniqueKey exists, otherwise use index directly
 const rowKeys = computed(() => {
@@ -793,6 +794,7 @@ const changeRows = () => {
   }
   selectAll(false)
   filterRows()
+  updateHasAnyActiveFilter()
 }
 watch(() => props.rows, changeRows)
 
@@ -872,7 +874,7 @@ const selectAll = (checked: any) => {
 
 const filterChange = () => {
   selectAll(false)
-
+  updateHasAnyActiveFilter()
   if (props.isServerMode) {
     if (currentPage.value === 1) {
       changeForServer('filter', true)
@@ -1082,11 +1084,10 @@ const clearAllFilters = () => {
   for (const col of props.columns) {
     if (col.filter) {
       col.value = ''
-      col.condition =
-        col.type?.toLowerCase() === 'string' ? 'Contains' : 'Equal'
+      col.condition = ''
     }
   }
-
+  updateHasAnyActiveFilter()
   // Trigger filter change
   filterChange()
 
