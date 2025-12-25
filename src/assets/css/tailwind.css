@@ -90,6 +90,10 @@
     .bh-table-responsive table th .bh-filter > .bh-form-control {
         @apply bh-w-full bh-box-border bh-bg-white dark:bh-bg-gray-800 bh-h-full bh-min-w-[60px] bh-outline-0 focus:bh-ring-1 focus:bh-ring-[#e0e6ed]/40 dark:focus:bh-ring-gray-600/40 bh-border bh-border-solid bh-border-[#e0e6ed] dark:bh-border-gray-600 bh-text-black dark:bh-text-gray-100 bh-font-normal bh-rounded-l bh-px-3 bh-py-1 bh-text-sm;
     }
+    /* DateTime filter slot - apply same styles */
+    .bh-table-responsive table th .bh-filter .bh-form-control {
+        @apply bh-box-border bh-bg-white dark:bh-bg-gray-800 bh-h-full bh-outline-0 focus:bh-ring-1 focus:bh-ring-[#e0e6ed]/40 dark:focus:bh-ring-gray-600/40 bh-border bh-border-solid bh-border-[#e0e6ed] dark:bh-border-gray-600 bh-text-black dark:bh-text-gray-100 bh-font-normal bh-rounded-l bh-px-3 bh-py-1 bh-text-sm;
+    }
     .bh-table-responsive table th .bh-filter > select {
         @apply bh-rounded;
     }
