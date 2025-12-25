@@ -948,9 +948,9 @@ const rowClick = (item: any, index: number) => {
 }
 
 const changeForServer = (changeType: string, isResetPage = false) => {
-  console.log('🔵 [CHANGE-FOR-SERVER] Props columns detail:', 
-    props.columns.map(c => ({ field: c.field, value: c.value, condition: c.condition }))
-  )
+  // console.log('🔵 [CHANGE-FOR-SERVER] Props columns detail:', 
+  //   props.columns.map(c => ({ field: c.field, value: c.value, condition: c.condition }))
+  // )
 
   if (props.isServerMode) {
     setDefaultCondition()
@@ -966,9 +966,9 @@ const changeForServer = (changeType: string, isResetPage = false) => {
       change_type: changeType
     }
     
-    console.log('🔵 [EMITTING-CHANGE] Final column_filters:', 
-      res.column_filters.map(c => ({ field: c.field, value: c.value, condition: c.condition }))
-    )
+    // console.log('🔵 [EMITTING-CHANGE] Final column_filters:', 
+    //   res.column_filters.map(c => ({ field: c.field, value: c.value, condition: c.condition }))
+    // )
     emit('change', res)
   }
 }

@@ -66,14 +66,14 @@ const columnsMap = computed(() => {
 const setupColumnWatches = () => {
   if (!props.all?.columns) return
   
-  console.log('🔵 [SETUP-WATCHES] Starting setup for', props.all.columns.length, 'columns')
+  // console.log('🔵 [SETUP-WATCHES] Starting setup for', props.all.columns.length, 'columns')
   
   props.all.columns.forEach((col: any) => {
     if (col.filter && col.field && !watchedFields.value.has(col.field)) {
-      console.log('🔵 [WATCH-INIT]', col.field, { 
-        initialValue: col.value, 
-        initialCondition: col.condition 
-      })
+      // console.log('🔵 [WATCH-INIT]', col.field, { 
+      //   initialValue: col.value, 
+      //   initialCondition: col.condition 
+      // })
       
       // Initialize filterInputs value
       if (filterInputs.value[col.field] === undefined) {
@@ -92,13 +92,13 @@ const setupColumnWatches = () => {
           // Get condition from local state first, then column
           const currentCondition = columnConditions.value[col.field] || column?.condition
           
-          console.log('🔴 [DEBOUNCE-FIRED]', {
-            field: col.field,
-            newValue,
-            columnConditionFromState: columnConditions.value[col.field],
-            columnConditionFromMap: column?.condition,
-            resolvedCondition: currentCondition
-          })
+          // console.log('🔴 [DEBOUNCE-FIRED]', {
+          //   field: col.field,
+          //   newValue,
+          //   columnConditionFromState: columnConditions.value[col.field],
+          //   columnConditionFromMap: column?.condition,
+          //   resolvedCondition: currentCondition
+          // })
 
           if (column) {
             // Trim only string values
@@ -115,14 +115,14 @@ const setupColumnWatches = () => {
               // Default to 'Equal' for all types when user types without selecting condition
               column.condition = 'Equal'
               columnConditions.value[col.field] = column.condition
-              console.log('🟡 [DEFAULT-CONDITION-SET]', col.field, column.condition)
+              // console.log('🟡 [DEFAULT-CONDITION-SET]', col.field, column.condition)
             }
             
-            console.log('🟢 [AFTER-MUTATION]', {
-              field: col.field,
-              valueAfter: column.value,
-              conditionAfter: column.condition
-            })
+            // console.log('🟢 [AFTER-MUTATION]', {
+            //   field: col.field,
+            //   valueAfter: column.value,
+            //   conditionAfter: column.condition
+            // })
     
             emit('filterChange')
           }
@@ -210,16 +210,16 @@ const getInputPlaceholder = (col: any) => {
 
 // Handle condition change from dropdown
 const handleConditionChange = (field: string, condition: string) => {
-  console.log('🟠 [CONDITION-CHANGE]', { field, condition })
+  // console.log('🟠 [CONDITION-CHANGE]', { field, condition })
   const column = columnsMap.value.get(field)
   if (column) {
     column.condition = condition
     columnConditions.value[field] = condition
-    console.log('🟠 [CONDITION-UPDATED]', { 
-      field, 
-      newCondition: column.condition,
-      columnValue: column.value 
-    })
+    // console.log('🟠 [CONDITION-UPDATED]', { 
+    //   field, 
+    //   newCondition: column.condition,
+    //   columnValue: column.value 
+    // })
     emit('filterChange')
   }
 }
