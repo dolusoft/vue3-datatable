@@ -112,8 +112,8 @@ const setupColumnWatches = () => {
             if (currentCondition) {
               column.condition = currentCondition
             } else if (column.value) {
-              const type = column.type?.toLowerCase() || 'string'
-              column.condition = type === 'string' ? 'Contains' : 'Equal'
+              // Default to 'Equal' for all types when user types without selecting condition
+              column.condition = 'Equal'
               columnConditions.value[col.field] = column.condition
               console.log('🟡 [DEFAULT-CONDITION-SET]', col.field, column.condition)
             }
