@@ -66,8 +66,14 @@ const columnsMap = computed(() => {
 const setupColumnWatches = () => {
   if (!props.all?.columns) return
   
+  console.log('🔵 [SETUP-WATCHES] Starting setup for', props.all.columns.length, 'columns')
+  
   props.all.columns.forEach((col: any) => {
     if (col.filter && col.field && !watchedFields.value.has(col.field)) {
+      console.log('🔵 [WATCH-INIT]', col.field, { 
+        initialValue: col.value, 
+        initialCondition: col.condition 
+      })
       
       // Initialize filterInputs value
       if (filterInputs.value[col.field] === undefined) {
@@ -82,6 +88,13 @@ const setupColumnWatches = () => {
         () => filterInputs.value[col.field],
         newValue => {
           const column = columnsMap.value.get(col.field)
+          
+          console.log('🔴 [DEBOUNCE-FIRED]', {
+            field: col.field,
+            newValue,
+            columnConditionBefore: column?.condition,
+            columnValueBefore: column?.value
+          })
 
           if (column) {
             // Trim only string values
@@ -90,6 +103,19 @@ const setupColumnWatches = () => {
             } else {
               column.value = newValue
             }
+            
+            // Ensure default condition if not set
+            if (!column.condition && column.value) {
+              const type = column.type?.toLowerCase() || 'string'
+              column.condition = type === 'string' ? 'Contains' : 'Equal'
+              console.log('🟡 [DEFAULT-CONDITION-SET]', col.field, column.condition)
+            }
+            
+            console.log('🟢 [AFTER-MUTATION]', {
+              field: col.field,
+              valueAfter: column.value,
+              conditionAfter: column.condition
+            })
     
             emit('filterChange')
           }
@@ -177,10 +203,16 @@ const getInputPlaceholder = (col: any) => {
 
 // Handle condition change from dropdown
 const handleConditionChange = (field: string, condition: string) => {
+  console.log('🟠 [CONDITION-CHANGE]', { field, condition })
   const column = columnsMap.value.get(field)
   if (column) {
     column.condition = condition
     columnConditions.value[field] = condition
+    console.log('🟠 [CONDITION-UPDATED]', { 
+      field, 
+      newCondition: column.condition,
+      columnValue: column.value 
+    })
     emit('filterChange')
   }
 }
