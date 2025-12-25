@@ -89,11 +89,15 @@ const setupColumnWatches = () => {
         newValue => {
           const column = columnsMap.value.get(col.field)
           
+          // Get condition from local state first, then column
+          const currentCondition = columnConditions.value[col.field] || column?.condition
+          
           console.log('🔴 [DEBOUNCE-FIRED]', {
             field: col.field,
             newValue,
-            columnConditionBefore: column?.condition,
-            columnValueBefore: column?.value
+            columnConditionFromState: columnConditions.value[col.field],
+            columnConditionFromMap: column?.condition,
+            resolvedCondition: currentCondition
           })
 
           if (column) {
@@ -104,10 +108,13 @@ const setupColumnWatches = () => {
               column.value = newValue
             }
             
-            // Ensure default condition if not set
-            if (!column.condition && column.value) {
+            // Use condition from local state, or set default if not set
+            if (currentCondition) {
+              column.condition = currentCondition
+            } else if (column.value) {
               const type = column.type?.toLowerCase() || 'string'
               column.condition = type === 'string' ? 'Contains' : 'Equal'
+              columnConditions.value[col.field] = column.condition
               console.log('🟡 [DEFAULT-CONDITION-SET]', col.field, column.condition)
             }
             
