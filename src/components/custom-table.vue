@@ -26,6 +26,9 @@ import 'splitpanes/dist/splitpanes.css'
 
 const slots = useSlots()
 
+// Check if filter-datetime slot is provided
+const hasFilterDatetimeSlot = computed(() => !!slots['filter-datetime'])
+
 interface Props {
   loading?: boolean
   isServerMode?: boolean
@@ -1263,12 +1266,17 @@ onUnmounted(() => {
                         :isOpenFilter="isOpenFilter"
                         :checkAll="selectedAll"
                         :columnFilterLang="props.columnFilterLang"
+                        :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
                         @selectAll="selectAll"
                         @sortChange="sortChange"
                         @filterChange="filterChange"
                         @toggleFilterMenu="toggleFilterMenu"
                         @clearColumnFilter="clearColumnFilter"
-                      />
+                      >
+                        <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                          <slot name="filter-datetime" v-bind="slotProps" />
+                        </template>
+                      </column-header>
                     </thead>
                     <tbody>
                       <template
@@ -1486,11 +1494,16 @@ onUnmounted(() => {
                         :isOpenFilter="isOpenFilter"
                         :isFooter="true"
                         :checkAll="selectedAll"
+                        :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
                         @selectAll="selectAll"
                         @sortChange="sortChange"
                         @filterChange="filterChange"
                         @toggleFilterMenu="toggleFilterMenu"
-                      />
+                      >
+                        <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                          <slot name="filter-datetime" v-bind="slotProps" />
+                        </template>
+                      </column-header>
                     </tfoot>
                   </table>
 
@@ -1565,12 +1578,17 @@ onUnmounted(() => {
                       :isOpenFilter="isOpenFilter"
                       :checkAll="selectedAll"
                       :columnFilterLang="props.columnFilterLang"
+                      :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
                       @selectAll="selectAll"
                       @sortChange="sortChange"
                       @filterChange="filterChange"
                       @toggleFilterMenu="toggleFilterMenu"
                       @clearColumnFilter="clearColumnFilter"
-                    />
+                    >
+                      <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                        <slot name="filter-datetime" v-bind="slotProps" />
+                      </template>
+                    </column-header>
                   </thead>
                   <tbody>
                     <template
@@ -1785,11 +1803,16 @@ onUnmounted(() => {
                       :isOpenFilter="isOpenFilter"
                       :isFooter="true"
                       :checkAll="selectedAll"
+                      :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
                       @selectAll="selectAll"
                       @sortChange="sortChange"
                       @filterChange="filterChange"
                       @toggleFilterMenu="toggleFilterMenu"
-                    />
+                    >
+                      <template v-if="hasFilterDatetimeSlot" #filter-datetime="slotProps">
+                        <slot name="filter-datetime" v-bind="slotProps" />
+                      </template>
+                    </column-header>
                   </tfoot>
                 </table>
 

@@ -25,7 +25,8 @@ const props = defineProps([
   'isOpenFilter',
   'isFooter',
   'checkAll',
-  'columnFilterLang'
+  'columnFilterLang',
+  'hasFilterDatetimeSlot'
 ])
 
 const emit = defineEmits([
@@ -33,7 +34,8 @@ const emit = defineEmits([
   'sortChange',
   'filterChange',
   'toggleFilterMenu',
-  'clearColumnFilter'
+  'clearColumnFilter',
+  'filterDatetimeUpdate'
 ])
 
 // ============================================================================
@@ -376,12 +378,24 @@ const handleClearFilter = (col: any) => {
                 type="number"
                 class="bh-form-control"
               />
-              <input
-                v-else-if="col.type === 'date' || col.type === 'DateTime'"
-                v-model="filterInputs[col.field]"
-                type="date"
-                class="bh-form-control"
-              />
+              <template v-else-if="col.type === 'date' || col.type === 'DateTime'">
+                <slot
+                  v-if="props.hasFilterDatetimeSlot"
+                  name="filter-datetime"
+                  :column="col"
+                  :value="filterInputs[col.field]"
+                  :updateValue="(val: any) => {
+                    filterInputs[col.field] = val
+                    emit('filterDatetimeUpdate', col.field, val)
+                  }"
+                />
+                <input
+                  v-else
+                  v-model="filterInputs[col.field]"
+                  type="date"
+                  class="bh-form-control"
+                />
+              </template>
               <select
                 v-else-if="col.type === 'bool'"
                 v-model="filterInputs[col.field]"
@@ -434,16 +448,29 @@ const handleClearFilter = (col: any) => {
                     hasConditionSet(col) && props.all.useNewColumnFilter
                 }"
               />
-              <input
-                v-else-if="col.type === 'date' || col.type === 'DateTime'"
-                v-model="filterInputs[col.field]"
-                type="date"
-                class="bh-form-control"
-                :class="{
-                  'bh-form-control--with-label':
-                    hasConditionSet(col) && props.all.useNewColumnFilter
-                }"
-              />
+              <template v-else-if="col.type === 'date' || col.type === 'DateTime'">
+                <slot
+                  v-if="props.hasFilterDatetimeSlot"
+                  name="filter-datetime"
+                  :column="col"
+                  :value="filterInputs[col.field]"
+                  :updateValue="(val: any) => {
+                    filterInputs[col.field] = val
+                    emit('filterDatetimeUpdate', col.field, val)
+                  }"
+                  :hasLabel="hasConditionSet(col) && props.all.useNewColumnFilter"
+                />
+                <input
+                  v-else
+                  v-model="filterInputs[col.field]"
+                  type="date"
+                  class="bh-form-control"
+                  :class="{
+                    'bh-form-control--with-label':
+                      hasConditionSet(col) && props.all.useNewColumnFilter
+                  }"
+                />
+              </template>
               <select
                 v-else-if="col.type === 'bool'"
                 v-model="filterInputs[col.field]"
