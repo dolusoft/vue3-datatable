@@ -41,6 +41,15 @@ export const FILTER_CONDITIONS: Record<string, Array<{ value: string; label: str
     { value: 'IsNull', label: 'Is Empty', icon: '∅' },
     { value: 'IsNotNull', label: 'Is Not Empty', icon: '∅̸' },
   ],
+  dateTime: [
+    { value: '', label: 'No Filter', icon: '' },
+    { value: 'Equal', label: 'Equal (=)', icon: '=' },
+    { value: 'NotEqual', label: 'Not Equal (≠)', icon: '≠' },
+    { value: 'GreaterThan', label: 'After (>)', icon: '>' },
+    { value: 'LessThan', label: 'Before (<)', icon: '<' },
+    { value: 'IsNull', label: 'Is Empty', icon: '∅' },
+    { value: 'IsNotNull', label: 'Is Not Empty', icon: '∅̸' },
+  ],
   bool: [
     { value: '', label: 'No Filter', icon: '' },
     { value: 'Equal', label: 'Equal', icon: '=' },
