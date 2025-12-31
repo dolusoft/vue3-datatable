@@ -116,12 +116,15 @@ const setupColumnWatches = () => {
             // Input cleared → clear filter completely
             column.condition = ''
             columnConditions.value[col.field] = ''
+            console.log('🔴 [COLUMN-HEADER] CLEARED:', col.field, { value: column.value, condition: column.condition })
           } else if (!columnConditions.value[col.field]) {
             // No condition selected yet → default to Equal
             column.condition = 'Equal'
             columnConditions.value[col.field] = 'Equal'
+            console.log('🟢 [COLUMN-HEADER] SET DEFAULT:', col.field, { value: column.value, condition: column.condition })
+          } else {
+            console.log('🟡 [COLUMN-HEADER] KEEP EXISTING:', col.field, { value: column.value, condition: column.condition })
           }
-          // If columnConditions has value → user selected condition, keep it (already synced via handleConditionChange)
 
           emit('filterChange')
         },
