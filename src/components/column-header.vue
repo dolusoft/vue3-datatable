@@ -78,14 +78,9 @@ const columnsMap = computed(() => {
 const setupColumnWatches = () => {
   if (!props.all?.columns) return
 
-  // console.log('🔵 [SETUP-WATCHES] Starting setup for', props.all.columns.length, 'columns')
 
   props.all.columns.forEach((col: any) => {
     if (col.filter && col.field && !watchedFields.value.has(col.field)) {
-      // console.log('🔵 [WATCH-INIT]', col.field, {
-      //   initialValue: col.value,
-      //   initialCondition: col.condition
-      // })
 
       // Initialize filterInputs value
       if (filterInputs.value[col.field] === undefined) {
@@ -98,7 +93,7 @@ const setupColumnWatches = () => {
       // Create individual watch for each field with conditional debounce
       // Immediate when cleared, debounced when typing
       let debounceTimer: ReturnType<typeof setTimeout> | null = null
-      
+
       watch(
         () => filterInputs.value[col.field],
         newValue => {
@@ -125,16 +120,13 @@ const setupColumnWatches = () => {
               // Input cleared → clear filter completely
               column.condition = ''
               columnConditions.value[col.field] = ''
-              console.log('🔴 [COLUMN-HEADER] CLEARED:', col.field, { value: column.value, condition: column.condition })
             } else if (!columnConditions.value[col.field]) {
               // No condition selected yet → default to Equal
               column.condition = 'Equal'
               columnConditions.value[col.field] = 'Equal'
-              console.log('🟢 [COLUMN-HEADER] SET DEFAULT:', col.field, { value: column.value, condition: column.condition })
             } else {
               // Apply stored condition from local state (user selected via dropdown)
               column.condition = columnConditions.value[col.field]
-              console.log('🟡 [COLUMN-HEADER] APPLY STORED:', col.field, { value: column.value, condition: column.condition, storedCondition: columnConditions.value[col.field] })
             }
 
             emit('filterChange')
@@ -266,15 +258,13 @@ const getInputPlaceholder = (col: any) => {
 
 // Handle condition change from dropdown
 const handleConditionChange = (field: string, condition: string) => {
-  console.log('🟠 [COLUMN-HEADER] handleConditionChange CALLED:', { field, condition })
   const column = columnsMap.value.get(field)
   if (column) {
     // Update both local state AND column.condition immediately
     columnConditions.value[field] = condition
     column.condition = condition
-    console.log('🟠 [COLUMN-HEADER] handleConditionChange UPDATED:', { 
-      field, 
-      columnCondition: column.condition, 
+      field,
+      columnCondition: column.condition,
       localState: columnConditions.value[field],
       columnValue: column.value
     })

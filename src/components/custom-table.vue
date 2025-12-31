@@ -971,10 +971,6 @@ const changeForServer = (changeType: string, isResetPage = false) => {
 
     // DEBUG: Log columns with filters
     const activeFilters = props.columns.filter(c => c.value || c.condition)
-    console.log('🔵 [CUSTOM-TABLE] changeForServer:', changeType, {
-      activeFilters: activeFilters.map(c => ({ field: c.field, value: c.value, condition: c.condition })),
-      allColumns: props.columns.map(c => ({ field: c.field, value: c.value, condition: c.condition }))
-    })
 
     const res = {
       current_page: isResetPage ? 1 : currentPage.value,

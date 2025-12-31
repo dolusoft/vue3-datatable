@@ -85,7 +85,7 @@ function resetFunc() {
 }
 
 function handleRightPanelClick(rowData: any) {
-  console.log('Sağ panel açılıyor, veri:', rowData)
+  // console.log('Sağ panel açılıyor, veri:', rowData)
   alert('Sağ panel için satır verisi: ' + JSON.stringify(rowData))
 }
 </script>
