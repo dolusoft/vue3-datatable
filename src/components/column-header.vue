@@ -101,54 +101,29 @@ const setupColumnWatches = () => {
         () => filterInputs.value[col.field],
         newValue => {
           const column = columnsMap.value.get(col.field)
+          if (!column) return
 
-          // Get condition from local state first, then column
-          const currentCondition =
-            columnConditions.value[col.field] || column?.condition
+          const isEmpty = newValue === '' || newValue === null || newValue === undefined
 
-          // console.log('🔴 [DEBOUNCE-FIRED]', {
-          //   field: col.field,
-          //   newValue,
-          //   columnConditionFromState: columnConditions.value[col.field],
-          //   columnConditionFromMap: column?.condition,
-          //   resolvedCondition: currentCondition
-          // })
-
-          if (column) {
-            // Trim only string values
-            if (column.type === 'string' || column.type === 'String') {
-              column.value =
-                typeof newValue === 'string' ? newValue.trim() : newValue
-            } else {
-              column.value = newValue
-            }
-
-            // Check if value is empty/cleared
-            const isEmpty = newValue === '' || newValue === null || newValue === undefined
-
-            if (isEmpty) {
-              // Clear condition when input is cleared
-              column.condition = ''
-              columnConditions.value[col.field] = ''
-              // console.log('🟠 [CONDITION-CLEARED]', col.field)
-            } else if (currentCondition) {
-              // Use condition from local state
-              column.condition = currentCondition
-            } else {
-              // Default to 'Equal' for all types when user types without selecting condition
-              column.condition = 'Equal'
-              columnConditions.value[col.field] = column.condition
-              // console.log('🟡 [DEFAULT-CONDITION-SET]', col.field, column.condition)
-            }
-
-            // console.log('🟢 [AFTER-MUTATION]', {
-            //   field: col.field,
-            //   valueAfter: column.value,
-            //   conditionAfter: column.condition
-            // })
-
-            emit('filterChange')
+          // Set value (trim strings)
+          if (column.type === 'string' || column.type === 'String') {
+            column.value = isEmpty ? '' : (typeof newValue === 'string' ? newValue.trim() : newValue)
+          } else {
+            column.value = isEmpty ? '' : newValue
           }
+
+          if (isEmpty) {
+            // Input cleared → clear filter completely
+            column.condition = ''
+            columnConditions.value[col.field] = ''
+          } else if (!columnConditions.value[col.field]) {
+            // No condition selected yet → default to Equal
+            column.condition = 'Equal'
+            columnConditions.value[col.field] = 'Equal'
+          }
+          // If columnConditions has value → user selected condition, keep it (already synced via handleConditionChange)
+
+          emit('filterChange')
         },
         { debounce: 300 }
       )
