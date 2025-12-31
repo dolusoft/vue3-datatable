@@ -78,10 +78,8 @@ const columnsMap = computed(() => {
 const setupColumnWatches = () => {
   if (!props.all?.columns) return
 
-
   props.all.columns.forEach((col: any) => {
     if (col.filter && col.field && !watchedFields.value.has(col.field)) {
-
       // Initialize filterInputs value
       if (filterInputs.value[col.field] === undefined) {
         filterInputs.value[col.field] = col.value || ''
@@ -100,7 +98,8 @@ const setupColumnWatches = () => {
           const column = columnsMap.value.get(col.field)
           if (!column) return
 
-          const isEmpty = newValue === '' || newValue === null || newValue === undefined
+          const isEmpty =
+            newValue === '' || newValue === null || newValue === undefined
 
           // Clear any pending debounce
           if (debounceTimer) {
@@ -111,7 +110,11 @@ const setupColumnWatches = () => {
           const processChange = () => {
             // Set value (trim strings)
             if (column.type === 'string' || column.type === 'String') {
-              column.value = isEmpty ? '' : (typeof newValue === 'string' ? newValue.trim() : newValue)
+              column.value = isEmpty
+                ? ''
+                : typeof newValue === 'string'
+                ? newValue.trim()
+                : newValue
             } else {
               column.value = isEmpty ? '' : newValue
             }
@@ -263,11 +266,7 @@ const handleConditionChange = (field: string, condition: string) => {
     // Update both local state AND column.condition immediately
     columnConditions.value[field] = condition
     column.condition = condition
-      field,
-      columnCondition: column.condition,
-      localState: columnConditions.value[field],
-      columnValue: column.value
-    })
+
     emit('filterChange')
   }
 }
