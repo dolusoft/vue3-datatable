@@ -132,7 +132,9 @@ const setupColumnWatches = () => {
               columnConditions.value[col.field] = 'Equal'
               console.log('🟢 [COLUMN-HEADER] SET DEFAULT:', col.field, { value: column.value, condition: column.condition })
             } else {
-              console.log('🟡 [COLUMN-HEADER] KEEP EXISTING:', col.field, { value: column.value, condition: column.condition })
+              // Apply stored condition from local state (user selected via dropdown)
+              column.condition = columnConditions.value[col.field]
+              console.log('🟡 [COLUMN-HEADER] APPLY STORED:', col.field, { value: column.value, condition: column.condition, storedCondition: columnConditions.value[col.field] })
             }
 
             emit('filterChange')
@@ -264,16 +266,18 @@ const getInputPlaceholder = (col: any) => {
 
 // Handle condition change from dropdown
 const handleConditionChange = (field: string, condition: string) => {
-  // console.log('🟠 [CONDITION-CHANGE]', { field, condition })
+  console.log('🟠 [COLUMN-HEADER] handleConditionChange CALLED:', { field, condition })
   const column = columnsMap.value.get(field)
   if (column) {
-    column.condition = condition
+    // Update both local state AND column.condition immediately
     columnConditions.value[field] = condition
-    // console.log('🟠 [CONDITION-UPDATED]', {
-    //   field,
-    //   newCondition: column.condition,
-    //   columnValue: column.value
-    // })
+    column.condition = condition
+    console.log('🟠 [COLUMN-HEADER] handleConditionChange UPDATED:', { 
+      field, 
+      columnCondition: column.condition, 
+      localState: columnConditions.value[field],
+      columnValue: column.value
+    })
     emit('filterChange')
   }
 }
