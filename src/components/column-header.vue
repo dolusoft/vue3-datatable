@@ -123,10 +123,18 @@ const setupColumnWatches = () => {
               column.value = newValue
             }
 
-            // Use condition from local state, or set default if not set
-            if (currentCondition) {
+            // Check if value is empty/cleared
+            const isEmpty = newValue === '' || newValue === null || newValue === undefined
+
+            if (isEmpty) {
+              // Clear condition when input is cleared
+              column.condition = ''
+              columnConditions.value[col.field] = ''
+              // console.log('🟠 [CONDITION-CLEARED]', col.field)
+            } else if (currentCondition) {
+              // Use condition from local state
               column.condition = currentCondition
-            } else if (column.value) {
+            } else {
               // Default to 'Equal' for all types when user types without selecting condition
               column.condition = 'Equal'
               columnConditions.value[col.field] = column.condition
