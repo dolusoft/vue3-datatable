@@ -1363,6 +1363,10 @@ onUnmounted(() => {
                               'bh-sticky bh-left-0 bh-bg-blue-light':
                                 props.stickyFirstColumn
                             }"
+                            style="
+                              align-items: center !important;
+                              justify-content: center !important;
+                            "
                           >
                             <ButtonRightPanel
                               :item="item"
