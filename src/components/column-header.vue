@@ -5,7 +5,6 @@ export default {
 </script>
 <script setup lang="ts">
 import { watch, ref, onMounted, computed } from 'vue'
-import { watchDebounced } from '@vueuse/core'
 
 import ButtonExpand from './button-expand.vue'
 import columnFilter from './column-filter.vue'
@@ -96,8 +95,11 @@ const setupColumnWatches = () => {
       // Mark as watched
       watchedFields.value.add(col.field)
 
-      // Create individual watch for each field
-      watchDebounced(
+      // Create individual watch for each field with conditional debounce
+      // Immediate when cleared, debounced when typing
+      let debounceTimer: ReturnType<typeof setTimeout> | null = null
+      
+      watch(
         () => filterInputs.value[col.field],
         newValue => {
           const column = columnsMap.value.get(col.field)
@@ -105,30 +107,45 @@ const setupColumnWatches = () => {
 
           const isEmpty = newValue === '' || newValue === null || newValue === undefined
 
-          // Set value (trim strings)
-          if (column.type === 'string' || column.type === 'String') {
-            column.value = isEmpty ? '' : (typeof newValue === 'string' ? newValue.trim() : newValue)
-          } else {
-            column.value = isEmpty ? '' : newValue
+          // Clear any pending debounce
+          if (debounceTimer) {
+            clearTimeout(debounceTimer)
+            debounceTimer = null
+          }
+
+          const processChange = () => {
+            // Set value (trim strings)
+            if (column.type === 'string' || column.type === 'String') {
+              column.value = isEmpty ? '' : (typeof newValue === 'string' ? newValue.trim() : newValue)
+            } else {
+              column.value = isEmpty ? '' : newValue
+            }
+
+            if (isEmpty) {
+              // Input cleared → clear filter completely
+              column.condition = ''
+              columnConditions.value[col.field] = ''
+              console.log('🔴 [COLUMN-HEADER] CLEARED:', col.field, { value: column.value, condition: column.condition })
+            } else if (!columnConditions.value[col.field]) {
+              // No condition selected yet → default to Equal
+              column.condition = 'Equal'
+              columnConditions.value[col.field] = 'Equal'
+              console.log('🟢 [COLUMN-HEADER] SET DEFAULT:', col.field, { value: column.value, condition: column.condition })
+            } else {
+              console.log('🟡 [COLUMN-HEADER] KEEP EXISTING:', col.field, { value: column.value, condition: column.condition })
+            }
+
+            emit('filterChange')
           }
 
           if (isEmpty) {
-            // Input cleared → clear filter completely
-            column.condition = ''
-            columnConditions.value[col.field] = ''
-            console.log('🔴 [COLUMN-HEADER] CLEARED:', col.field, { value: column.value, condition: column.condition })
-          } else if (!columnConditions.value[col.field]) {
-            // No condition selected yet → default to Equal
-            column.condition = 'Equal'
-            columnConditions.value[col.field] = 'Equal'
-            console.log('🟢 [COLUMN-HEADER] SET DEFAULT:', col.field, { value: column.value, condition: column.condition })
+            // Immediate execution when cleared
+            processChange()
           } else {
-            console.log('🟡 [COLUMN-HEADER] KEEP EXISTING:', col.field, { value: column.value, condition: column.condition })
+            // Debounced execution when typing
+            debounceTimer = setTimeout(processChange, 300)
           }
-
-          emit('filterChange')
-        },
-        { debounce: 300 }
+        }
       )
     }
   })
