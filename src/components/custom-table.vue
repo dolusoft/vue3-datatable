@@ -202,6 +202,9 @@ const oldColumns = JSON.parse(JSON.stringify(props.columns))
 
 const isOpenFilter: any = ref(null)
 
+// Trigger for external filter updates (used by setColumnFilter)
+const filterUpdateTrigger = ref(0)
+
 // row click
 const timer: any = ref(null)
 let clickCount: Ref<number> = ref(0)
@@ -712,6 +715,8 @@ defineExpose({
       column.value = value
       // Set condition: use provided or default to Equal
       column.condition = condition || 'Equal'
+      // Trigger UI update in column-header
+      filterUpdateTrigger.value++
       updateHasAnyActiveFilter()
       if (triggerFilter) {
         filterChange()
@@ -1347,6 +1352,7 @@ onUnmounted(() => {
                         :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
                         :showClearAllButton="props.showClearAllButton"
                         :hasAnyActiveFilter="hasAnyActiveFilter"
+                        :filterUpdateTrigger="filterUpdateTrigger"
                         @selectAll="selectAll"
                         @sortChange="sortChange"
                         @filterChange="filterChange"
@@ -1672,6 +1678,7 @@ onUnmounted(() => {
                       :hasFilterDatetimeSlot="hasFilterDatetimeSlot"
                       :showClearAllButton="props.showClearAllButton"
                       :hasAnyActiveFilter="hasAnyActiveFilter"
+                      :filterUpdateTrigger="filterUpdateTrigger"
                       @selectAll="selectAll"
                       @sortChange="sortChange"
                       @filterChange="filterChange"

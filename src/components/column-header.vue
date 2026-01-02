@@ -27,7 +27,8 @@ const props = defineProps([
   'columnFilterLang',
   'hasFilterDatetimeSlot',
   'showClearAllButton',
-  'hasAnyActiveFilter'
+  'hasAnyActiveFilter',
+  'filterUpdateTrigger'
 ])
 
 const emit = defineEmits([
@@ -232,6 +233,29 @@ watch(
     })
   },
   { deep: true, immediate: true }
+)
+
+// Watch filterUpdateTrigger for external updates (setColumnFilter)
+watch(
+  () => props.filterUpdateTrigger,
+  () => {
+    if (!props.all?.columns) return
+    // Force sync all columns from props
+    props.all.columns.forEach((col: any) => {
+      if (col.field) {
+        const colValue = col.value ?? ''
+        const hasValue = colValue !== '' && colValue !== null && colValue !== undefined
+        
+        // Always sync value
+        filterInputs.value[col.field] = colValue
+        
+        // Sync condition only if has value
+        if (hasValue && col.condition) {
+          columnConditions.value[col.field] = col.condition
+        }
+      }
+    })
+  }
 )
 
 onMounted(() => {
