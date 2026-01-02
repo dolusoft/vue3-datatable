@@ -693,7 +693,7 @@ defineExpose({
    * Set column filter value and optionally trigger filter
    * @param field - Column field name
    * @param value - Filter value
-   * @param condition - Filter condition (default: column's default condition)
+   * @param condition - Filter condition (default: column type's default)
    * @param triggerFilter - Whether to trigger filterChange event (default: false)
    */
   setColumnFilter(
@@ -705,8 +705,13 @@ defineExpose({
     const column = props.columns.find(col => col.field === field)
     if (column) {
       column.value = value
+      // Set condition: use provided or default based on column type
       if (condition) {
         column.condition = condition
+      } else {
+        // Default condition based on type
+        const type = column.type?.toLowerCase() || 'string'
+        column.condition = type === 'string' ? 'Contains' : 'Equal'
       }
       updateHasAnyActiveFilter()
       if (triggerFilter) {

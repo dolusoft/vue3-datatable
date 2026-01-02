@@ -209,18 +209,24 @@ watch(
     if (!newValues) return
     newValues.forEach((colState: any) => {
       if (colState.field) {
+        const currentInputValue = filterInputs.value[colState.field] ?? ''
+        const newInputValue = colState.value ?? ''
+        
         // Sync filterInputs if value changed externally
-        if (filterInputs.value[colState.field] !== colState.value) {
-          filterInputs.value[colState.field] = colState.value || ''
+        if (String(currentInputValue) !== String(newInputValue)) {
+          filterInputs.value[colState.field] = newInputValue
         }
-        // Sync columnConditions if condition changed externally
-        if (colState.condition && columnConditions.value[colState.field] !== colState.condition) {
-          columnConditions.value[colState.field] = colState.condition
+        // Sync columnConditions if condition exists and changed
+        if (colState.condition) {
+          const currentCondition = columnConditions.value[colState.field] ?? ''
+          if (currentCondition !== colState.condition) {
+            columnConditions.value[colState.field] = colState.condition
+          }
         }
       }
     })
   },
-  { deep: true }
+  { deep: true, immediate: true }
 )
 
 onMounted(() => {
