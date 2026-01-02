@@ -627,8 +627,29 @@ const emit = defineEmits([
   'currentTopMenuSize',
   'currentLeftMenuSize',
   'rowRightPanelClick',
-  'clearAllFilters'
+  'clearAllFilters',
+  'cellContextMenu'
 ])
+
+// Cell context menu handler
+const handleCellContextMenu = (
+  event: MouseEvent,
+  row: any,
+  column: ColumnDefinition,
+  value: any,
+  rowIndex: number,
+  columnIndex: number
+) => {
+  event.preventDefault()
+  emit('cellContextMenu', {
+    event,
+    row,
+    column,
+    value,
+    rowIndex,
+    columnIndex
+  })
+}
 
 defineExpose({
   reset() {
@@ -1408,6 +1429,7 @@ onUnmounted(() => {
                                   : '',
                                 col.cellClass ? col.cellClass : ''
                               ]"
+                              @contextmenu="handleCellContextMenu($event, item, col, cellValue(item, col.field), i, j)"
                             >
                               <template v-if="slots[col.field]">
                                 <slot :name="col.field" :value="item"></slot>
@@ -1727,6 +1749,7 @@ onUnmounted(() => {
                                 : '',
                               col.cellClass ? col.cellClass : ''
                             ]"
+                            @contextmenu="handleCellContextMenu($event, item, col, cellValue(item, col.field), i, j)"
                           >
                             <template v-if="slots[col.field]">
                               <slot :name="col.field" :value="item"></slot>
