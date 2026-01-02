@@ -2222,4 +2222,50 @@ onUnmounted(() => {
   border-color: var(--primary, #3b82f6);
   color: var(--primary, #3b82f6);
 }
+
+/* Tooltip styles */
+.has-tooltip {
+  position: relative;
+}
+
+.has-tooltip::before,
+.has-tooltip::after {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 9999;
+}
+
+.has-tooltip::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.has-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.has-tooltip:hover::before,
+.has-tooltip:hover::after {
+  visibility: visible;
+  opacity: 1;
+}
 </style>

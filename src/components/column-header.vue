@@ -13,6 +13,7 @@ import iconCheck from './icon-check.vue'
 import iconDash from './icon-dash.vue'
 import iconFilter from './icon-filter.vue'
 import { FILTER_CONDITIONS } from '../model/filter-conditions'
+import vTooltip from '../directives/tooltip'
 
 const selectedAll: any = ref(null)
 
@@ -385,7 +386,7 @@ const handleClearFilter = (col: any) => {
             }"
             :disabled="!hasAnyActiveFilterLocal"
             @click.stop="handleClearAllFilters"
-            title="Clear all filters"
+            v-tooltip="'Clear all filters'"
           >
             <svg
               width="14"
@@ -436,7 +437,7 @@ const handleClearFilter = (col: any) => {
             }"
             :disabled="!hasAnyActiveFilterLocal"
             @click.stop="handleClearAllFilters"
-            title="Clear all filters"
+            v-tooltip="'Clear all filters'"
           >
             <svg
               width="14"
@@ -487,7 +488,7 @@ const handleClearFilter = (col: any) => {
               }"
               :disabled="!hasAnyActiveFilterLocal"
               @click.stop="handleClearAllFilters"
-              title="Clear all filters"
+              v-tooltip="'Clear all filters'"
             >
               <svg
                 width="14"
