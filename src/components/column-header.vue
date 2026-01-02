@@ -211,17 +211,22 @@ watch(
       if (colState.field) {
         const currentInputValue = filterInputs.value[colState.field] ?? ''
         const newInputValue = colState.value ?? ''
+        const hasValue = newInputValue !== '' && newInputValue !== null && newInputValue !== undefined
         
         // Sync filterInputs if value changed externally
         if (String(currentInputValue) !== String(newInputValue)) {
           filterInputs.value[colState.field] = newInputValue
         }
-        // Sync columnConditions if condition exists and changed
-        if (colState.condition) {
+        
+        // Only sync condition if there's a value AND condition exists
+        if (hasValue && colState.condition) {
           const currentCondition = columnConditions.value[colState.field] ?? ''
           if (currentCondition !== colState.condition) {
             columnConditions.value[colState.field] = colState.condition
           }
+        } else if (!hasValue) {
+          // Clear condition when value is empty
+          columnConditions.value[colState.field] = ''
         }
       }
     })

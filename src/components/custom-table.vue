@@ -175,7 +175,12 @@ for (const item of props.columns || []) {
   item.search = item.search !== undefined ? item.search : true
   item.sort = item.sort !== undefined ? item.sort : true
   item.html = item.html !== undefined ? item.html : false
-  item.condition = !type || type === 'string' ? 'Contains' : 'Equal'
+  // Only set condition if value exists, otherwise leave empty
+  if (item.value !== undefined && item.value !== null && item.value !== '') {
+    item.condition = item.condition || 'Equal'
+  } else {
+    item.condition = ''
+  }
 }
 
 const filterItems: Ref<Array<any>> = ref([])
@@ -693,7 +698,7 @@ defineExpose({
    * Set column filter value and optionally trigger filter
    * @param field - Column field name
    * @param value - Filter value
-   * @param condition - Filter condition (default: column type's default)
+   * @param condition - Filter condition (default: Equal)
    * @param triggerFilter - Whether to trigger filterChange event (default: false)
    */
   setColumnFilter(
@@ -705,14 +710,8 @@ defineExpose({
     const column = props.columns.find(col => col.field === field)
     if (column) {
       column.value = value
-      // Set condition: use provided or default based on column type
-      if (condition) {
-        column.condition = condition
-      } else {
-        // Default condition based on type
-        const type = column.type?.toLowerCase() || 'string'
-        column.condition = type === 'string' ? 'Contains' : 'Equal'
-      }
+      // Set condition: use provided or default to Equal
+      column.condition = condition || 'Equal'
       updateHasAnyActiveFilter()
       if (triggerFilter) {
         filterChange()
