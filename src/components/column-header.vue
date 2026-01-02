@@ -202,6 +202,27 @@ watch(
   { immediate: true, deep: true }
 )
 
+// Watch for external column value changes (e.g., from setColumnFilter)
+watch(
+  () => props.all?.columns?.map((col: any) => ({ field: col.field, value: col.value, condition: col.condition })),
+  (newValues) => {
+    if (!newValues) return
+    newValues.forEach((colState: any) => {
+      if (colState.field) {
+        // Sync filterInputs if value changed externally
+        if (filterInputs.value[colState.field] !== colState.value) {
+          filterInputs.value[colState.field] = colState.value || ''
+        }
+        // Sync columnConditions if condition changed externally
+        if (colState.condition && columnConditions.value[colState.field] !== colState.condition) {
+          columnConditions.value[colState.field] = colState.condition
+        }
+      }
+    })
+  },
+  { deep: true }
+)
+
 onMounted(() => {
   // Setup watches on mount as well (in case columns are already available)
   setupColumnWatches()
