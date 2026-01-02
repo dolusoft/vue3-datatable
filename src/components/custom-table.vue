@@ -688,6 +688,32 @@ defineExpose({
   },
   clearAllFilters() {
     clearAllFilters()
+  },
+  /**
+   * Set column filter value and optionally trigger filter
+   * @param field - Column field name
+   * @param value - Filter value
+   * @param condition - Filter condition (default: column's default condition)
+   * @param triggerFilter - Whether to trigger filterChange event (default: false)
+   */
+  setColumnFilter(
+    field: string,
+    value: string,
+    condition?: string,
+    triggerFilter: boolean = false
+  ) {
+    const column = props.columns.find(col => col.field === field)
+    if (column) {
+      column.value = value
+      if (condition) {
+        column.condition = condition
+      }
+      updateHasAnyActiveFilter()
+      if (triggerFilter) {
+        filterChange()
+      }
+    }
+    return !!column
   }
 })
 
