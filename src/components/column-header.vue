@@ -377,7 +377,7 @@ const handleClearFilter = (col: any) => {
         "
       >
         <div class="bh-filter bh-flex bh-justify-center">
-          <VTooltip>
+          <VTooltip placement="top" :distance="6">
             <button
               v-if="props.showClearAllButton"
               type="button"
@@ -430,32 +430,32 @@ const handleClearFilter = (col: any) => {
         "
       >
         <div class="bh-filter bh-flex bh-justify-center">
-          <VTooltip>
-            <button
-              v-if="props.showClearAllButton"
-              type="button"
-              class="bh-clear-all-button"
-              :class="{
-                'bh-clear-all-button--active': hasAnyActiveFilterLocal
-              }"
-              :disabled="!hasAnyActiveFilterLocal"
-              @click.stop="handleClearAllFilters"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+          <VTooltip placement="top" :distance="6">
+              <button
+                v-if="props.showClearAllButton"
+                type="button"
+                class="bh-clear-all-button"
+                :class="{
+                  'bh-clear-all-button--active': hasAnyActiveFilterLocal
+                }"
+                :disabled="!hasAnyActiveFilterLocal"
+                @click.stop="handleClearAllFilters"
               >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-            <template #popper>Clear all filters</template>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+              <template #popper>Clear all filters</template>
           </VTooltip>
         </div>
       </template>
@@ -483,7 +483,7 @@ const handleClearFilter = (col: any) => {
           "
         >
           <div class="bh-filter bh-flex bh-justify-center">
-            <VTooltip>
+            <VTooltip placement="top" :distance="6">
               <button
                 v-if="props.showClearAllButton"
                 type="button"
