@@ -63,6 +63,12 @@ const columnConditions = ref<Record<string, string>>({})
 // Track which fields have watches set up
 const watchedFields = ref<Set<string>>(new Set())
 
+// Store debounce timers by field for flush capability
+const debounceTimers = new Map<string, ReturnType<typeof setTimeout> | null>()
+
+// Store processChange functions by field for flush capability
+const processChangeFunctions = new Map<string, () => void>()
+
 // Create column Map for O(1) lookup
 const columnsMap = computed(() => {
   const map = new Map()
@@ -90,9 +96,8 @@ const setupColumnWatches = () => {
       // Mark as watched
       watchedFields.value.add(col.field)
 
-      // Create individual watch for each field with conditional debounce
-      // Immediate when cleared, debounced when typing
-      let debounceTimer: ReturnType<typeof setTimeout> | null = null
+      // Initialize debounce timer for this field
+      debounceTimers.set(col.field, null)
 
       watch(
         () => filterInputs.value[col.field],
@@ -104,12 +109,16 @@ const setupColumnWatches = () => {
             newValue === '' || newValue === null || newValue === undefined
 
           // Clear any pending debounce
-          if (debounceTimer) {
-            clearTimeout(debounceTimer)
-            debounceTimer = null
+          const existingTimer = debounceTimers.get(col.field)
+          if (existingTimer) {
+            clearTimeout(existingTimer)
+            debounceTimers.set(col.field, null)
           }
 
           const processChange = () => {
+            // Clear timer reference after execution
+            debounceTimers.set(col.field, null)
+
             // Set value (trim strings)
             if (column.type === 'string' || column.type === 'String') {
               column.value = isEmpty
@@ -137,17 +146,62 @@ const setupColumnWatches = () => {
             emit('filterChange')
           }
 
+          // Store processChange function for flush capability
+          processChangeFunctions.set(col.field, processChange)
+
           if (isEmpty) {
             // Immediate execution when cleared
             processChange()
           } else {
-            // Debounced execution when typing
-            debounceTimer = setTimeout(processChange, 300)
+            // Debounced execution when typing (100ms for responsive UX)
+            debounceTimers.set(col.field, setTimeout(processChange, 100))
           }
         }
       )
     }
   })
+}
+
+/**
+ * Flush pending debounce for a specific field
+ * Called when Enter is pressed to immediately process the filter
+ */
+const flushFilterDebounce = (field: string) => {
+  const timer = debounceTimers.get(field)
+  if (timer) {
+    clearTimeout(timer)
+    debounceTimers.set(field, null)
+
+    const processChange = processChangeFunctions.get(field)
+    if (processChange) {
+      processChange()
+    }
+  }
+}
+
+/**
+ * Flush all pending debounces
+ * Useful when search is triggered externally
+ */
+const flushAllFilterDebounces = () => {
+  debounceTimers.forEach((timer, field) => {
+    if (timer) {
+      clearTimeout(timer)
+      debounceTimers.set(field, null)
+
+      const processChange = processChangeFunctions.get(field)
+      if (processChange) {
+        processChange()
+      }
+    }
+  })
+}
+
+/**
+ * Handle Enter key on filter input - flush debounce immediately
+ */
+const handleFilterEnter = (field: string) => {
+  flushFilterDebounce(field)
 }
 
 // Handle clear all filters
@@ -340,6 +394,12 @@ const handleClearFilter = (col: any) => {
   }
   emit('filterChange')
 }
+
+// Expose methods to parent component
+defineExpose({
+  flushFilterDebounce,
+  flushAllFilterDebounces
+})
 </script>
 <template>
   <tr key="hdrrow">
@@ -583,6 +643,7 @@ const handleClearFilter = (col: any) => {
                 v-model="filterInputs[col.field]"
                 type="text"
                 class="bh-form-control"
+                @keydown.enter="handleFilterEnter(col.field)"
               />
               <input
                 v-if="
@@ -593,6 +654,7 @@ const handleClearFilter = (col: any) => {
                 v-model.number="filterInputs[col.field]"
                 type="number"
                 class="bh-form-control"
+                @keydown.enter="handleFilterEnter(col.field)"
               />
               <template
                 v-else-if="col.type === 'date' || col.type === 'DateTime'"
@@ -606,12 +668,14 @@ const handleClearFilter = (col: any) => {
                     filterInputs[col.field] = val
                     emit('filterDatetimeUpdate', col.field, val)
                   }"
+                  :onEnter="() => handleFilterEnter(col.field)"
                 />
                 <input
                   v-else
                   v-model="filterInputs[col.field]"
                   type="date"
                   class="bh-form-control"
+                  @keydown.enter="handleFilterEnter(col.field)"
                 />
               </template>
               <select
@@ -619,6 +683,7 @@ const handleClearFilter = (col: any) => {
                 v-model="filterInputs[col.field]"
                 class="bh-form-control"
                 @click="props.isOpenFilter"
+                @keydown.enter="handleFilterEnter(col.field)"
               >
                 <option :value="undefined">All</option>
                 <option :value="true">True</option>
@@ -651,6 +716,7 @@ const handleClearFilter = (col: any) => {
                   'bh-form-control--with-label':
                     hasConditionSet(col) && props.all.useNewColumnFilter
                 }"
+                @keydown.enter="handleFilterEnter(col.field)"
               />
               <input
                 v-if="
@@ -665,6 +731,7 @@ const handleClearFilter = (col: any) => {
                   'bh-form-control--with-label':
                     hasConditionSet(col) && props.all.useNewColumnFilter
                 }"
+                @keydown.enter="handleFilterEnter(col.field)"
               />
               <template
                 v-else-if="col.type === 'date' || col.type === 'DateTime'"
@@ -681,6 +748,7 @@ const handleClearFilter = (col: any) => {
                   :hasLabel="
                     hasConditionSet(col) && props.all.useNewColumnFilter
                   "
+                  :onEnter="() => handleFilterEnter(col.field)"
                 />
                 <input
                   v-else
@@ -691,6 +759,7 @@ const handleClearFilter = (col: any) => {
                     'bh-form-control--with-label':
                       hasConditionSet(col) && props.all.useNewColumnFilter
                   }"
+                  @keydown.enter="handleFilterEnter(col.field)"
                 />
               </template>
               <select
@@ -698,6 +767,7 @@ const handleClearFilter = (col: any) => {
                 v-model="filterInputs[col.field]"
                 class="bh-form-control"
                 @click="props.isOpenFilter"
+                @keydown.enter="handleFilterEnter(col.field)"
               >
                 <option :value="undefined">All</option>
                 <option :value="true">True</option>

@@ -255,6 +255,9 @@ const uniqueKey = computed(() => {
 // Check if any column has active filter
 const hasAnyActiveFilter = ref(false)
 
+// Ref for column-header component to access flush methods
+const columnHeaderRef = ref<InstanceType<typeof columnHeader> | null>(null)
+
 const updateHasAnyActiveFilter = () => {
   hasAnyActiveFilter.value = props.columns.some((col: any) => {
     return col.value !== undefined && col.value !== null && col.value !== ''
@@ -723,6 +726,14 @@ defineExpose({
       }
     }
     return !!column
+  },
+  /**
+   * Flush all pending filter debounces
+   * Call this before getColumnFilters() when Enter is pressed
+   * to ensure all filter values are immediately processed
+   */
+  flushAllFilterDebounces() {
+    columnHeaderRef.value?.flushAllFilterDebounces?.()
   }
 })
 
@@ -1342,6 +1353,7 @@ onUnmounted(() => {
                       }"
                     >
                       <column-header
+                        ref="columnHeaderRef"
                         :all="props"
                         :expandedrows="expandedrows"
                         :currentSortColumn="currentSortColumn"
