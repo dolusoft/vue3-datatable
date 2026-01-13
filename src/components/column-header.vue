@@ -153,8 +153,9 @@ const setupColumnWatches = () => {
             // Immediate execution when cleared
             processChange()
           } else {
-            // Debounced execution when typing (100ms for responsive UX)
-            debounceTimers.set(col.field, setTimeout(processChange, 100))
+            // Debounced execution when typing (configurable, default 100ms)
+            const debounceTime = props.all?.filterDebounce ?? 100
+            debounceTimers.set(col.field, setTimeout(processChange, debounceTime))
           }
         }
       )

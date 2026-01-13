@@ -59,6 +59,7 @@ interface Props {
   sortDirection?: string
   columnFilter?: boolean
   columnFilterLang?: Record<string, string> | null
+  filterDebounce?: number // Debounce time for filter inputs in ms (default: 100)
   useNewColumnFilter?: boolean // Enable new DataTables-style filter with MUI X labels
   showFloatingFilterLabel?: boolean // Show floating label on filter input border (requires useNewColumnFilter)
   pagination?: boolean
@@ -131,6 +132,7 @@ const props = withDefaults(defineProps<Props>(), {
   sortDirection: 'asc',
   columnFilter: false,
   columnFilterLang: null,
+  filterDebounce: 100,
   useNewColumnFilter: false,
   showFloatingFilterLabel: false,
   pagination: true,
