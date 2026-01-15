@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, onUpdated, computed } from 'vue'
-import { Tooltip as VTooltip } from 'floating-vue'
 
 const props = defineProps<{
   value: any
@@ -59,43 +58,7 @@ const cellStyle = computed(() => {
 </script>
 
 <template>
-  <VTooltip
-    v-if="shouldShowTooltip"
-    placement="top"
-    :distance="6"
-    :delay="{ show: 300, hide: 100 }"
-  >
-    <div
-      ref="cellRef"
-      class="bh-truncate-cell"
-      :class="{
-        'bh-truncate-single': truncateLines === 1,
-        'bh-truncate-multi': truncateLines > 1
-      }"
-      :style="cellStyle"
-    >
-      <template v-if="html">
-        <span v-html="value"></span>
-      </template>
-      <template v-else>
-        {{ value }}
-      </template>
-    </div>
-    <template #popper>
-      <div class="bh-tooltip-content">
-        <template v-if="html">
-          <span v-html="tooltipContent"></span>
-        </template>
-        <template v-else>
-          {{ tooltipContent }}
-        </template>
-      </div>
-    </template>
-  </VTooltip>
-
-  <!-- No tooltip needed - content fits or tooltip disabled -->
   <div
-    v-else
     ref="cellRef"
     class="bh-truncate-cell"
     :class="{
@@ -103,6 +66,7 @@ const cellStyle = computed(() => {
       'bh-truncate-multi': truncate && truncateLines > 1
     }"
     :style="cellStyle"
+    :data-tooltip="shouldShowTooltip ? tooltipContent : null"
   >
     <template v-if="html">
       <span v-html="value"></span>
