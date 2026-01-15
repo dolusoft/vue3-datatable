@@ -188,8 +188,8 @@ for (const item of props.columns || []) {
   item.html = item.html !== undefined ? item.html : false
   // Truncate defaults
   item.truncate = item.truncate !== undefined ? item.truncate : props.truncate
-  item.maxWidth = item.maxWidth !== undefined ? item.maxWidth : props.defaultMaxWidth
-  item.truncateLines = item.truncateLines !== undefined ? item.truncateLines : props.truncateLines
+  item.maxWidth = item.maxWidth || props.defaultMaxWidth
+  item.truncateLines = item.truncateLines || props.truncateLines
   item.showTooltip = item.showTooltip !== undefined ? item.showTooltip : true
   // Only set condition if value exists, otherwise leave empty
   if (item.value !== undefined && item.value !== null && item.value !== '') {
