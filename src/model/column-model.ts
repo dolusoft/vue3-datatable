@@ -17,6 +17,10 @@ export interface ColumnDefinition {
   cellRenderer?: [Function, string]
   headerClass?: string
   cellClass?: string
+  // Truncate options
+  truncate?: boolean // Enable text truncation with ellipsis (default: true)
+  truncateLines?: number // Number of lines to show before truncating (default: 1)
+  showTooltip?: boolean // Show tooltip on hover for truncated content (default: true)
 }
 
 export interface FilterCondition {
