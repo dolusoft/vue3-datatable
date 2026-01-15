@@ -20,6 +20,7 @@ export interface ColumnDefinition {
   // Truncate options
   truncate?: boolean // Enable text truncation with ellipsis (default: true)
   truncateLines?: number // Number of lines to show before truncating (default: 1)
+  truncateMaxLength?: number // Max character length before truncating (default: 150)
   showTooltip?: boolean // Show tooltip on hover for truncated content (default: true)
 }
 

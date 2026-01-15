@@ -104,6 +104,7 @@ interface Props {
   truncate?: boolean // Enable text truncation globally (default: true)
   defaultMaxWidth?: string // Default max-width for truncated cells (default: '400px')
   truncateLines?: number // Default number of lines before truncating (default: 1)
+  truncateMaxLength?: number // Default max character length before truncating (default: 150)
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -172,7 +173,8 @@ const props = withDefaults(defineProps<Props>(), {
   // Truncate defaults
   truncate: true,
   defaultMaxWidth: '400px',
-  truncateLines: 1
+  truncateLines: 1,
+  truncateMaxLength: 150
 })
 
 // set default columns values
@@ -190,6 +192,7 @@ for (const item of props.columns || []) {
   item.truncate = item.truncate !== undefined ? item.truncate : props.truncate
   item.maxWidth = item.maxWidth || props.defaultMaxWidth
   item.truncateLines = item.truncateLines || props.truncateLines
+  item.truncateMaxLength = item.truncateMaxLength || props.truncateMaxLength
   item.showTooltip = item.showTooltip !== undefined ? item.showTooltip : true
   // Only set condition if value exists, otherwise leave empty
   if (item.value !== undefined && item.value !== null && item.value !== '') {
@@ -1507,6 +1510,7 @@ onUnmounted(() => {
                                 :truncate="col.truncate !== false"
                                 :max-width="col.maxWidth"
                                 :truncate-lines="col.truncateLines || 1"
+                                :max-length="col.truncateMaxLength || 150"
                                 :show-tooltip="col.showTooltip !== false"
                                 :html="true"
                               />
@@ -1517,6 +1521,7 @@ onUnmounted(() => {
                                 :truncate="col.truncate !== false"
                                 :max-width="col.maxWidth"
                                 :truncate-lines="col.truncateLines || 1"
+                                :max-length="col.truncateMaxLength || 150"
                                 :show-tooltip="col.showTooltip !== false"
                                 :html="col.html"
                               />
@@ -1610,6 +1615,7 @@ onUnmounted(() => {
                                   :truncate="col.truncate !== false"
                                   :max-width="col.maxWidth"
                                   :truncate-lines="col.truncateLines || 1"
+                                  :max-length="col.truncateMaxLength || 150"
                                   :show-tooltip="col.showTooltip !== false"
                                   :html="false"
                                 />
@@ -1848,6 +1854,7 @@ onUnmounted(() => {
                               :truncate="col.truncate !== false"
                               :max-width="col.maxWidth"
                               :truncate-lines="col.truncateLines || 1"
+                              :max-length="col.truncateMaxLength || 150"
                               :show-tooltip="col.showTooltip !== false"
                               :html="true"
                             />
@@ -1858,6 +1865,7 @@ onUnmounted(() => {
                               :truncate="col.truncate !== false"
                               :max-width="col.maxWidth"
                               :truncate-lines="col.truncateLines || 1"
+                              :max-length="col.truncateMaxLength || 150"
                               :show-tooltip="col.showTooltip !== false"
                               :html="col.html"
                             />
@@ -1956,6 +1964,7 @@ onUnmounted(() => {
                                 :truncate="col.truncate !== false"
                                 :max-width="col.maxWidth"
                                 :truncate-lines="col.truncateLines || 1"
+                                :max-length="col.truncateMaxLength || 150"
                                 :show-tooltip="col.showTooltip !== false"
                                 :html="false"
                               />
