@@ -66,7 +66,7 @@ const cellStyle = computed(() => {
       'bh-truncate-multi': truncate && truncateLines > 1
     }"
     :style="cellStyle"
-    :data-tooltip="shouldShowTooltip ? tooltipContent : null"
+    :title="shouldShowTooltip ? tooltipContent : ''"
   >
     <template v-if="html">
       <span v-html="value"></span>
