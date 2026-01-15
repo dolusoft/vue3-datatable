@@ -1,6 +1,6 @@
 {
   "name": "@dolusoft/vue3-datatable",
-  "version": "1.8.40",
+  "version": "1.8.41",
   "description": "Vue3 Datatable - fully customizable & easy to use datatable library",
   "private": false,
   "type": "module",
