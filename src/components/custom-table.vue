@@ -274,7 +274,7 @@ const rowKeys = computed(() => {
 
 // Helper function for template to get row key
 const getRowKey = (index: number) => {
-  return uniqueKey.value ? rowKeys.value?.get(index) ?? index : index
+  return uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
 }
 
 // Helper function to check if row is expanded
@@ -910,7 +910,7 @@ const checkboxChange = (value: any) => {
     value.length === filterItems.value.length
 
   const rows = filterItems.value.filter((d, i) => {
-    const key = uniqueKey.value ? rowKeys.value?.get(i) ?? i : i
+    const key = uniqueKey.value ? (rowKeys.value?.get(i) ?? i) : i
     return selected.value.includes(key)
   })
 
@@ -921,7 +921,7 @@ watch(() => selected.value, checkboxChange)
 const selectAll = (checked: any) => {
   if (checked) {
     selected.value = filterItems.value.map((d, i) =>
-      uniqueKey.value ? rowKeys.value?.get(i) ?? i : i
+      uniqueKey.value ? (rowKeys.value?.get(i) ?? i) : i
     )
   } else {
     selected.value = []
@@ -1090,7 +1090,7 @@ const reset = () => {
 
 const getSelectedRows = () => {
   const rows = filterItems.value.filter((d, i) => {
-    const key = uniqueKey.value ? rowKeys.value?.get(i) ?? i : i
+    const key = uniqueKey.value ? (rowKeys.value?.get(i) ?? i) : i
     return selected.value.includes(key)
   })
   return rows
@@ -1106,14 +1106,14 @@ const clearSelectedRows = () => {
 
 const selectRow = (index: number) => {
   if (!isRowSelected(index)) {
-    const key = uniqueKey.value ? rowKeys.value?.get(index) ?? index : index
+    const key = uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
     selected.value.push(key)
   }
 }
 
 const unselectRow = (index: number) => {
   if (isRowSelected(index)) {
-    const key = uniqueKey.value ? rowKeys.value?.get(index) ?? index : index
+    const key = uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
     selected.value = selected.value.filter(d => d !== key)
   }
 }
@@ -1121,7 +1121,7 @@ const unselectRow = (index: number) => {
 const isRowSelected = (index: number) => {
   if (index >= filterItems.value.length) return false
 
-  const key = uniqueKey.value ? rowKeys.value?.get(index) ?? index : index
+  const key = uniqueKey.value ? (rowKeys.value?.get(index) ?? index) : index
   return selected.value.includes(key)
 }
 
@@ -1147,16 +1147,13 @@ const clearAllFilters = () => {
   emit('clearAllFilters')
 }
 
-let extracolumnlength = 0
-if (props.hasCheckbox) {
-  extracolumnlength++
-}
-if (props.hasSubtable) {
-  extracolumnlength++
-}
-if (props.hasRightPanel) {
-  extracolumnlength++
-}
+const extracolumnlength = computed(() => {
+  let count = 0
+  if (props.hasCheckbox) count++
+  if (props.hasSubtable) count++
+  if (props.hasRightPanel) count++
+  return count
+})
 
 // ============================================================================
 // FAZ I OPTIMIZATION 5: setInterval kaldırıldı - Gereksiz reactive update
@@ -1465,7 +1462,16 @@ onUnmounted(() => {
                                   : '',
                                 col.cellClass ? col.cellClass : ''
                               ]"
-                              @contextmenu="handleCellContextMenu($event, item, col, cellValue(item, col.field), i, j)"
+                              @contextmenu="
+                                handleCellContextMenu(
+                                  $event,
+                                  item,
+                                  col,
+                                  cellValue(item, col.field),
+                                  i,
+                                  j
+                                )
+                              "
                             >
                               <template v-if="slots[col.field]">
                                 <slot :name="col.field" :value="item"></slot>
@@ -1786,7 +1792,16 @@ onUnmounted(() => {
                                 : '',
                               col.cellClass ? col.cellClass : ''
                             ]"
-                            @contextmenu="handleCellContextMenu($event, item, col, cellValue(item, col.field), i, j)"
+                            @contextmenu="
+                              handleCellContextMenu(
+                                $event,
+                                item,
+                                col,
+                                cellValue(item, col.field),
+                                i,
+                                j
+                              )
+                            "
                           >
                             <template v-if="slots[col.field]">
                               <slot :name="col.field" :value="item"></slot>
