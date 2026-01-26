@@ -21,6 +21,7 @@ import ButtonExpand from './button-expand.vue'
 import ButtonRightPanel from './button-rightpanel.vue'
 import columnHeader from './column-header.vue'
 import iconCheck from './icon-check.vue'
+import TruncatedCell from './truncated-cell.vue'
 import type { ColumnDefinition } from '../model/column-model'
 import 'splitpanes/dist/splitpanes.css'
 
@@ -59,6 +60,7 @@ interface Props {
   sortDirection?: string
   columnFilter?: boolean
   columnFilterLang?: Record<string, string> | null
+  filterDebounce?: number // Debounce time for filter inputs in ms (default: 100)
   useNewColumnFilter?: boolean // Enable new DataTables-style filter with MUI X labels
   showFloatingFilterLabel?: boolean // Show floating label on filter input border (requires useNewColumnFilter)
   pagination?: boolean
@@ -98,6 +100,11 @@ interface Props {
   tableRightOffset?: number
   tableLeftOffset?: number
   initialLeftMenuState?: boolean
+  // Truncate options
+  truncate?: boolean // Enable text truncation globally (default: true)
+  defaultMaxWidth?: string // Default max-width for truncated cells (default: '400px')
+  truncateLines?: number // Default number of lines before truncating (default: 1)
+  truncateMaxLength?: number // Default max character length before truncating (default: 150)
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -131,6 +138,7 @@ const props = withDefaults(defineProps<Props>(), {
   sortDirection: 'asc',
   columnFilter: false,
   columnFilterLang: null,
+  filterDebounce: 100,
   useNewColumnFilter: false,
   showFloatingFilterLabel: false,
   pagination: true,
@@ -161,7 +169,12 @@ const props = withDefaults(defineProps<Props>(), {
   leftmenuDefaultWidth: 250,
   initialLeftMenuState: undefined,
   showResizeButton: false,
-  alwaysShowPagination: false
+  alwaysShowPagination: false,
+  // Truncate defaults
+  truncate: true,
+  defaultMaxWidth: '400px',
+  truncateLines: 1,
+  truncateMaxLength: 150
 })
 
 // set default columns values
@@ -175,6 +188,12 @@ for (const item of props.columns || []) {
   item.search = item.search !== undefined ? item.search : true
   item.sort = item.sort !== undefined ? item.sort : true
   item.html = item.html !== undefined ? item.html : false
+  // Truncate defaults
+  item.truncate = item.truncate !== undefined ? item.truncate : props.truncate
+  item.maxWidth = item.maxWidth || props.defaultMaxWidth
+  item.truncateLines = item.truncateLines || props.truncateLines
+  item.truncateMaxLength = item.truncateMaxLength || props.truncateMaxLength
+  item.showTooltip = item.showTooltip !== undefined ? item.showTooltip : true
   // Only set condition if value exists, otherwise leave empty
   if (item.value !== undefined && item.value !== null && item.value !== '') {
     item.condition = item.condition || 'Equal'
@@ -254,6 +273,9 @@ const uniqueKey = computed(() => {
 
 // Check if any column has active filter
 const hasAnyActiveFilter = ref(false)
+
+// Ref for column-header component to access flush methods
+const columnHeaderRef = ref<InstanceType<typeof columnHeader> | null>(null)
 
 const updateHasAnyActiveFilter = () => {
   hasAnyActiveFilter.value = props.columns.some((col: any) => {
@@ -723,6 +745,14 @@ defineExpose({
       }
     }
     return !!column
+  },
+  /**
+   * Flush all pending filter debounces
+   * Call this before getColumnFilters() when Enter is pressed
+   * to ensure all filter values are immediately processed
+   */
+  flushAllFilterDebounces() {
+    columnHeaderRef.value?.flushAllFilterDebounces?.()
   }
 })
 
@@ -1339,6 +1369,7 @@ onUnmounted(() => {
                       }"
                     >
                       <column-header
+                        ref="columnHeaderRef"
                         :all="props"
                         :expandedrows="expandedrows"
                         :currentSortColumn="currentSortColumn"
@@ -1462,27 +1493,35 @@ onUnmounted(() => {
                                   : '',
                                 col.cellClass ? col.cellClass : ''
                               ]"
-                              @contextmenu="
-                                handleCellContextMenu(
-                                  $event,
-                                  item,
-                                  col,
-                                  cellValue(item, col.field),
-                                  i,
-                                  j
-                                )
-                              "
+                              :style="{ maxWidth: col.truncate !== false ? col.maxWidth : undefined }"
+                              @contextmenu="handleCellContextMenu($event, item, col, cellValue(item, col.field), i, j)"
                             >
+                              <!-- Slots bypass truncation - user controls rendering -->
                               <template v-if="slots[col.field]">
                                 <slot :name="col.field" :value="item"></slot>
                               </template>
-                              <div
+                              <!-- cellRenderer with truncation -->
+                              <truncated-cell
                                 v-else-if="col.cellRenderer"
-                                v-html="col.cellRenderer(item)"
-                              ></div>
-                              <template v-else>
-                                {{ cellValue(item, col.field) }}
-                              </template>
+                                :value="col.cellRenderer(item)"
+                                :truncate="col.truncate !== false"
+                                :max-width="col.maxWidth"
+                                :truncate-lines="col.truncateLines || 1"
+                                :max-length="col.truncateMaxLength || 150"
+                                :show-tooltip="col.showTooltip !== false"
+                                :html="true"
+                              />
+                              <!-- Plain text with truncation -->
+                              <truncated-cell
+                                v-else
+                                :value="cellValue(item, col.field)"
+                                :truncate="col.truncate !== false"
+                                :max-width="col.maxWidth"
+                                :truncate-lines="col.truncateLines || 1"
+                                :max-length="col.truncateMaxLength || 150"
+                                :show-tooltip="col.showTooltip !== false"
+                                :html="col.html"
+                              />
                             </td>
                           </template>
                         </tr>
@@ -1561,16 +1600,22 @@ onUnmounted(() => {
                                   : '',
                                 col.cellClass ? col.cellClass : ''
                               ]"
+                              :style="{ maxWidth: col.truncate !== false ? col.maxWidth : undefined }"
                             >
                               <template
                                 v-if="
                                   item.cells.find(x => x.field == col.field)
                                 "
                               >
-                                {{
-                                  item.cells.find(x => x.field == col.field)
-                                    .text
-                                }}
+                                <truncated-cell
+                                  :value="item.cells.find(x => x.field == col.field).text"
+                                  :truncate="col.truncate !== false"
+                                  :max-width="col.maxWidth"
+                                  :truncate-lines="col.truncateLines || 1"
+                                  :max-length="col.truncateMaxLength || 150"
+                                  :show-tooltip="col.showTooltip !== false"
+                                  :html="false"
+                                />
                               </template>
                             </td>
                           </template>
@@ -1792,27 +1837,35 @@ onUnmounted(() => {
                                 : '',
                               col.cellClass ? col.cellClass : ''
                             ]"
-                            @contextmenu="
-                              handleCellContextMenu(
-                                $event,
-                                item,
-                                col,
-                                cellValue(item, col.field),
-                                i,
-                                j
-                              )
-                            "
+                            :style="{ maxWidth: col.truncate !== false ? col.maxWidth : undefined }"
+                            @contextmenu="handleCellContextMenu($event, item, col, cellValue(item, col.field), i, j)"
                           >
+                            <!-- Slots bypass truncation - user controls rendering -->
                             <template v-if="slots[col.field]">
                               <slot :name="col.field" :value="item"></slot>
                             </template>
-                            <div
+                            <!-- cellRenderer with truncation -->
+                            <truncated-cell
                               v-else-if="col.cellRenderer"
-                              v-html="col.cellRenderer(item)"
-                            ></div>
-                            <template v-else>
-                              {{ cellValue(item, col.field) }}
-                            </template>
+                              :value="col.cellRenderer(item)"
+                              :truncate="col.truncate !== false"
+                              :max-width="col.maxWidth"
+                              :truncate-lines="col.truncateLines || 1"
+                              :max-length="col.truncateMaxLength || 150"
+                              :show-tooltip="col.showTooltip !== false"
+                              :html="true"
+                            />
+                            <!-- Plain text with truncation -->
+                            <truncated-cell
+                              v-else
+                              :value="cellValue(item, col.field)"
+                              :truncate="col.truncate !== false"
+                              :max-width="col.maxWidth"
+                              :truncate-lines="col.truncateLines || 1"
+                              :max-length="col.truncateMaxLength || 150"
+                              :show-tooltip="col.showTooltip !== false"
+                              :html="col.html"
+                            />
                           </td>
                         </template>
                       </tr>
@@ -1898,13 +1951,20 @@ onUnmounted(() => {
                                 : '',
                               col.cellClass ? col.cellClass : ''
                             ]"
+                            :style="{ maxWidth: col.truncate !== false ? col.maxWidth : undefined }"
                           >
                             <template
                               v-if="item.cells.find(x => x.field == col.field)"
                             >
-                              {{
-                                item.cells.find(x => x.field == col.field).text
-                              }}
+                              <truncated-cell
+                                :value="item.cells.find(x => x.field == col.field).text"
+                                :truncate="col.truncate !== false"
+                                :max-width="col.maxWidth"
+                                :truncate-lines="col.truncateLines || 1"
+                                :max-length="col.truncateMaxLength || 150"
+                                :show-tooltip="col.showTooltip !== false"
+                                :html="false"
+                              />
                             </template>
                           </td>
                         </template>
