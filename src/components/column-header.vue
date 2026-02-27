@@ -116,6 +116,16 @@ const setupColumnWatches = () => {
             debounceTimers.set(col.field, null)
           }
 
+          // ── IMMEDIATE: Detect operator and update condition/label instantly ──
+          if (!isEmpty && (column.type === 'string' || column.type === 'String') && typeof newValue === 'string') {
+            const parsed = parseFilterInput(newValue)
+            if (parsed.isOperatorDetected && parsed.rules.length > 0) {
+              // Update condition immediately (floating label reflects operator)
+              column.condition = parsed.rules[0].condition
+              columnConditions.value[col.field] = parsed.rules[0].condition
+            }
+          }
+
           const processChange = () => {
             // Clear timer reference after execution
             debounceTimers.set(col.field, null)
@@ -133,11 +143,11 @@ const setupColumnWatches = () => {
               const parsed = parseFilterInput(newValue)
 
               if (parsed.isOperatorDetected && parsed.rules.length > 0) {
-                // Operator shortcut detected → use parser result
-                column.value = parsed.rules[0].value
-                column.condition = parsed.rules[0].condition
-                columnConditions.value[col.field] = parsed.rules[0].condition
-                column.parsedFilterRules = parsed.rules.length > 1 ? parsed.rules : undefined
+                // Keep RAW input in column.value (operators stay visible in input)
+                column.value = newValue.trim()
+                // Store ALL parsed rules with cleaned values (for backend use)
+                column.parsedFilterRules = parsed.rules
+                // Condition already set in immediate block above
                 emit('filterChange')
                 return
               }
