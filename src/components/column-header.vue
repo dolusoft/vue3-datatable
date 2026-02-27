@@ -131,9 +131,8 @@ const setupColumnWatches = () => {
             }
 
             if (isEmpty) {
-              // Input cleared → clear filter completely
-              column.condition = ''
-              columnConditions.value[col.field] = ''
+              // Input cleared → only clear value, PRESERVE condition
+              // Condition resets only via explicit user action (Clear Filter / Clear All)
             } else if (!columnConditions.value[col.field]) {
               // No condition selected yet → default to Equal
               column.condition = 'Equal'
@@ -281,9 +280,6 @@ watch(
           if (currentCondition !== colState.condition) {
             columnConditions.value[colState.field] = colState.condition
           }
-        } else if (!hasValue) {
-          // Clear condition when value is empty
-          columnConditions.value[colState.field] = ''
         }
       }
     })
