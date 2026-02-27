@@ -737,6 +737,8 @@ defineExpose({
       column.value = value
       // Set condition: use provided or default to Equal
       column.condition = condition || 'Equal'
+      // Clear any parser-generated rules (manual set overrides operator shortcuts)
+      column.parsedFilterRules = undefined
       // Trigger UI update in column-header
       filterUpdateTrigger.value++
       updateHasAnyActiveFilter()
@@ -1100,6 +1102,7 @@ const reset = () => {
   selectAll(false)
   for (let i = 0; i < props.columns.length; i++) {
     props.columns[i].value = ''
+    props.columns[i].parsedFilterRules = undefined
   }
   currentSearch.value = ''
   currentPageSize.value = oldPageSize
@@ -1167,6 +1170,7 @@ const clearAllFilters = () => {
     if (col.filter) {
       col.value = ''
       col.condition = ''
+      col.parsedFilterRules = undefined
     }
   }
   updateHasAnyActiveFilter()

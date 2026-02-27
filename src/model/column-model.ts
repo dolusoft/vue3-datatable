@@ -1,3 +1,5 @@
+import type { ParsedFilterRule } from './filter-input-parser'
+
 export interface ColumnDefinition {
   isUnique?: boolean
   field?: string
@@ -22,6 +24,8 @@ export interface ColumnDefinition {
   truncateLines?: number // Number of lines to show before truncating (default: 1)
   truncateMaxLength?: number // Max character length before truncating (default: 150)
   showTooltip?: boolean // Show tooltip on hover for truncated content (default: true)
+  // Parsed filter rules from operator shortcuts (auto-populated by filter-input-parser)
+  parsedFilterRules?: ParsedFilterRule[]
 }
 
 export interface FilterCondition {

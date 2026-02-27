@@ -14,6 +14,7 @@ import iconCheck from './icon-check.vue'
 import iconDash from './icon-dash.vue'
 import iconFilter from './icon-filter.vue'
 import { FILTER_CONDITIONS } from '../model/filter-conditions'
+import { parseFilterInput } from '../model/filter-input-parser'
 
 const selectedAll: any = ref(null)
 
@@ -119,21 +120,38 @@ const setupColumnWatches = () => {
             // Clear timer reference after execution
             debounceTimers.set(col.field, null)
 
-            // Set value (trim strings)
-            if (column.type === 'string' || column.type === 'String') {
-              column.value = isEmpty
-                ? ''
-                : typeof newValue === 'string'
-                ? newValue.trim()
-                : newValue
-            } else {
-              column.value = isEmpty ? '' : newValue
+            if (isEmpty) {
+              // Input cleared → clear value and parsed rules, PRESERVE condition
+              column.value = ''
+              column.parsedFilterRules = undefined
+              emit('filterChange')
+              return
             }
 
-            if (isEmpty) {
-              // Input cleared → only clear value, PRESERVE condition
-              // Condition resets only via explicit user action (Clear Filter / Clear All)
-            } else if (!columnConditions.value[col.field]) {
+            // Parse operator shortcuts for string columns
+            if ((column.type === 'string' || column.type === 'String') && typeof newValue === 'string') {
+              const parsed = parseFilterInput(newValue)
+
+              if (parsed.isOperatorDetected && parsed.rules.length > 0) {
+                // Operator shortcut detected → use parser result
+                column.value = parsed.rules[0].value
+                column.condition = parsed.rules[0].condition
+                columnConditions.value[col.field] = parsed.rules[0].condition
+                column.parsedFilterRules = parsed.rules.length > 1 ? parsed.rules : undefined
+                emit('filterChange')
+                return
+              }
+
+              // No operator detected → existing behavior
+              column.value = newValue.trim()
+              column.parsedFilterRules = undefined
+            } else {
+              // Non-string type → existing behavior
+              column.value = newValue
+              column.parsedFilterRules = undefined
+            }
+
+            if (!columnConditions.value[col.field]) {
               // No condition selected yet → default to Equal
               column.condition = 'Equal'
               columnConditions.value[col.field] = 'Equal'
@@ -220,6 +238,7 @@ const handleClearAllFilters = () => {
       if (col.filter) {
         col.value = ''
         col.condition = ''
+        col.parsedFilterRules = undefined
       }
     })
   }
@@ -351,19 +370,31 @@ const getConditionLabel = (col: any) => {
   const conditions = FILTER_CONDITIONS[type] || FILTER_CONDITIONS.string
   const found = conditions.find((c: any) => c.value === condition)
 
+  let label = ''
   if (found) {
     // Check for translation
     if (props.columnFilterLang && props.columnFilterLang[condition]) {
-      return props.columnFilterLang[condition]
+      label = props.columnFilterLang[condition]
+    } else {
+      label = found.label
     }
-    return found.label
+  } else {
+    label = condition
   }
 
-  return condition
+  // Show count for multi-value filters (comma-separated operator shortcuts)
+  if (col.parsedFilterRules && col.parsedFilterRules.length > 1) {
+    label += ` (${col.parsedFilterRules.length})`
+  }
+
+  return label
 }
 
 // Get input placeholder based on condition
 const getInputPlaceholder = (col: any) => {
+  if (col.type === 'string' || col.type === 'String') {
+    return '*..* | ..* | *.. | !..'
+  }
   return ''
 }
 
@@ -384,6 +415,7 @@ const handleClearFilter = (col: any) => {
   filterInputs.value[col.field] = ''
   col.value = ''
   col.condition = ''
+  col.parsedFilterRules = undefined
   columnConditions.value[col.field] = ''
   // Reset sort if this column is currently sorted
   if (props.currentSortColumn === col.field) {
