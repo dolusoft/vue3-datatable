@@ -118,11 +118,23 @@ const setupColumnWatches = () => {
 
           // ── IMMEDIATE: Detect operator and update condition/label instantly ──
           if (!isEmpty && (column.type === 'string' || column.type === 'String') && typeof newValue === 'string') {
-            const parsed = parseFilterInput(newValue)
-            if (parsed.isOperatorDetected && parsed.rules.length > 0) {
-              // Update condition immediately (floating label reflects operator)
-              column.condition = parsed.rules[0].condition
-              columnConditions.value[col.field] = parsed.rules[0].condition
+            const v = newValue.trim()
+
+            if (v === '*' || v === '!*') {
+              // Typing in progress — show likely condition hint
+              const hint = v.startsWith('!') ? 'NotContains' : 'Contains'
+              column.condition = hint
+              columnConditions.value[col.field] = hint
+            } else if (v === '!') {
+              column.condition = 'NotEqual'
+              columnConditions.value[col.field] = 'NotEqual'
+            } else {
+              // Full parse for accurate detection
+              const parsed = parseFilterInput(v)
+              if (parsed.isOperatorDetected && parsed.rules.length > 0) {
+                column.condition = parsed.rules[0].condition
+                columnConditions.value[col.field] = parsed.rules[0].condition
+              }
             }
           }
 
