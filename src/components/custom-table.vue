@@ -537,23 +537,25 @@ const filteredRows = computed(() => {
       rows = final
     }
 
-    // sort rows - Use cached collator
-    const isNumeric =
-      props.columns.find(col => col.field == currentSortColumn.value)?.type ===
-      'number'
-    const collator = getCollator(isNumeric || false)
-    const sortOrder = currentSortDirection.value === 'desc' ? -1 : 1
+    // sort rows - Use cached collator (skip if no sort column)
+    if (currentSortColumn.value) {
+      const isNumeric =
+        props.columns.find(col => col.field == currentSortColumn.value)?.type ===
+        'number'
+      const collator = getCollator(isNumeric || false)
+      const sortOrder = currentSortDirection.value === 'desc' ? -1 : 1
 
-    rows.sort((a: any, b: any): number => {
-      const valA = currentSortColumn.value
-        ?.split('.')
-        .reduce((obj: any, key: string) => obj?.[key], a)
-      const valB = currentSortColumn.value
-        ?.split('.')
-        .reduce((obj: any, key: string) => obj?.[key], b)
+      rows.sort((a: any, b: any): number => {
+        const valA = currentSortColumn.value
+          ?.split('.')
+          .reduce((obj: any, key: string) => obj?.[key], a)
+        const valB = currentSortColumn.value
+          ?.split('.')
+          .reduce((obj: any, key: string) => obj?.[key], b)
 
-      return collator.compare(valA, valB) * sortOrder
-    })
+        return collator.compare(valA, valB) * sortOrder
+      })
+    }
   }
 
   return rows
@@ -908,6 +910,20 @@ const changePageSize = () => {
 watch(() => currentPageSize.value, changePageSize)
 
 const sortChange = (field: string, specifiedDirection?: string) => {
+  // Empty field = clear sort completely
+  if (!field) {
+    currentSortColumn.value = ''
+    currentSortDirection.value = ''
+    selectAll(false)
+    filterRows()
+    if (props.isServerMode) {
+      changeForServer('sort')
+    } else {
+      emit('sortChange', { offset: 0, limit: currentPageSize.value, field: '', direction: '' })
+    }
+    return
+  }
+
   // Use specified direction or auto-toggle
   let direction = specifiedDirection || 'asc'
 
@@ -1174,13 +1190,18 @@ const clearAllFilters = () => {
     }
   }
 
-  // Clear sort completely
+  // Clear sort completely (goes through sortChange flow for proper event emission)
   currentSortColumn.value = ''
   currentSortDirection.value = ''
 
   updateHasAnyActiveFilter()
-  // Trigger filter change
-  filterChange()
+  // Trigger filter+sort change to server
+  if (props.isServerMode) {
+    changeForServer('filter', true)
+  } else {
+    filterRows()
+    emit('filterChange', props.columns)
+  }
 
   // Emit for parent notification
   emit('clearAllFilters')

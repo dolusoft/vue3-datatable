@@ -280,7 +280,10 @@ const hasAnyActiveFilterLocal = computed(() => {
     val => val !== '' && val !== null && val !== undefined
   )
 
-  return hasInputValue || hasConditionValue
+  // Check if any sort is active
+  const hasSortActive = props.currentSortColumn !== '' && props.currentSortColumn !== undefined
+
+  return hasInputValue || hasConditionValue || hasSortActive
 })
 
 // Initialize filter inputs from columns
@@ -439,9 +442,9 @@ const handleClearFilter = (col: any) => {
   col.condition = ''
   col.parsedFilterRules = undefined
   columnConditions.value[col.field] = ''
-  // Reset sort if this column is currently sorted
+  // Clear sort if this column is currently sorted
   if (props.currentSortColumn === col.field) {
-    emit('sortChange', props.all.sortColumn || col.field, 'asc')
+    emit('sortChange', '', '')
   }
   emit('filterChange')
 }
