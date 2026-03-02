@@ -655,32 +655,34 @@ defineExpose({
           {{ col.title }}
           <span
             v-if="props.all.sortable && col.sort"
-            class="bh-ml-3 bh-sort bh-flex bh-items-center"
-            :class="[props.currentSortColumn, props.currentSortDirection]"
+            class="bh-ml-1.5 bh-sort bh-inline-flex bh-items-center bh-shrink-0"
           >
-            <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-              <polygon
-                points="3.11,6.25 10.89,6.25 7,1.75 "
+            <!-- Active sort: single direction arrow -->
+            <svg
+              v-if="currentSortColumn === col.field"
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              class="bh-text-primary bh-transition-transform bh-duration-150"
+              :class="[currentSortDirection === 'desc' ? 'bh-rotate-180' : '']"
+            >
+              <path
+                d="M8 3.5L12.5 9.5H3.5L8 3.5Z"
                 fill="currentColor"
-                class="bh-text-black/20"
-                :class="[
-                  currentSortColumn === col.field &&
-                  currentSortDirection === 'asc'
-                    ? '!bh-text-primary'
-                    : ''
-                ]"
-              ></polygon>
-              <polygon
-                points="7,12.25 10.89,7.75 3.11,7.75 "
-                fill="currentColor"
-                class="bh-text-black/20"
-                :class="[
-                  currentSortColumn === col.field &&
-                  currentSortDirection === 'desc'
-                    ? '!bh-text-primary'
-                    : ''
-                ]"
-              ></polygon>
+              />
+            </svg>
+            <!-- Inactive sort: subtle dual arrows hint -->
+            <svg
+              v-else
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              class="bh-text-black/15 dark:bh-text-white/15 bh-transition-colors hover:bh-text-black/40 dark:hover:bh-text-white/40"
+            >
+              <path d="M8 3L11.5 7H4.5L8 3Z" fill="currentColor" />
+              <path d="M8 13L4.5 9H11.5L8 13Z" fill="currentColor" />
             </svg>
           </span>
         </div>
