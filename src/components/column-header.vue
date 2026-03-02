@@ -664,8 +664,8 @@ defineExpose({
               height="14"
               viewBox="0 0 16 16"
               fill="none"
-              class="bh-text-primary bh-transition-transform bh-duration-150"
-              :class="[currentSortDirection === 'desc' ? 'bh-rotate-180' : '']"
+              class="bh-text-primary"
+              :style="{ transform: currentSortDirection === 'desc' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 150ms ease' }"
             >
               <path
                 d="M8 3.5L12.5 9.5H3.5L8 3.5Z"
