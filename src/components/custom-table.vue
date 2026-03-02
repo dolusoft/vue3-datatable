@@ -1173,6 +1173,11 @@ const clearAllFilters = () => {
       col.parsedFilterRules = undefined
     }
   }
+
+  // Clear sort completely
+  currentSortColumn.value = ''
+  currentSortDirection.value = ''
+
   updateHasAnyActiveFilter()
   // Trigger filter change
   filterChange()
