@@ -713,7 +713,7 @@ defineExpose({
                 @keydown.enter="handleFilterEnter(col.field)"
               />
               <template
-                v-else-if="col.type === 'date' || col.type === 'DateTime'"
+                v-else-if="col.type === 'date' || col.type === 'DateTime' || col.type === 'datetime'"
               >
                 <slot
                   v-if="props.hasFilterDatetimeSlot"
@@ -790,7 +790,7 @@ defineExpose({
                 @keydown.enter="handleFilterEnter(col.field)"
               />
               <template
-                v-else-if="col.type === 'date' || col.type === 'DateTime'"
+                v-else-if="col.type === 'date' || col.type === 'DateTime' || col.type === 'datetime'"
               >
                 <slot
                   v-if="props.hasFilterDatetimeSlot"
